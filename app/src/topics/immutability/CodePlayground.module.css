@@ -1,0 +1,17 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.reveal {
+  align-self: flex-start;
+}
+
+.item {
+  min-width: 0;
+}
+
+.empty {
+  color: var(--text-muted);
+}

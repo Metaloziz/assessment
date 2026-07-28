@@ -1,0 +1,54 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.rail {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  min-height: 4.5rem;
+  padding: 0.75rem;
+  border-radius: var(--radius);
+  border: 1px dashed var(--border);
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 4.2rem;
+  padding: 0.55rem 0.65rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+}
+
+.block small {
+  color: var(--text-faint);
+  font-size: 0.65rem;
+}
+
+.current {
+  border-color: var(--accent-dim);
+  background: var(--accent-glow);
+}
+
+.old {
+  opacity: 0.72;
+}
+
+.note {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 1rem;
+  line-height: var(--line-height-body);
+}

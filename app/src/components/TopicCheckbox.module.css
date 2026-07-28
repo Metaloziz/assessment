@@ -1,0 +1,55 @@
+.root {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  color: var(--text-muted);
+}
+
+.box {
+  display: inline-grid;
+  place-items: center;
+  width: 0.95rem;
+  height: 0.95rem;
+  border: 1.5px solid rgba(255, 255, 255, 0.22);
+  border-radius: 3px;
+  background: transparent;
+  font-size: 0.65rem;
+  line-height: 1;
+  color: #141414;
+  transition: border-color 0.12s ease, background 0.12s ease;
+}
+
+.root:hover .box {
+  border-color: rgba(255, 255, 255, 0.4);
+  box-shadow: none;
+}
+
+.sm .box {
+  width: 0.9rem;
+  height: 0.9rem;
+  font-size: 0.6rem;
+}
+
+.md .box {
+  width: 1.05rem;
+  height: 1.05rem;
+}
+
+.checked .box {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #141414;
+}
+
+.label {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+}
+
+.checked .label {
+  color: var(--text);
+}

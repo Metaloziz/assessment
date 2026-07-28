@@ -1,0 +1,29 @@
+.square {
+  display: inline-block;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.sm {
+  width: 0.85rem;
+  height: 0.85rem;
+  border-radius: 3px;
+}
+
+.md {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 3px;
+}
+
+.junior {
+  background: var(--level-junior);
+}
+
+.middle {
+  background: var(--level-middle);
+}
+
+.senior {
+  background: var(--level-senior);
+}

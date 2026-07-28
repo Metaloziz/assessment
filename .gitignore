@@ -8,3 +8,7 @@ Thumbs.db
 # Temp
 *.tmp
 *.log
+
+# App
+app/node_modules/
+app/dist/

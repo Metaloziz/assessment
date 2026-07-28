@@ -1,8 +1,39 @@
 # Assessment — подготовка к собеседованию
 
-Конспект тем из диалога. Каждая тема — отдельный файл в `topics/`.
+Конспект тем + веб-приложение для прокачки к senior assessment.
 
-## Формат ответа
+## Приложение (`app/`)
+
+Тёмный RemNote-like UI: список тем, чекбоксы «пройдено», теория из markdown, GSAP-лаборатория для иммутабельности.
+
+Визуальная тема (Cursor IDE): [app/THEME.md](app/THEME.md)
+
+```bash
+cd app
+npm install
+npm run dev
+```
+
+Сборка:
+
+```bash
+cd app
+npm run build
+npm run preview
+```
+
+### GitHub Pages
+
+- `base`: `/assessment/`
+- Роутинг: HashRouter (`/#/topics/...`)
+- Workflow: [`.github/workflows/deploy-pages.yml`](.github/workflows/deploy-pages.yml)
+
+В Settings → Pages выберите **GitHub Actions**. После пуша сайт будет на:
+`https://metaloziz.github.io/assessment/`
+
+Прогресс чекбоксов хранится в `localStorage` (`assessment-progress`).
+
+## Формат заметок (`topics/`)
 
 1. **Тема**
 2. **Главное в одну фразу**
@@ -38,3 +69,14 @@
 | 21 | [21-git-worktree.md](topics/21-git-worktree.md) | git worktree |
 | 22 | [22-unit-tests-purpose.md](topics/22-unit-tests-purpose.md) | Назначение unit-тестов |
 | 23 | [23-testing-tools-principles.md](topics/23-testing-tools-principles.md) | Принципы работы инструмента тестирования |
+| 24 | [24-devtools-lighthouse.md](topics/24-devtools-lighthouse.md) | DevTools / Lighthouse |
+| 25 | [25-preload-prefetch-async-defer.md](topics/25-preload-prefetch-async-defer.md) | Preload, prefetch, async, defer |
+| 26 | [26-lazy-loading-critical-path.md](topics/26-lazy-loading-critical-path.md) | Lazy-loading и critical path |
+| 27 | [27-server-performance-metrics.md](topics/27-server-performance-metrics.md) | Метрики серверной производительности |
+| 28 | [28-git-purpose.md](topics/28-git-purpose.md) | Назначение системы Git |
+| 29 | [29-git-pull-push-commit-fetch.md](topics/29-git-pull-push-commit-fetch.md) | pull, push, commit, fetch |
+| 30 | [30-git-init-config-checkout-merge.md](topics/30-git-init-config-checkout-merge.md) | init, config, checkout, merge |
+| 31 | [31-git-switch.md](topics/31-git-switch.md) | git switch |
+| 32 | [32-git-restore.md](topics/32-git-restore.md) | git restore |
+| 33 | [33-git-grep.md](topics/33-git-grep.md) | git grep |
+| 34 | [34-git-lfs.md](topics/34-git-lfs.md) | Git LFS |
