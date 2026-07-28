@@ -76,18 +76,6 @@ export function TopicSidebar() {
         </div>
       </div>
 
-      <div className={styles.legend} aria-label="Уровни">
-        <span className={styles.legendItem}>
-          <i className={styles.legendJunior} /> Junior
-        </span>
-        <span className={styles.legendItem}>
-          <i className={styles.legendMiddle} /> Middle
-        </span>
-        <span className={styles.legendItem}>
-          <i className={styles.legendSenior} /> Senior
-        </span>
-      </div>
-
       <div className={styles.searchWrap}>
         <input
           className={styles.search}
@@ -111,9 +99,6 @@ export function TopicSidebar() {
                 onClick={() => toggleGroup(group.id)}
                 aria-expanded={!isCollapsed}
               >
-                <span className={styles.groupChevron} aria-hidden>
-                  {isCollapsed ? '▸' : '▾'}
-                </span>
                 <span className={styles.groupTitle}>{group.title}</span>
                 <span className={styles.groupCount}>
                   {groupDone}/{groupTopics.length}
@@ -136,7 +121,7 @@ export function TopicSidebar() {
                             `${styles.page} ${isActive ? styles.active : ''}`
                           }
                         >
-                          <LevelBadge level={topic.level} size="md" />
+                          <LevelBadge level={topic.level} size="sm" />
                           <span className={styles.title}>{topic.title}</span>
                           {topic.hasLab ? <span className={styles.lab}>lab</span> : null}
                         </NavLink>

@@ -22,12 +22,15 @@ function matchSection(line: string): TopicSectionKey | null {
 function extractTitle(themeSection: string | undefined, fallback: string): string {
   if (!themeSection) return fallback
   const bold = themeSection.match(/\*\*([^*]+)\*\*/)
-  if (bold?.[1]) return bold[1].trim()
-  const line = themeSection
-    .split('\n')
-    .map((l) => l.trim())
-    .find((l) => l && !l.startsWith('#') && l !== '---')
-  return line?.replace(/^[*_]+|[*_]+$/g, '') ?? fallback
+  const raw = bold?.[1]
+    ? bold[1].trim()
+    : (themeSection
+        .split('\n')
+        .map((l) => l.trim())
+        .find((l) => l && !l.startsWith('#') && l !== '---')
+        ?.replace(/^[*_]+|[*_]+$/g, '') ?? fallback)
+  // Убрать Notion-маркеры уровня вроде (🟩)/(🟧)/(🟪)
+  return raw.replace(/\s*\([\u{1F7E5}-\u{1F7EB}]\)/gu, '').trim() || fallback
 }
 
 function extractOneLiner(section: string | undefined): string {

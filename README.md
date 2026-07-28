@@ -80,3 +80,13 @@ npm run preview
 | 32 | [32-git-restore.md](topics/32-git-restore.md) | git restore |
 | 33 | [33-git-grep.md](topics/33-git-grep.md) | git grep |
 | 34 | [34-git-lfs.md](topics/34-git-lfs.md) | Git LFS |
+| 35 | [35-jest-unit-tests.md](topics/35-jest-unit-tests.md) | unit-тесты — Jest |
+| 36 | [36-aaa-aas-patterns.md](topics/36-aaa-aas-patterns.md) | Паттерны AAA, AAS |
+| 37 | [37-mocks.md](topics/37-mocks.md) | Моки |
+| 38 | [38-tdd.md](topics/38-tdd.md) | Принцип TDD |
+| 39 | [39-enzyme-rtl.md](topics/39-enzyme-rtl.md) | Enzyme / React Testing Library |
+| 40 | [40-stubs.md](topics/40-stubs.md) | Стабы |
+| 41 | [41-bdd.md](topics/41-bdd.md) | Принцип BDD |
+| 42 | [42-coverage.md](topics/42-coverage.md) | Coverage |
+| 43 | [43-e2e-cypress.md](topics/43-e2e-cypress.md) | E2E / Cypress |
+| 44 | [44-code-instrumentation.md](topics/44-code-instrumentation.md) | Инструментализация кода |

@@ -96,40 +96,6 @@
   box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 
-.legend {
-  display: flex;
-  gap: 0.65rem;
-  flex-wrap: wrap;
-  padding: 0 0.65rem 0.25rem;
-}
-
-.legendItem {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  font-size: 0.68rem;
-  color: var(--text-faint);
-}
-
-.legendItem i {
-  width: 0.7rem;
-  height: 0.7rem;
-  border-radius: 2px;
-  display: inline-block;
-}
-
-.legendJunior {
-  background: var(--level-junior);
-}
-
-.legendMiddle {
-  background: var(--level-middle);
-}
-
-.legendSenior {
-  background: var(--level-senior);
-}
-
 .list {
   overflow: auto;
   display: flex;
@@ -145,7 +111,7 @@
 
 .groupHeader {
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: 1fr auto;
   gap: 0.35rem;
   align-items: center;
   width: 100%;
@@ -161,13 +127,6 @@
 .groupHeader:hover {
   background: rgba(255, 255, 255, 0.04);
   color: var(--text);
-}
-
-.groupChevron {
-  font-size: 0.62rem;
-  color: var(--text-faint);
-  width: 0.75rem;
-  line-height: 1;
 }
 
 .groupTitle {

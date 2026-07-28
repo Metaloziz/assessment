@@ -86,8 +86,18 @@ export const TOPIC_META: Record<
   '20-git-bisect': { groupId: 'git', level: 'senior', sortInGroup: 12 },
   '21-git-worktree': { groupId: 'git', level: 'senior', sortInGroup: 13 },
 
-  // Тестирование
+  // Тестирование (порядок как в Notion «Тестирование»)
   '22-unit-tests-purpose': { groupId: 'testing', level: 'junior', sortInGroup: 1 },
+  '35-jest-unit-tests': { groupId: 'testing', level: 'junior', sortInGroup: 2 },
+  '36-aaa-aas-patterns': { groupId: 'testing', level: 'junior', sortInGroup: 3 },
+  '37-mocks': { groupId: 'testing', level: 'middle', sortInGroup: 4 },
+  '38-tdd': { groupId: 'testing', level: 'middle', sortInGroup: 5 },
+  '39-enzyme-rtl': { groupId: 'testing', level: 'middle', sortInGroup: 6 },
+  '40-stubs': { groupId: 'testing', level: 'middle', sortInGroup: 7 },
+  '41-bdd': { groupId: 'testing', level: 'middle', sortInGroup: 8 },
+  '42-coverage': { groupId: 'testing', level: 'middle', sortInGroup: 9 },
+  '43-e2e-cypress': { groupId: 'testing', level: 'middle', sortInGroup: 10 },
+  '44-code-instrumentation': { groupId: 'testing', level: 'senior', sortInGroup: 11 },
   '23-testing-tools-principles': { groupId: 'testing', level: 'senior', sortInGroup: 12 },
 
   // JS / data
