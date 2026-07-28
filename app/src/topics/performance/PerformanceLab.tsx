@@ -3,7 +3,6 @@ import gsap from 'gsap'
 import { useGSAP } from '@gsap/react'
 import { LighthouseAudit } from './LighthouseAudit'
 import { TimelineSketch } from './TimelineSketch'
-import { ToolPicker } from './ToolPicker'
 import { LabVsField } from './LabVsField'
 import styles from './PerformanceLab.module.css'
 
@@ -43,12 +42,6 @@ export function PerformanceLab() {
           Упрощённая запись: long task, layout/paint, сеть и маркеры FCP / LCP.
         </p>
         <TimelineSketch />
-      </section>
-
-      <section className={`labSection ${styles.section}`}>
-        <h2 className={styles.title}>Какой инструмент?</h2>
-        <p className={styles.lead}>Сценарий → выберите вкладку DevTools или Lighthouse.</p>
-        <ToolPicker />
       </section>
 
       <section className={`labSection ${styles.section}`}>

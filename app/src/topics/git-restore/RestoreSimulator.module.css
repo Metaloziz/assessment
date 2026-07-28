@@ -1,0 +1,138 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.fileMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.fileName {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  color: var(--accent-bright);
+  font-weight: 600;
+}
+
+.flags {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.flagClean,
+.flagDirty,
+.flagStaged {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0.15rem 0.4rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+}
+
+.flagClean {
+  color: var(--ok);
+  border-color: rgba(137, 209, 133, 0.4);
+  background: rgba(137, 209, 133, 0.1);
+}
+
+.flagDirty {
+  color: var(--warn);
+  border-color: rgba(220, 220, 170, 0.4);
+  background: rgba(220, 220, 170, 0.1);
+}
+
+.flagStaged {
+  color: var(--accent-bright);
+  border-color: rgba(129, 161, 193, 0.45);
+  background: var(--accent-glow);
+}
+
+.layers {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.layer {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-panel);
+  overflow: hidden;
+}
+
+.flash {
+  border-color: var(--accent);
+}
+
+.layerHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.35rem 0.55rem;
+  border-bottom: 1px solid var(--border-soft);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.layerTitle {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.layerHint {
+  font-size: 0.7rem;
+  color: var(--text-faint);
+}
+
+.code {
+  margin: 0;
+  padding: 0.5rem 0.55rem;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  line-height: 1.4;
+  color: var(--text-muted);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.terminal {
+  margin: 0;
+  padding: 0.55rem 0.65rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: #121212;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  line-height: 1.45;
+  color: var(--text-muted);
+  min-height: 4.5rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.cmd {
+  color: var(--accent-bright);
+}
+
+.ok {
+  color: var(--ok);
+}
+
+.err {
+  color: var(--danger);
+}
