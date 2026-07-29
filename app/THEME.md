@@ -20,20 +20,12 @@
 
 | Токен | Значение | Назначение |
 |-------|----------|------------|
-| `--bg-deep` | `#191919` | Фон чтения / main (как Notion dark) |
-| `--bg-panel` | `#151515` | Сайдбар |
-| `--bg-elevated` | `#202020` | Карточки, code chrome |
-| `--bg-hover` | `#2a2a2a` | Hover строк |
-| `--bg-active` | `#2f2f2f` | Active row / secondary surfaces |
-| `--border` | `#2b2b2b` | Разделители |
-| `--text` | `#e6e6e6` | Основной текст |
-| `--text-muted` | `#9a9a9a` | Вторичный |
-| `--text-faint` | `#6b6b6b` | Мета / номера |
-| `--accent` | `#81a1c1` | Active indicator, primary btn |
-| `--accent-bright` | `#a8c7e8` | Ссылки, hover primary |
-| `--selection` | `#264f78` | Выделение текста |
-| `--danger` | `#f48771` | Destructive actions |
-| `--ok` | `#89d185` | Успех / immutable «good» |
+| `--bg-deep` | `#191919` | Фон чтения / main (Notion dark) |
+| `--bg-panel` | `#202020` | Сайдбар / lab chrome |
+| `--bg-elevated` / `--code-bg` | `#252525` | Карточки, code blocks |
+| `--text` | `#ffffffd9` | Основной текст теории |
+| `--text-muted` | `#9b9b9b` | Вторичный |
+| `--accent` | `#69b1ff` | Notion-like blue |
 
 ---
 
@@ -68,8 +60,8 @@ Ghost: более светлая рамка (`#4a4a4a`), не «серое на 
 
 ## Layout
 
-- **Sidebar ~300px** — Notion-like list: checkbox + цветной квадрат уровня + название; soft hover, без IDE left-border.
-- **Main** — непрерывный скролл сегментов: ответ → запомнить → описание → код → ссылки; при наличии lab — правая колонка «Лаборатория» всегда видна.
+- **Sidebar ~300px** — Notion-like list: checkbox + цветной квадрат уровня + название; soft hover, без IDE left-border. Можно скрыть (`»` / `«`), состояние в `assessment-layout`.
+- **Main** — непрерывный скролл сегментов с широкими боковыми отступами (Notion reading). При lab: слева лаборатория, справа теория; ширины тянутся за разделитель.
 
 ---
 

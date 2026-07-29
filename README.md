@@ -35,9 +35,11 @@ npm run preview
 
 ## Формат заметок (`topics/`)
 
+См. [TOPIC_FORMAT.md](TOPIC_FORMAT.md).
+
 1. **Тема**
 2. **Главное в одну фразу**
-3. **Ответ для собеседования**
+3. **Суть** (раньше: «Ответ для собеседования»; в UI — «Суть»)
 4. **Самое главное запомнить**
 5. **Описание**
 6. **Ссылки**
@@ -90,3 +92,15 @@ npm run preview
 | 42 | [42-coverage.md](topics/42-coverage.md) | Coverage |
 | 43 | [43-e2e-cypress.md](topics/43-e2e-cypress.md) | E2E / Cypress |
 | 44 | [44-code-instrumentation.md](topics/44-code-instrumentation.md) | Инструментализация кода |
+| 45 | [45-todo-jsdoc-tsdoc.md](topics/45-todo-jsdoc-tsdoc.md) | TODO, jsDoc / tsDoc в API |
+| 46 | [46-dry-kiss-yagni.md](topics/46-dry-kiss-yagni.md) | DRY, KISS, YAGNI |
+| 47 | [47-formatting-vertical.md](topics/47-formatting-vertical.md) | Вертикальное форматирование |
+| 48 | [48-refactoring-principles-clean.md](topics/48-refactoring-principles-clean.md) | Рефакторинг: чище, без новой функциональности |
+| 49 | [49-refactoring-principles-tests.md](topics/49-refactoring-principles-tests.md) | Рефакторинг: сначала тесты |
+| 50 | [50-dirty-code-properties.md](topics/50-dirty-code-properties.md) | Свойства «грязного кода» |
+| 51 | [51-refactoring-methods.md](topics/51-refactoring-methods.md) | Методы рефакторинга |
+| 52 | [52-apo.md](topics/52-apo.md) | APO |
+| 53 | [53-bduf.md](topics/53-bduf.md) | BDUF |
+| 54 | [54-refactoring-design-patterns.md](topics/54-refactoring-design-patterns.md) | Рефакторинг через паттерны |
+| 55 | [55-legacy-code-approaches.md](topics/55-legacy-code-approaches.md) | Определение легаси кода |
+| 56 | [56-dead-code-tools.md](topics/56-dead-code-tools.md) | ts-prune, statoscope |

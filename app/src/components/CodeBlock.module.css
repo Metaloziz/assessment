@@ -1,18 +1,31 @@
 .wrap {
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--bg-elevated);
+  border: none;
+  border-radius: 6px;
+  background: var(--code-bg);
   overflow: hidden;
-  margin: 0.75rem 0 1rem;
+  margin: 0.85rem 0 1.15rem;
+  box-shadow: none;
+}
+
+.wrap :global(pre),
+.wrap :global(code),
+.wrap :global(span) {
+  background: transparent !important;
+  text-shadow: none !important;
+}
+
+.wrap :global(.token.entity) {
+  background: transparent !important;
 }
 
 .meta {
-  padding: 0.3rem 0.7rem;
-  border-bottom: 1px solid var(--border-soft);
+  padding: 0.45rem 1rem 0;
   color: var(--text-faint);
-  font-size: 0.65rem;
-  text-transform: lowercase;
-  letter-spacing: 0.04em;
-  font-family: var(--font-mono);
-  background: var(--bg-panel);
+  font-size: 0.7rem;
+  text-transform: capitalize;
+  letter-spacing: 0.02em;
+  font-family: var(--font-sans);
+  background: transparent;
+  border: none;
+  text-align: right;
 }

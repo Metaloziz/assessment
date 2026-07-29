@@ -4,7 +4,7 @@ import { resolveTopicMeta, TOPIC_GROUPS } from './groups'
 const SECTION_MAP: Array<{ key: TopicSectionKey; patterns: RegExp[] }> = [
   { key: 'theme', patterns: [/^#\s*1\.\s*Тема/i] },
   { key: 'oneLiner', patterns: [/^#\s*2\.\s*Главное/i] },
-  { key: 'interview', patterns: [/^#\s*3\.\s*Ответ/i] },
+  { key: 'interview', patterns: [/^#\s*3\.\s*Суть/i, /^#\s*3\.\s*Ответ/i] },
   { key: 'remember', patterns: [/^#\s*4\.\s*Самое главное/i] },
   { key: 'description', patterns: [/^#\s*5\.\s*Описание/i] },
   { key: 'links', patterns: [/^#\s*6\.\s*Ссылки/i] },
@@ -105,7 +105,8 @@ export function parseTopicMd(id: string, raw: string, order: number): TopicDetai
       id === '01-immutability-js' ||
       id === '24-devtools-lighthouse' ||
       id === '31-git-switch' ||
-      id === '32-git-restore',
+      id === '32-git-restore' ||
+      id === '56-dead-code-tools',
     groupId: meta.groupId,
     groupTitle,
     level: meta.level,

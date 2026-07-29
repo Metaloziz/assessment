@@ -100,6 +100,20 @@ export const TOPIC_META: Record<
   '44-code-instrumentation': { groupId: 'testing', level: 'senior', sortInGroup: 11 },
   '23-testing-tools-principles': { groupId: 'testing', level: 'senior', sortInGroup: 12 },
 
+  // Рефакторинг (порядок и уровни по цвету Notion: 🟩 junior / 🟧 middle / 🟪 senior)
+  '45-todo-jsdoc-tsdoc': { groupId: 'refactoring', level: 'junior', sortInGroup: 1 },
+  '46-dry-kiss-yagni': { groupId: 'refactoring', level: 'junior', sortInGroup: 2 },
+  '47-formatting-vertical': { groupId: 'refactoring', level: 'junior', sortInGroup: 3 },
+  '48-refactoring-principles-clean': { groupId: 'refactoring', level: 'middle', sortInGroup: 4 },
+  '49-refactoring-principles-tests': { groupId: 'refactoring', level: 'middle', sortInGroup: 5 },
+  '50-dirty-code-properties': { groupId: 'refactoring', level: 'middle', sortInGroup: 6 },
+  '51-refactoring-methods': { groupId: 'refactoring', level: 'middle', sortInGroup: 7 },
+  '52-apo': { groupId: 'refactoring', level: 'senior', sortInGroup: 8 },
+  '53-bduf': { groupId: 'refactoring', level: 'senior', sortInGroup: 9 },
+  '54-refactoring-design-patterns': { groupId: 'refactoring', level: 'senior', sortInGroup: 10 },
+  '55-legacy-code-approaches': { groupId: 'refactoring', level: 'senior', sortInGroup: 11 },
+  '56-dead-code-tools': { groupId: 'refactoring', level: 'senior', sortInGroup: 12 },
+
   // JS / data
   '01-immutability-js': { groupId: 'js', level: 'middle', sortInGroup: 1 },
   '02-normalize-immutable-libs': { groupId: 'redux', level: 'middle', sortInGroup: 1 },

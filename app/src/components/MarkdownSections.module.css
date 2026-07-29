@@ -2,6 +2,7 @@
   max-width: 52rem;
   font-size: 1rem;
   line-height: var(--line-height-body);
+  color: var(--text);
 }
 
 .paragraph {
@@ -12,11 +13,11 @@
 }
 
 .heading {
-  margin: 1.6rem 0 0.7rem;
+  margin: 1.75rem 0 0.75rem;
   font-family: var(--font-sans);
   font-weight: 700;
-  letter-spacing: -0.01em;
-  color: var(--text);
+  letter-spacing: -0.015em;
+  color: #fff;
   font-size: var(--font-size-h2);
   line-height: 1.3;
 }
@@ -26,23 +27,23 @@
 }
 
 .list {
-  margin: 0 0 1.1rem;
-  padding-left: 1.35rem;
+  margin: 0 0 1.15rem;
+  padding-left: 1.5rem;
   line-height: var(--line-height-body);
   color: var(--text);
   font-size: 1rem;
 }
 
 .list li {
-  margin-bottom: 0.45rem;
+  margin-bottom: 0.5rem;
 }
 
 .quote {
-  margin: 0 0 1.2rem;
-  padding: 0.95rem 1.05rem;
-  border-left: 2px solid var(--accent-dim);
-  background: var(--bg-elevated);
-  border-radius: 0 var(--radius) var(--radius) 0;
+  margin: 0 0 1.25rem;
+  padding: 0.15rem 0 0.15rem 1rem;
+  border-left: 3px solid rgba(255, 255, 255, 0.12);
+  background: transparent;
+  border-radius: 0;
   color: var(--text);
   font-size: 1rem;
 }
@@ -61,7 +62,7 @@
   margin: 0 0 1.2rem;
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  background: var(--bg-elevated);
+  background: var(--code-bg);
 }
 
 .table {
@@ -80,7 +81,7 @@
 }
 
 .table th {
-  background: var(--bg-active);
+  background: rgba(255, 255, 255, 0.03);
   color: var(--text-muted);
   font-weight: 600;
   font-family: var(--font-mono);
@@ -93,10 +94,10 @@
 
 .root :global(code) {
   font-family: var(--font-mono);
-  font-size: 0.9em;
-  background: var(--bg-active);
-  border: 1px solid var(--border-soft);
-  border-radius: 3px;
-  padding: 0.08em 0.35em;
-  color: var(--accent-bright);
+  font-size: 0.88em;
+  background: rgba(255, 255, 255, 0.06);
+  border: none;
+  border-radius: 4px;
+  padding: 0.12em 0.35em;
+  color: #ce9178;
 }

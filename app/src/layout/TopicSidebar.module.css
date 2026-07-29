@@ -6,7 +6,6 @@
   flex-direction: column;
   gap: 0.4rem;
   padding: 0.55rem 0.35rem 0.65rem;
-  border-right: 1px solid var(--border);
   background: var(--bg-panel);
   font-size: var(--font-size-ui);
 }
@@ -15,8 +14,13 @@
   display: flex;
   align-items: center;
   gap: 0.55rem;
-  padding: 0.35rem 0.55rem 0.55rem;
+  padding: 0.35rem 0.35rem 0.55rem 0.55rem;
   margin: 0 0.15rem;
+}
+
+.brandText {
+  flex: 1;
+  min-width: 0;
 }
 
 .brandMark {
@@ -30,6 +34,7 @@
   font-family: var(--font-sans);
   font-size: 0.68rem;
   font-weight: 650;
+  flex-shrink: 0;
 }
 
 .brandTitle {
@@ -43,6 +48,27 @@
   font-size: 0.7rem;
   color: var(--text-faint);
   margin-top: 0.05rem;
+}
+
+.collapseBtn {
+  flex-shrink: 0;
+  width: 1.75rem;
+  height: 1.75rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--text-faint);
+  cursor: pointer;
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
+.collapseBtn:hover {
+  background: var(--bg-hover);
+  border-color: var(--border);
+  color: var(--text);
 }
 
 .progress {

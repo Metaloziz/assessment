@@ -7,7 +7,11 @@ import { LevelBadge } from '../components/LevelBadge'
 import { useProgressStore } from '../store/progress'
 import styles from './TopicSidebar.module.css'
 
-export function TopicSidebar() {
+type Props = {
+  onCollapse?: () => void
+}
+
+export function TopicSidebar({ onCollapse }: Props) {
   const [topics, setTopics] = useState<TopicSummary[]>([])
   const [query, setQuery] = useState('')
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({})
@@ -58,10 +62,21 @@ export function TopicSidebar() {
     <aside className={styles.sidebar}>
       <div className={styles.brand}>
         <div className={styles.brandMark}>AP</div>
-        <div>
+        <div className={styles.brandText}>
           <div className={styles.brandTitle}>Assessment Prep</div>
           <div className={styles.brandSub}>как в Notion · группы и уровни</div>
         </div>
+        {onCollapse ? (
+          <button
+            type="button"
+            className={styles.collapseBtn}
+            onClick={onCollapse}
+            aria-label="Скрыть список тем"
+            title="Скрыть список тем"
+          >
+            <span aria-hidden>»</span>
+          </button>
+        ) : null}
       </div>
 
       <div className={styles.progress}>
