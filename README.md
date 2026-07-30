@@ -104,3 +104,17 @@ npm run preview
 | 54 | [54-refactoring-design-patterns.md](topics/54-refactoring-design-patterns.md) | Рефакторинг через паттерны |
 | 55 | [55-legacy-code-approaches.md](topics/55-legacy-code-approaches.md) | Определение легаси кода |
 | 56 | [56-dead-code-tools.md](topics/56-dead-code-tools.md) | ts-prune, statoscope |
+| 57 | [57-cookies.md](topics/57-cookies.md) | cookies |
+| 58 | [58-devtools-network-application.md](topics/58-devtools-network-application.md) | DevTools Network / Application |
+| 59 | [59-breakpoints.md](topics/59-breakpoints.md) | breakpoints |
+| 60 | [60-local-storage.md](topics/60-local-storage.md) | localStorage |
+| 61 | [61-iframe.md](topics/61-iframe.md) | iframe |
+| 62 | [62-websocket.md](topics/62-websocket.md) | WebSocket |
+| 63 | [63-cookies-server-httponly.md](topics/63-cookies-server-httponly.md) | Установка cookies сервером, httpOnly |
+| 64 | [64-cookie-security.md](topics/64-cookie-security.md) | Безопасность cookie |
+| 65 | [65-service-workers.md](topics/65-service-workers.md) | Service workers |
+| 66 | [66-web-workers.md](topics/66-web-workers.md) | Web-workers |
+| 67 | [67-web-apis.md](topics/67-web-apis.md) | Web APIs |
+| 68 | [68-indexeddb.md](topics/68-indexeddb.md) | IndexedDB |
+| 69 | [69-worklets.md](topics/69-worklets.md) | Worklets |
+| 70 | [70-pwa.md](topics/70-pwa.md) | PWA |

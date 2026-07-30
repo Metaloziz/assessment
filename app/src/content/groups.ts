@@ -114,6 +114,22 @@ export const TOPIC_META: Record<
   '55-legacy-code-approaches': { groupId: 'refactoring', level: 'senior', sortInGroup: 11 },
   '56-dead-code-tools': { groupId: 'refactoring', level: 'senior', sortInGroup: 12 },
 
+  // Браузер и его инструменты (порядок как в Notion; уровень по цвету иконки)
+  '58-devtools-network-application': { groupId: 'browser', level: 'junior', sortInGroup: 1 },
+  '59-breakpoints': { groupId: 'browser', level: 'junior', sortInGroup: 2 },
+  '60-local-storage': { groupId: 'browser', level: 'junior', sortInGroup: 3 },
+  '61-iframe': { groupId: 'browser', level: 'junior', sortInGroup: 4 },
+  '62-websocket': { groupId: 'browser', level: 'middle', sortInGroup: 5 },
+  '63-cookies-server-httponly': { groupId: 'browser', level: 'middle', sortInGroup: 6 },
+  '64-cookie-security': { groupId: 'browser', level: 'middle', sortInGroup: 7 },
+  '57-cookies': { groupId: 'browser', level: 'senior', sortInGroup: 8 },
+  '65-service-workers': { groupId: 'browser', level: 'senior', sortInGroup: 9 },
+  '66-web-workers': { groupId: 'browser', level: 'senior', sortInGroup: 10 },
+  '67-web-apis': { groupId: 'browser', level: 'senior', sortInGroup: 11 },
+  '68-indexeddb': { groupId: 'browser', level: 'senior', sortInGroup: 12 },
+  '69-worklets': { groupId: 'browser', level: 'senior', sortInGroup: 13 },
+  '70-pwa': { groupId: 'browser', level: 'senior', sortInGroup: 14 },
+
   // JS / data
   '01-immutability-js': { groupId: 'js', level: 'middle', sortInGroup: 1 },
   '02-normalize-immutable-libs': { groupId: 'redux', level: 'middle', sortInGroup: 1 },

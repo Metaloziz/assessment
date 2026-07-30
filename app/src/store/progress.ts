@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { createJSONStorage, persist } from 'zustand/middleware'
 
 type ProgressState = {
   completedIds: Record<string, true>
@@ -25,6 +25,11 @@ export const useProgressStore = create<ProgressState>()(
       isCompleted: (topicId) => Boolean(get().completedIds[topicId]),
       completedCount: () => Object.keys(get().completedIds).length,
     }),
-    { name: 'assessment-progress' },
+    {
+      name: 'assessment-progress',
+      storage: createJSONStorage(() => localStorage),
+      partialize: (state) => ({ completedIds: state.completedIds }),
+      version: 1,
+    },
   ),
 )

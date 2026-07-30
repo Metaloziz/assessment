@@ -84,6 +84,21 @@
   color: var(--text);
 }
 
+.labFocusHint {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.03em;
+  color: var(--text-faint);
+}
+
+.split[data-lab-focus='true'] .labPane {
+  flex: 1 1 auto;
+  max-width: none;
+  min-width: 0;
+  width: 100%;
+  border-right: 0;
+}
+
 .labPaneBody {
   overflow: auto;
   padding: 1rem;

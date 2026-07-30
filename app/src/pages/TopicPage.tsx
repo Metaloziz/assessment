@@ -9,6 +9,9 @@ import { PerformanceLab } from '../topics/performance/PerformanceLab'
 import { GitSwitchLab } from '../topics/git-switch/GitSwitchLab'
 import { GitRestoreLab } from '../topics/git-restore/GitRestoreLab'
 import { DeadCodeLab } from '../topics/dead-code/DeadCodeLab'
+import { CookiesLab } from '../topics/cookies/CookiesLab'
+import { ServiceWorkersLab } from '../topics/service-workers/ServiceWorkersLab'
+import { useDevToolsDocked } from '../hooks/useDevToolsDocked'
 import { useLayoutStore } from '../store/layout'
 import styles from './TopicPage.module.css'
 
@@ -18,6 +21,8 @@ function TopicLab({ topicId, topic }: { topicId: string; topic: TopicDetail }) {
   if (topicId === '31-git-switch') return <GitSwitchLab />
   if (topicId === '32-git-restore') return <GitRestoreLab />
   if (topicId === '56-dead-code-tools') return <DeadCodeLab />
+  if (topicId === '57-cookies') return <CookiesLab />
+  if (topicId === '65-service-workers') return <ServiceWorkersLab />
   return null
 }
 
@@ -27,8 +32,10 @@ export function TopicPage() {
   const [error, setError] = useState<string | null>(null)
   const labShare = useLayoutStore((s) => s.labShare)
   const setLabShare = useLayoutStore((s) => s.setLabShare)
+  const setLabFocus = useLayoutStore((s) => s.setLabFocus)
   const splitRef = useRef<HTMLDivElement>(null)
   const draggingRef = useRef(false)
+  const devToolsDocked = useDevToolsDocked()
 
   useEffect(() => {
     let cancelled = false
@@ -46,6 +53,12 @@ export function TopicPage() {
       cancelled = true
     }
   }, [topicId])
+
+  useEffect(() => {
+    const focus = Boolean(topic?.hasLab && devToolsDocked)
+    setLabFocus(focus)
+    return () => setLabFocus(false)
+  }, [topic?.hasLab, devToolsDocked, setLabFocus])
 
   const onResizePointerDown = useCallback(
     (event: ReactPointerEvent<HTMLDivElement>) => {
@@ -151,30 +164,35 @@ export function TopicPage() {
     return <article className={styles.page}>{content}</article>
   }
 
+  const labFocus = Boolean(topic.hasLab && devToolsDocked)
+
   return (
-    <div className={styles.split} ref={splitRef}>
+    <div className={styles.split} ref={splitRef} data-lab-focus={labFocus ? 'true' : 'false'}>
       <aside
         className={styles.labPane}
         aria-label="Лаборатория"
-        style={{ flex: `0 0 ${labShare * 100}%` }}
+        style={labFocus ? undefined : { flex: `0 0 ${labShare * 100}%` }}
       >
         <div className={styles.labPaneHeader}>
           <span className={styles.labPaneTitle}>Лаборатория</span>
+          {labFocus ? <span className={styles.labFocusHint}>DevTools · только лаба</span> : null}
         </div>
         <div className={styles.labPaneBody}>
           <TopicLab topicId={topic.id} topic={topic} />
         </div>
       </aside>
 
-      <div
-        className={styles.resizer}
-        role="separator"
-        aria-orientation="vertical"
-        aria-label="Изменить ширину панелей"
-        onPointerDown={onResizePointerDown}
-      />
+      {!labFocus ? (
+        <div
+          className={styles.resizer}
+          role="separator"
+          aria-orientation="vertical"
+          aria-label="Изменить ширину панелей"
+          onPointerDown={onResizePointerDown}
+        />
+      ) : null}
 
-      <article className={styles.primary}>{content}</article>
+      {!labFocus ? <article className={styles.primary}>{content}</article> : null}
     </div>
   )
 }

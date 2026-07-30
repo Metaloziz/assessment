@@ -114,7 +114,13 @@ a:hover {
   border-color: var(--btn-primary-bg);
 }
 
-.uiBtnPrimary:hover {
+.uiBtn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  filter: none;
+}
+
+.uiBtnPrimary:hover:not(:disabled) {
   background: var(--btn-primary-hover);
   border-color: var(--btn-primary-hover);
   filter: brightness(1.05);

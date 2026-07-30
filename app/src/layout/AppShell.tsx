@@ -5,16 +5,18 @@ import styles from './AppShell.module.css'
 
 export function AppShell() {
   const sidebarOpen = useLayoutStore((s) => s.sidebarOpen)
+  const labFocus = useLayoutStore((s) => s.labFocus)
   const setSidebarOpen = useLayoutStore((s) => s.setSidebarOpen)
+  const showSidebar = sidebarOpen && !labFocus
 
   return (
-    <div className={styles.shell}>
-      <div className={styles.sidebarRail} data-open={sidebarOpen ? 'true' : 'false'}>
+    <div className={styles.shell} data-lab-focus={labFocus ? 'true' : 'false'}>
+      <div className={styles.sidebarRail} data-open={showSidebar ? 'true' : 'false'}>
         <TopicSidebar onCollapse={() => setSidebarOpen(false)} />
       </div>
 
       <main className={styles.main}>
-        {!sidebarOpen ? (
+        {!showSidebar && !labFocus ? (
           <button
             type="button"
             className={styles.sidebarReveal}

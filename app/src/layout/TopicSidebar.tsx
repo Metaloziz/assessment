@@ -4,6 +4,7 @@ import type { TopicSummary } from '../content'
 import { contentSource, TOPIC_GROUPS, LEVEL_META } from '../content'
 import { TopicCheckbox } from '../components/TopicCheckbox'
 import { LevelBadge } from '../components/LevelBadge'
+import { useProgressHydrated } from '../hooks/useProgressHydrated'
 import { useProgressStore } from '../store/progress'
 import styles from './TopicSidebar.module.css'
 
@@ -15,6 +16,7 @@ export function TopicSidebar({ onCollapse }: Props) {
   const [topics, setTopics] = useState<TopicSummary[]>([])
   const [query, setQuery] = useState('')
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({})
+  const hydrated = useProgressHydrated()
   const completedIds = useProgressStore((s) => s.completedIds)
 
   useEffect(() => {
@@ -82,7 +84,7 @@ export function TopicSidebar({ onCollapse }: Props) {
       <div className={styles.progress}>
         <div className={styles.progressRow}>
           <span>
-            {done} / {topics.length} пройдено
+            {hydrated ? done : '…'} / {topics.length} пройдено
           </span>
           <span>{pct}%</span>
         </div>
