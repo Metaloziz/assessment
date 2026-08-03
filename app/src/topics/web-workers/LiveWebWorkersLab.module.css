@@ -1,0 +1,185 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.problem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.65rem 0.7rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--bg-panel);
+}
+
+.problem p {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+.problemLabel {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin-top: 0.15rem;
+}
+
+.problemLabel:first-child {
+  margin-top: 0;
+}
+
+.pulseWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.55rem 0.6rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: #121212;
+}
+
+.pulseLabel {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.pulseTrack {
+  position: relative;
+  height: 0.55rem;
+  border-radius: 999px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.pulseDot {
+  position: absolute;
+  top: 50%;
+  width: 0.55rem;
+  height: 0.55rem;
+  margin-top: -0.275rem;
+  margin-left: -0.275rem;
+  border-radius: 50%;
+  background: var(--accent-bright);
+  box-shadow: 0 0 8px rgba(105, 177, 255, 0.55);
+}
+
+.pulseFrozen {
+  background: #ce9178;
+  box-shadow: none;
+}
+
+.pulseMeta {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.hint {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.resultRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  align-items: baseline;
+  padding: 0.4rem 0.55rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--bg-panel);
+  font-size: 0.82rem;
+}
+
+.resultLabel {
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.resultValue {
+  color: #b5cea8;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+}
+
+.resultEmpty {
+  color: var(--text-faint);
+  font-size: 0.78rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.75rem;
+  color: var(--text-faint);
+}
+
+.field input[type='range'] {
+  width: 100%;
+}
+
+.rangeValue {
+  font-family: var(--font-mono);
+  color: var(--accent-bright);
+  font-size: 0.8rem;
+}
+
+.tip {
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+
+.warn {
+  margin: 0;
+  color: #ce9178;
+  font-size: 0.88rem;
+}
+
+.log {
+  margin: 0;
+  padding: 0.55rem 0.65rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: #121212;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  word-break: break-word;
+  min-height: 2.8rem;
+  color: var(--text-muted);
+}
+
+.ok {
+  color: #b5cea8;
+}
+
+.err {
+  color: #ce9178;
+}
+
+.info {
+  color: var(--accent-bright);
+}

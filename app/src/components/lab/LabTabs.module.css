@@ -6,7 +6,7 @@
 
 .toggle {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: 0.35rem;
   padding: 0.25rem;
   border-radius: var(--radius);

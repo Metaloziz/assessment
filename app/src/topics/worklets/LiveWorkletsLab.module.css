@@ -1,0 +1,215 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.problem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.65rem 0.7rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--bg-panel);
+}
+
+.problem p {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+.problem code,
+.tip code {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  color: #ce9178;
+}
+
+.problemLabel {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin-top: 0.15rem;
+}
+
+.problemLabel:first-child {
+  margin-top: 0;
+}
+
+.previewWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.preview {
+  min-height: 9.5rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  overflow: hidden;
+}
+
+.previewCard {
+  width: min(100%, 16rem);
+  padding: 0.85rem 0.9rem;
+  border-radius: calc(var(--radius) + 2px);
+  background: rgba(18, 18, 18, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(2px);
+}
+
+.previewTitle {
+  font-weight: 650;
+  color: var(--text);
+  margin-bottom: 0.25rem;
+}
+
+.previewText {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.caption {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text-faint);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--text-faint);
+}
+
+.field input[type='range'] {
+  width: 100%;
+}
+
+.field input[type='color'] {
+  width: 3rem;
+  height: 1.75rem;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: transparent;
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.check input {
+  accent-color: var(--accent);
+}
+
+.tip {
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+
+.warn {
+  margin: 0;
+  color: #ce9178;
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.log {
+  margin: 0;
+  padding: 0.55rem 0.65rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: #121212;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  word-break: break-word;
+  min-height: 2.4rem;
+  color: var(--text-muted);
+}
+
+.ok {
+  color: #b5cea8;
+}
+
+.err {
+  color: #ce9178;
+}
+
+.info {
+  color: var(--accent-bright);
+}
+
+.audioMeter {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.7rem 0.75rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: #121212;
+}
+
+.audioMeterOn {
+  border-color: rgba(105, 177, 255, 0.45);
+}
+
+.audioMeterLabel {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.audioBars {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.28rem;
+  height: 2.4rem;
+}
+
+.audioBar {
+  flex: 1;
+  max-width: 0.85rem;
+  border-radius: 3px 3px 0 0;
+  background: #3a3a3a;
+  min-height: 8%;
+  transition: height 0.05s linear;
+}
+
+.audioMeterOn .audioBar {
+  background: var(--accent-bright);
+}

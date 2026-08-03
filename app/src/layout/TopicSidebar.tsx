@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import type { TopicSummary } from '../content'
 import { contentSource, TOPIC_GROUPS, LEVEL_META } from '../content'
 import { TopicCheckbox } from '../components/TopicCheckbox'
 import { LevelBadge } from '../components/LevelBadge'
 import { useProgressHydrated } from '../hooks/useProgressHydrated'
+import { useLayoutStore } from '../store/layout'
 import { useProgressStore } from '../store/progress'
 import styles from './TopicSidebar.module.css'
 
@@ -18,10 +19,50 @@ export function TopicSidebar({ onCollapse }: Props) {
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({})
   const hydrated = useProgressHydrated()
   const completedIds = useProgressStore((s) => s.completedIds)
+  const sidebarScrollTop = useLayoutStore((s) => s.sidebarScrollTop)
+  const setSidebarScrollTop = useLayoutStore((s) => s.setSidebarScrollTop)
+  const listRef = useRef<HTMLElement>(null)
+  const restoredRef = useRef(false)
+  const saveTimerRef = useRef<number | null>(null)
+  const [layoutReady, setLayoutReady] = useState(() => useLayoutStore.persist.hasHydrated())
 
   useEffect(() => {
     void contentSource.listTopics().then(setTopics)
   }, [])
+
+  useEffect(() => {
+    setLayoutReady(useLayoutStore.persist.hasHydrated())
+    return useLayoutStore.persist.onFinishHydration(() => setLayoutReady(true))
+  }, [])
+
+  useEffect(() => {
+    const el = listRef.current
+    if (!el || !layoutReady || topics.length === 0 || restoredRef.current) return
+    el.scrollTop = sidebarScrollTop
+    restoredRef.current = true
+  }, [layoutReady, topics.length, sidebarScrollTop])
+
+  const flushScroll = useCallback(() => {
+    const el = listRef.current
+    if (!el) return
+    setSidebarScrollTop(el.scrollTop)
+  }, [setSidebarScrollTop])
+
+  const onListScroll = useCallback(() => {
+    if (saveTimerRef.current != null) window.clearTimeout(saveTimerRef.current)
+    saveTimerRef.current = window.setTimeout(() => {
+      flushScroll()
+    }, 120)
+  }, [flushScroll])
+
+  useEffect(() => {
+    const onHide = () => flushScroll()
+    window.addEventListener('pagehide', onHide)
+    return () => {
+      window.removeEventListener('pagehide', onHide)
+      if (saveTimerRef.current != null) window.clearTimeout(saveTimerRef.current)
+    }
+  }, [flushScroll])
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -103,7 +144,12 @@ export function TopicSidebar({ onCollapse }: Props) {
         />
       </div>
 
-      <nav className={styles.list} aria-label="Список тем по группам">
+      <nav
+        ref={listRef}
+        className={styles.list}
+        aria-label="Список тем по группам"
+        onScroll={onListScroll}
+      >
         {grouped.map(({ group, topics: groupTopics }) => {
           const isCollapsed = Boolean(collapsed[group.id]) && !query.trim()
           const groupDone = groupTopics.filter((t) => completedIds[t.id]).length

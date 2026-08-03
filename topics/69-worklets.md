@@ -25,6 +25,7 @@ Worklet — лёгкий изолированный скрипт браузер�
 - Узкая специализация (paint/audio/…), не универсальный фон.
 - Нет DOM; регистрация через dedicated API.
 - Paint: `background: paint(name)`; Audio: `AudioWorkletNode`.
+- Воспроизведение своего файла ≠ permission на микрофон: диалога «Разрешить» нет, но есть **autoplay policy** (нужен жест пользователя).
 - Поддержка по браузерам проверять отдельно.
 - Для тяжёлой бизнес-логики → Web Worker.
 
@@ -80,10 +81,17 @@ await audioContext.audioWorklet.addModule('/gain-processor.js')
 const node = new AudioWorkletNode(audioContext, 'gain-processor')
 ```
 
+### Звук: permission vs autoplay
+
+Проигрывание файла с сайта (или тон из AudioWorklet) **не запрашивает** permission вроде уведомлений или микрофона. `getUserMedia` (микрофон/камера) — другое: там диалог «Разрешить / Блокировать».
+
+Для звука браузер использует **autoplay policy**: громкий звук обычно нельзя стартовать «сам по себе» при загрузке страницы. Нужен **жест пользователя** (клик/тап) — например кнопка «Старт», после которой делают `audioContext.resume()` и `source.start()`. Поэтому в лабе нет окна разрешений, но без клика Chrome часто заблокирует воспроизведение.
+
 ### Практика
 
 - не тащить тяжёлые аллокации в `process`/`paint` на каждый кадр;
 - feature-detect перед использованием;
+- звук стартовать после user gesture; не путать autoplay policy с Permission API;
 - отладка через Sources / Performance.
 
 ---
@@ -93,4 +101,5 @@ const node = new AudioWorkletNode(audioContext, 'gain-processor')
 - [MDN — Worklet](https://developer.mozilla.org/en-US/docs/Web/API/Worklet)
 - [MDN — CSS Painting API](https://developer.mozilla.org/en-US/docs/Web/API/CSS_Painting_API)
 - [MDN — AudioWorklet](https://developer.mozilla.org/en-US/docs/Web/API/AudioWorklet)
+- [MDN — Autoplay guide](https://developer.mozilla.org/en-US/docs/Web/Media/Autoplay_guide)
 - [Chrome — Paint Worklet](https://developer.chrome.com/docs/css-ui/houdini)

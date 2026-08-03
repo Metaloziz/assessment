@@ -11,6 +11,10 @@ import { GitRestoreLab } from '../topics/git-restore/GitRestoreLab'
 import { DeadCodeLab } from '../topics/dead-code/DeadCodeLab'
 import { CookiesLab } from '../topics/cookies/CookiesLab'
 import { ServiceWorkersLab } from '../topics/service-workers/ServiceWorkersLab'
+import { WebApisLab } from '../topics/web-apis/WebApisLab'
+import { IndexedDbLab } from '../topics/indexeddb/IndexedDbLab'
+import { WebWorkersLab } from '../topics/web-workers/WebWorkersLab'
+import { WorkletsLab } from '../topics/worklets/WorkletsLab'
 import { useDevToolsDocked } from '../hooks/useDevToolsDocked'
 import { useLayoutStore } from '../store/layout'
 import styles from './TopicPage.module.css'
@@ -23,6 +27,10 @@ function TopicLab({ topicId, topic }: { topicId: string; topic: TopicDetail }) {
   if (topicId === '56-dead-code-tools') return <DeadCodeLab />
   if (topicId === '57-cookies') return <CookiesLab />
   if (topicId === '65-service-workers') return <ServiceWorkersLab />
+  if (topicId === '66-web-workers') return <WebWorkersLab />
+  if (topicId === '67-web-apis') return <WebApisLab />
+  if (topicId === '68-indexeddb') return <IndexedDbLab />
+  if (topicId === '69-worklets') return <WorkletsLab />
   return null
 }
 

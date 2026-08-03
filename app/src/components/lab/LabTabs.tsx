@@ -1,20 +1,22 @@
 import { useId, useState, type ReactNode } from 'react'
 import styles from './LabTabs.module.css'
 
-export type LabTabId = 'problem' | 'sandbox'
+export type LabTabId = 'problem' | 'sandbox' | 'code'
 
 type LabTabsProps = {
   problem: ReactNode
   sandbox: ReactNode
+  code: ReactNode
   defaultTab?: LabTabId
 }
 
 const TABS: { id: LabTabId; label: string }[] = [
   { id: 'problem', label: 'Решение проблемы' },
   { id: 'sandbox', label: 'Песочница' },
+  { id: 'code', label: 'Код' },
 ]
 
-export function LabTabs({ problem, sandbox, defaultTab = 'problem' }: LabTabsProps) {
+export function LabTabs({ problem, sandbox, code, defaultTab = 'problem' }: LabTabsProps) {
   const [tab, setTab] = useState<LabTabId>(defaultTab)
   const baseId = useId()
 
@@ -57,6 +59,15 @@ export function LabTabs({ problem, sandbox, defaultTab = 'problem' }: LabTabsPro
         className={styles.panel}
       >
         {sandbox}
+      </div>
+      <div
+        role="tabpanel"
+        id={`${baseId}-panel-code`}
+        aria-labelledby={`${baseId}-code`}
+        hidden={tab !== 'code'}
+        className={styles.panel}
+      >
+        {code}
       </div>
     </div>
   )

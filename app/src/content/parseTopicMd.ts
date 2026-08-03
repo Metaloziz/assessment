@@ -108,7 +108,11 @@ export function parseTopicMd(id: string, raw: string, order: number): TopicDetai
       id === '32-git-restore' ||
       id === '56-dead-code-tools' ||
       id === '57-cookies' ||
-      id === '65-service-workers',
+      id === '65-service-workers' ||
+      id === '66-web-workers' ||
+      id === '67-web-apis' ||
+      id === '68-indexeddb' ||
+      id === '69-worklets',
     groupId: meta.groupId,
     groupTitle,
     level: meta.level,
