@@ -13,7 +13,7 @@
 .heading {
   margin: 0 0 0.4rem;
   font-family: var(--font-sans);
-  font-size: 1.05rem;
+  font-size: var(--lab-font-title);
   font-weight: 700;
 }
 
@@ -51,14 +51,14 @@
 
 .index {
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: var(--lab-font-mono);
   color: var(--text-faint);
   padding-top: 0.15rem;
 }
 
 .text {
   font-size: 0.95rem;
-  line-height: 1.45;
+  line-height: var(--lab-line);
 }
 
 @media (max-width: 720px) {

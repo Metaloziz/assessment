@@ -130,6 +130,14 @@ export const TOPIC_META: Record<
   '69-worklets': { groupId: 'browser', level: 'senior', sortInGroup: 13 },
   '70-pwa': { groupId: 'browser', level: 'senior', sortInGroup: 14 },
 
+  // CI/CD (порядок как в Notion; уровень по цвету иконки)
+  '71-why-cicd': { groupId: 'cicd', level: 'junior', sortInGroup: 1 },
+  '72-jenkins': { groupId: 'cicd', level: 'junior', sortInGroup: 2 },
+  '73-mesos-marathon': { groupId: 'cicd', level: 'middle', sortInGroup: 3 },
+  '74-server-clusters': { groupId: 'cicd', level: 'middle', sortInGroup: 4 },
+  '75-configure-jenkins-marathon': { groupId: 'cicd', level: 'senior', sortInGroup: 5 },
+  '76-cicd-systems-comparison': { groupId: 'cicd', level: 'senior', sortInGroup: 6 },
+
   // JS / data
   '01-immutability-js': { groupId: 'js', level: 'middle', sortInGroup: 1 },
   '02-normalize-immutable-libs': { groupId: 'redux', level: 'middle', sortInGroup: 1 },

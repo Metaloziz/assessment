@@ -16,8 +16,8 @@
 
 .problem p {
   margin: 0;
-  font-size: 0.82rem;
-  line-height: 1.45;
+  font-size: var(--lab-font-body);
+  line-height: var(--lab-line);
   color: var(--text-muted);
 }
 
@@ -31,7 +31,7 @@
 
 .problemLabel {
   font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-size: var(--lab-font-meta);
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--text-faint);
@@ -46,7 +46,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
-  font-size: 0.75rem;
+  font-size: var(--lab-font-ui);
   color: var(--text-faint);
 }
 
@@ -58,7 +58,7 @@
   color: var(--text);
   padding: 0.45rem 0.55rem;
   font: inherit;
-  font-size: 0.88rem;
+  font-size: var(--lab-font-body);
   resize: vertical;
 }
 
@@ -82,15 +82,15 @@
 
 .tip {
   margin: 0;
-  font-size: 0.8rem;
-  line-height: 1.4;
+  font-size: var(--lab-font-body);
+  line-height: var(--lab-line);
   color: var(--text-muted);
 }
 
 .empty,
 .warn {
   margin: 0;
-  font-size: 0.85rem;
+  font-size: var(--lab-font-body);
   color: var(--text-faint);
 }
 
@@ -128,14 +128,14 @@
 .itemTitle {
   font-weight: 650;
   color: var(--text);
-  font-size: 0.9rem;
+  font-size: var(--lab-font-lead);
 }
 
 .itemMeta {
   display: flex;
   flex-wrap: wrap;
   gap: 0.35rem;
-  font-size: 0.72rem;
+  font-size: var(--lab-font-mono);
   color: var(--text-faint);
 }
 
@@ -146,13 +146,13 @@
 
 .itemText {
   margin: 0;
-  font-size: 0.8rem;
+  font-size: var(--lab-font-body);
   color: var(--text-muted);
   line-height: 1.35;
 }
 
 .id {
-  font-size: 0.68rem;
+  font-size: var(--lab-font-meta);
   word-break: break-all;
 }
 
@@ -163,8 +163,8 @@
   border: 1px solid var(--border);
   background: #121212;
   font-family: var(--font-mono);
-  font-size: 0.72rem;
-  line-height: 1.45;
+  font-size: var(--lab-font-mono);
+  line-height: var(--lab-line);
   white-space: pre-wrap;
   word-break: break-word;
   min-height: 2.8rem;

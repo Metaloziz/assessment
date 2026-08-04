@@ -14,7 +14,7 @@
 
 .headLabel {
   font-family: var(--font-mono);
-  font-size: 0.82rem;
+  font-size: var(--lab-font-body);
   color: var(--text-muted);
 }
 
@@ -29,7 +29,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  font-size: 0.8rem;
+  font-size: var(--lab-font-body);
   color: var(--text-muted);
   cursor: pointer;
   user-select: none;
@@ -63,7 +63,7 @@
   color: var(--text);
   padding: 0.45rem 0.6rem;
   font-family: var(--font-mono);
-  font-size: 0.8rem;
+  font-size: var(--lab-font-body);
   text-align: left;
   cursor: pointer;
   transition: background 0.12s ease, border-color 0.12s ease;
@@ -98,7 +98,7 @@
 
 .badge {
   margin-left: auto;
-  font-size: 0.65rem;
+  font-size: var(--lab-font-meta);
   letter-spacing: 0.04em;
   color: var(--accent-bright);
   text-transform: uppercase;
@@ -124,7 +124,7 @@
   color: var(--text);
   padding: 0.4rem 0.55rem;
   font-family: var(--font-mono);
-  font-size: 0.8rem;
+  font-size: var(--lab-font-body);
 }
 
 .input:focus {
@@ -139,8 +139,8 @@
   border: 1px solid var(--border);
   background: #121212;
   font-family: var(--font-mono);
-  font-size: 0.72rem;
-  line-height: 1.45;
+  font-size: var(--lab-font-mono);
+  line-height: var(--lab-line);
   color: var(--text-muted);
   min-height: 5.5rem;
   white-space: pre-wrap;

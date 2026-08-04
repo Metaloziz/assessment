@@ -13,7 +13,7 @@
 
 .fileName {
   font-family: var(--font-mono);
-  font-size: 0.82rem;
+  font-size: var(--lab-font-body);
   color: var(--accent-bright);
   font-weight: 600;
 }
@@ -28,7 +28,7 @@
 .flagDirty,
 .flagStaged {
   font-family: var(--font-mono);
-  font-size: 0.65rem;
+  font-size: var(--lab-font-meta);
   letter-spacing: 0.04em;
   text-transform: uppercase;
   padding: 0.15rem 0.4rem;
@@ -83,13 +83,13 @@
 
 .layerTitle {
   font-family: var(--font-mono);
-  font-size: 0.75rem;
+  font-size: var(--lab-font-ui);
   font-weight: 600;
   color: var(--text);
 }
 
 .layerHint {
-  font-size: 0.7rem;
+  font-size: var(--lab-font-mono);
   color: var(--text-faint);
 }
 
@@ -97,8 +97,8 @@
   margin: 0;
   padding: 0.5rem 0.55rem;
   font-family: var(--font-mono);
-  font-size: 0.7rem;
-  line-height: 1.4;
+  font-size: var(--lab-font-mono);
+  line-height: var(--lab-line);
   color: var(--text-muted);
   white-space: pre-wrap;
   word-break: break-word;
@@ -117,8 +117,8 @@
   border: 1px solid var(--border);
   background: #121212;
   font-family: var(--font-mono);
-  font-size: 0.72rem;
-  line-height: 1.45;
+  font-size: var(--lab-font-mono);
+  line-height: var(--lab-line);
   color: var(--text-muted);
   min-height: 4.5rem;
   white-space: pre-wrap;

@@ -21,7 +21,7 @@
   color: var(--text-muted);
   padding: 0.45rem 0.5rem;
   font-family: var(--font-mono);
-  font-size: 0.8rem;
+  font-size: var(--lab-font-body);
   font-weight: 600;
   cursor: pointer;
 }
@@ -34,8 +34,8 @@
 .hint {
   margin: 0;
   color: var(--text-muted);
-  font-size: 0.85rem;
-  line-height: 1.4;
+  font-size: var(--lab-font-body);
+  line-height: var(--lab-line);
 }
 
 .list {
@@ -67,8 +67,8 @@
 }
 
 .mark {
-  font-size: 0.7rem;
-  line-height: 1.4;
+  font-size: var(--lab-font-mono);
+  line-height: var(--lab-line);
   margin-top: 0.15rem;
 }
 
@@ -89,19 +89,19 @@
 
 .name {
   font-family: var(--font-mono);
-  font-size: 0.75rem;
+  font-size: var(--lab-font-ui);
   color: var(--text);
 }
 
 .note {
-  font-size: 0.72rem;
+  font-size: var(--lab-font-mono);
   color: var(--text-faint);
   line-height: 1.35;
 }
 
 .badge {
   font-family: var(--font-mono);
-  font-size: 0.65rem;
+  font-size: var(--lab-font-meta);
   text-transform: uppercase;
   letter-spacing: 0.04em;
   margin-top: 0.15rem;

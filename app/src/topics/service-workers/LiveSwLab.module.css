@@ -16,8 +16,8 @@
 
 .problem p {
   margin: 0;
-  font-size: 0.82rem;
-  line-height: 1.45;
+  font-size: var(--lab-font-body);
+  line-height: var(--lab-line);
   color: var(--text-muted);
 }
 
@@ -29,7 +29,7 @@
 
 .problemLabel {
   font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-size: var(--lab-font-meta);
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--text-faint);
@@ -51,7 +51,7 @@
 .off,
 .via {
   font-family: var(--font-mono);
-  font-size: 0.7rem;
+  font-size: var(--lab-font-mono);
   text-transform: uppercase;
   letter-spacing: 0.04em;
   padding: 0.15rem 0.45rem;
@@ -95,7 +95,7 @@
 
 .widgetTitle {
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: var(--lab-font-mono);
   color: var(--text-faint);
 }
 
@@ -108,7 +108,7 @@
 }
 
 .widgetMeta {
-  font-size: 0.85rem;
+  font-size: var(--lab-font-body);
   font-weight: 400;
   color: var(--text-muted);
 }
@@ -122,21 +122,21 @@
 .widgetEmpty {
   margin: 0;
   color: var(--text-faint);
-  font-size: 0.85rem;
+  font-size: var(--lab-font-body);
 }
 
 .widgetError {
   margin: 0;
   color: #ce9178;
-  font-size: 0.85rem;
-  line-height: 1.4;
+  font-size: var(--lab-font-body);
+  line-height: var(--lab-line);
 }
 
 .badgeDone,
 .badgeTodo {
   align-self: flex-start;
   font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-size: var(--lab-font-meta);
   padding: 0.12rem 0.4rem;
   border-radius: 999px;
   border: 1px solid var(--border);
@@ -154,8 +154,8 @@
 
 .tip {
   margin: 0;
-  font-size: 0.8rem;
-  line-height: 1.4;
+  font-size: var(--lab-font-body);
+  line-height: var(--lab-line);
   color: var(--text-muted);
 }
 
@@ -166,8 +166,8 @@
   border: 1px solid var(--border);
   background: #121212;
   font-family: var(--font-mono);
-  font-size: 0.72rem;
-  line-height: 1.45;
+  font-size: var(--lab-font-mono);
+  line-height: var(--lab-line);
   white-space: pre-wrap;
   word-break: break-word;
   min-height: 2.8rem;
@@ -189,7 +189,7 @@
 .warn {
   margin: 0;
   color: #ce9178;
-  font-size: 0.88rem;
+  font-size: var(--lab-font-body);
 }
 
 .raw {
@@ -199,8 +199,8 @@
   border: 1px solid var(--border);
   background: #121212;
   font-family: var(--font-mono);
-  font-size: 0.72rem;
-  line-height: 1.45;
+  font-size: var(--lab-font-mono);
+  line-height: var(--lab-line);
   white-space: pre-wrap;
   word-break: break-word;
   color: var(--text-muted);

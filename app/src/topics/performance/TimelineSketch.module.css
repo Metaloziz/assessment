@@ -12,7 +12,7 @@
 }
 
 .hint {
-  font-size: 0.8rem;
+  font-size: var(--lab-font-body);
   color: var(--text-faint);
   font-family: var(--font-mono);
 }
@@ -34,7 +34,7 @@
   display: flex;
   justify-content: space-between;
   font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-size: var(--lab-font-meta);
   color: var(--text-faint);
   margin-bottom: 0.35rem;
   padding: 0 0.15rem;
@@ -54,7 +54,7 @@
   background: transparent;
   color: var(--accent-bright);
   font-family: var(--font-mono);
-  font-size: 0.7rem;
+  font-size: var(--lab-font-mono);
   padding: 0;
   cursor: pointer;
 }
@@ -99,7 +99,7 @@
 }
 
 .trackLabel {
-  font-size: 0.72rem;
+  font-size: var(--lab-font-mono);
   color: var(--text-muted);
   font-family: var(--font-mono);
 }
@@ -127,12 +127,12 @@
   background: var(--bg-panel);
   border: 1px solid var(--border);
   color: var(--text-muted);
-  font-size: 0.88rem;
-  line-height: 1.45;
+  font-size: var(--lab-font-body);
+  line-height: var(--lab-line);
 }
 
 .empty {
   margin: 0;
   color: var(--text-faint);
-  font-size: 0.85rem;
+  font-size: var(--lab-font-body);
 }

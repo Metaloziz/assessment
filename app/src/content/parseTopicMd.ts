@@ -112,7 +112,10 @@ export function parseTopicMd(id: string, raw: string, order: number): TopicDetai
       id === '66-web-workers' ||
       id === '67-web-apis' ||
       id === '68-indexeddb' ||
-      id === '69-worklets',
+      id === '69-worklets' ||
+      id === '73-mesos-marathon' ||
+      id === '74-server-clusters' ||
+      id === '75-configure-jenkins-marathon',
     groupId: meta.groupId,
     groupTitle,
     level: meta.level,

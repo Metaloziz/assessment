@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
+import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useParams } from 'react-router-dom'
 import { contentSource } from '../content'
 import type { TopicDetail } from '../content'
@@ -15,8 +16,11 @@ import { WebApisLab } from '../topics/web-apis/WebApisLab'
 import { IndexedDbLab } from '../topics/indexeddb/IndexedDbLab'
 import { WebWorkersLab } from '../topics/web-workers/WebWorkersLab'
 import { WorkletsLab } from '../topics/worklets/WorkletsLab'
+import { MesosMarathonLab } from '../topics/mesos-marathon/MesosMarathonLab'
+import { ServerClustersLab } from '../topics/server-clusters/ServerClustersLab'
+import { JenkinsConfigLab } from '../topics/jenkins-config/JenkinsConfigLab'
 import { useDevToolsDocked } from '../hooks/useDevToolsDocked'
-import { useLayoutStore } from '../store/layout'
+import { LAB_DOCK_ID, useLayoutStore } from '../store/layout'
 import styles from './TopicPage.module.css'
 
 function TopicLab({ topicId, topic }: { topicId: string; topic: TopicDetail }) {
@@ -31,6 +35,9 @@ function TopicLab({ topicId, topic }: { topicId: string; topic: TopicDetail }) {
   if (topicId === '67-web-apis') return <WebApisLab />
   if (topicId === '68-indexeddb') return <IndexedDbLab />
   if (topicId === '69-worklets') return <WorkletsLab />
+  if (topicId === '73-mesos-marathon') return <MesosMarathonLab />
+  if (topicId === '74-server-clusters') return <ServerClustersLab />
+  if (topicId === '75-configure-jenkins-marathon') return <JenkinsConfigLab />
   return null
 }
 
@@ -38,69 +45,49 @@ export function TopicPage() {
   const { topicId = '' } = useParams()
   const [topic, setTopic] = useState<TopicDetail | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const labShare = useLayoutStore((s) => s.labShare)
-  const setLabShare = useLayoutStore((s) => s.setLabShare)
+  const [dockEl, setDockEl] = useState<HTMLElement | null>(null)
+  const labOpen = useLayoutStore((s) => s.labOpen)
+  const setLabOpen = useLayoutStore((s) => s.setLabOpen)
   const setLabFocus = useLayoutStore((s) => s.setLabFocus)
-  const splitRef = useRef<HTMLDivElement>(null)
-  const draggingRef = useRef(false)
+  const setActiveHasLab = useLayoutStore((s) => s.setActiveHasLab)
   const devToolsDocked = useDevToolsDocked()
+
+  useEffect(() => {
+    setDockEl(document.getElementById(LAB_DOCK_ID))
+  }, [])
 
   useEffect(() => {
     let cancelled = false
     setTopic(null)
     setError(null)
+    setLabOpen(false)
+    setActiveHasLab(false)
     void contentSource
       .getTopic(topicId)
       .then((data) => {
-        if (!cancelled) setTopic(data)
+        if (cancelled) return
+        setTopic(data)
+        setActiveHasLab(data.hasLab)
       })
       .catch((err: unknown) => {
-        if (!cancelled) setError(err instanceof Error ? err.message : 'Ошибка загрузки')
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : 'Ошибка загрузки')
+          setActiveHasLab(false)
+        }
       })
     return () => {
       cancelled = true
+      setLabOpen(false)
+      setLabFocus(false)
+      setActiveHasLab(false)
     }
-  }, [topicId])
+  }, [topicId, setLabOpen, setLabFocus, setActiveHasLab])
 
   useEffect(() => {
-    const focus = Boolean(topic?.hasLab && devToolsDocked)
+    const focus = Boolean(topic?.hasLab && labOpen && devToolsDocked)
     setLabFocus(focus)
     return () => setLabFocus(false)
-  }, [topic?.hasLab, devToolsDocked, setLabFocus])
-
-  const onResizePointerDown = useCallback(
-    (event: ReactPointerEvent<HTMLDivElement>) => {
-      event.preventDefault()
-      const split = splitRef.current
-      if (!split) return
-
-      draggingRef.current = true
-      const handle = event.currentTarget
-      handle.setPointerCapture(event.pointerId)
-      document.body.style.cursor = 'col-resize'
-      document.body.style.userSelect = 'none'
-
-      const onMove = (ev: PointerEvent) => {
-        if (!draggingRef.current || !splitRef.current) return
-        const rect = splitRef.current.getBoundingClientRect()
-        if (rect.width <= 0) return
-        setLabShare((ev.clientX - rect.left) / rect.width)
-      }
-
-      const onUp = (ev: PointerEvent) => {
-        draggingRef.current = false
-        handle.releasePointerCapture(ev.pointerId)
-        document.body.style.cursor = ''
-        document.body.style.userSelect = ''
-        window.removeEventListener('pointermove', onMove)
-        window.removeEventListener('pointerup', onUp)
-      }
-
-      window.addEventListener('pointermove', onMove)
-      window.addEventListener('pointerup', onUp)
-    },
-    [setLabShare],
-  )
+  }, [topic?.hasLab, labOpen, devToolsDocked, setLabFocus])
 
   if (error) {
     return <div className={styles.state}>{error}</div>
@@ -110,97 +97,71 @@ export function TopicPage() {
     return <div className={styles.state}>Загрузка…</div>
   }
 
-  const content = (
-    <div className={styles.reading}>
-      <header className={styles.header}>
-        <h1 className={styles.title}>{topic.title}</h1>
-        {topic.oneLiner ? <p className={styles.oneLiner}>{topic.oneLiner}</p> : null}
-      </header>
-
-      <div className={styles.stream}>
-        {topic.sections.interview ? (
-          <section className={styles.segment}>
-            <h2 className={styles.sectionTitle}>Суть</h2>
-            <MarkdownSections markdown={topic.sections.interview} />
-          </section>
-        ) : null}
-
-        {topic.sections.remember ? (
-          <section className={styles.segment}>
-            <h2 className={styles.sectionTitle}>Самое главное запомнить</h2>
-            <MarkdownSections markdown={topic.sections.remember} />
-          </section>
-        ) : null}
-
-        {topic.sections.description ? (
-          <section className={styles.segment}>
-            <h2 className={styles.sectionTitle}>Описание</h2>
-            <MarkdownSections markdown={topic.sections.description} />
-          </section>
-        ) : null}
-
-        {topic.codeBlocks.length > 0 ? (
-          <section className={styles.segment}>
-            <h2 className={styles.sectionTitle}>Код</h2>
-            <div className={styles.codeStack}>
-              {topic.codeBlocks.map((block, idx) => (
-                <CodeBlock key={idx} code={block.code} language={block.language} />
-              ))}
-            </div>
-          </section>
-        ) : null}
-
-        {topic.links.length > 0 ? (
-          <section className={styles.segment}>
-            <h2 className={styles.sectionTitle}>Ссылки</h2>
-            <ul className={styles.links}>
-              {topic.links.map((link) => (
-                <li key={link.href}>
-                  <a href={link.href} target="_blank" rel="noreferrer">
-                    {link.label}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </section>
-        ) : null}
-      </div>
-    </div>
-  )
-
-  if (!topic.hasLab) {
-    return <article className={styles.page}>{content}</article>
-  }
-
-  const labFocus = Boolean(topic.hasLab && devToolsDocked)
+  const labPortal =
+    topic.hasLab && dockEl
+      ? createPortal(<TopicLab topicId={topic.id} topic={topic} />, dockEl)
+      : null
 
   return (
-    <div className={styles.split} ref={splitRef} data-lab-focus={labFocus ? 'true' : 'false'}>
-      <aside
-        className={styles.labPane}
-        aria-label="Лаборатория"
-        style={labFocus ? undefined : { flex: `0 0 ${labShare * 100}%` }}
-      >
-        <div className={styles.labPaneHeader}>
-          <span className={styles.labPaneTitle}>Лаборатория</span>
-          {labFocus ? <span className={styles.labFocusHint}>DevTools · только лаба</span> : null}
-        </div>
-        <div className={styles.labPaneBody}>
-          <TopicLab topicId={topic.id} topic={topic} />
-        </div>
-      </aside>
+    <>
+      {labPortal}
+      <article className={styles.page}>
+        <div className={styles.reading}>
+          <header className={styles.header}>
+            <h1 className={styles.title}>{topic.title}</h1>
+            {topic.oneLiner ? <p className={styles.oneLiner}>{topic.oneLiner}</p> : null}
+          </header>
 
-      {!labFocus ? (
-        <div
-          className={styles.resizer}
-          role="separator"
-          aria-orientation="vertical"
-          aria-label="Изменить ширину панелей"
-          onPointerDown={onResizePointerDown}
-        />
-      ) : null}
+          <div className={styles.stream}>
+            {topic.sections.interview ? (
+              <section className={styles.segment}>
+                <h2 className={styles.sectionTitle}>Суть</h2>
+                <MarkdownSections markdown={topic.sections.interview} />
+              </section>
+            ) : null}
 
-      {!labFocus ? <article className={styles.primary}>{content}</article> : null}
-    </div>
+            {topic.sections.remember ? (
+              <section className={styles.segment}>
+                <h2 className={styles.sectionTitle}>Самое главное запомнить</h2>
+                <MarkdownSections markdown={topic.sections.remember} />
+              </section>
+            ) : null}
+
+            {topic.sections.description ? (
+              <section className={styles.segment}>
+                <h2 className={styles.sectionTitle}>Описание</h2>
+                <MarkdownSections markdown={topic.sections.description} />
+              </section>
+            ) : null}
+
+            {topic.codeBlocks.length > 0 ? (
+              <section className={styles.segment}>
+                <h2 className={styles.sectionTitle}>Код</h2>
+                <div className={styles.codeStack}>
+                  {topic.codeBlocks.map((block, idx) => (
+                    <CodeBlock key={idx} code={block.code} language={block.language} />
+                  ))}
+                </div>
+              </section>
+            ) : null}
+
+            {topic.links.length > 0 ? (
+              <section className={styles.segment}>
+                <h2 className={styles.sectionTitle}>Ссылки</h2>
+                <ul className={styles.links}>
+                  {topic.links.map((link) => (
+                    <li key={link.href}>
+                      <a href={link.href} target="_blank" rel="noreferrer">
+                        {link.label}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ) : null}
+          </div>
+        </div>
+      </article>
+    </>
   )
 }

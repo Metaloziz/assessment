@@ -14,7 +14,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  font-size: 0.85rem;
+  font-size: var(--lab-font-body);
   color: var(--text-muted);
   cursor: pointer;
   user-select: none;
@@ -37,7 +37,7 @@
   color: var(--text-muted);
   padding: 0.35rem 0.55rem;
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: var(--lab-font-mono);
   cursor: pointer;
 }
 
@@ -59,8 +59,8 @@
   background: #121212;
   border: 1px solid var(--border);
   font-family: var(--font-mono);
-  font-size: 0.72rem;
-  line-height: 1.45;
+  font-size: var(--lab-font-mono);
+  line-height: var(--lab-line);
   color: #ce9178;
   white-space: pre-wrap;
   word-break: break-word;
@@ -80,8 +80,8 @@
   border-radius: var(--radius);
   border: 1px solid var(--border);
   background: var(--bg-panel);
-  font-size: 0.8rem;
-  line-height: 1.4;
+  font-size: var(--lab-font-body);
+  line-height: var(--lab-line);
 }
 
 .ok {

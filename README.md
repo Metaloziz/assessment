@@ -118,3 +118,9 @@ npm run preview
 | 68 | [68-indexeddb.md](topics/68-indexeddb.md) | IndexedDB |
 | 69 | [69-worklets.md](topics/69-worklets.md) | Worklets |
 | 70 | [70-pwa.md](topics/70-pwa.md) | PWA |
+| 71 | [71-why-cicd.md](topics/71-why-cicd.md) | Зачем нужен CI/CD |
+| 72 | [72-jenkins.md](topics/72-jenkins.md) | Jenkins |
+| 73 | [73-mesos-marathon.md](topics/73-mesos-marathon.md) | Mesos/Marathon |
+| 74 | [74-server-clusters.md](topics/74-server-clusters.md) | Кластер серверов и системы управления |
+| 75 | [75-configure-jenkins-marathon.md](topics/75-configure-jenkins-marathon.md) | Конфиг Jenkins, Marathon и систем банка |
+| 76 | [76-cicd-systems-comparison.md](topics/76-cicd-systems-comparison.md) | Системы CI/CD: плюсы и минусы |

@@ -1,0 +1,256 @@
+.panelRoot {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.section {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--code-bg);
+  padding: 0.85rem 0.9rem 0.95rem;
+  box-shadow: none;
+}
+
+.title {
+  margin: 0 0 0.25rem;
+  font-family: var(--font-sans);
+  font-size: var(--lab-font-title);
+  font-weight: 700;
+}
+
+.lead {
+  margin: 0 0 0.75rem;
+  color: var(--text-muted);
+  font-size: var(--lab-font-lead);
+  line-height: var(--lab-line);
+}
+
+.problem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.65rem 0.7rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--bg-panel);
+}
+
+.problem p {
+  margin: 0;
+  font-size: var(--lab-font-body);
+  line-height: var(--lab-line);
+  color: var(--text-muted);
+}
+
+.problem code,
+.tip code,
+.free {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  color: #ce9178;
+}
+
+.problemLabel {
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-meta);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin-top: 0.15rem;
+}
+
+.problemLabel:first-child {
+  margin-top: 0;
+}
+
+.statusRow,
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.badgeOn,
+.badgeOff,
+.via {
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-mono);
+  letter-spacing: 0.04em;
+  padding: 0.15rem 0.45rem;
+  border-radius: 2px;
+  border: 1px solid var(--border);
+  text-transform: uppercase;
+}
+
+.badgeOn {
+  color: #b5cea8;
+  border-color: rgba(181, 206, 168, 0.4);
+  background: rgba(181, 206, 168, 0.1);
+}
+
+.badgeOff {
+  color: var(--text-faint);
+}
+
+.via {
+  color: var(--accent-bright);
+  border-color: rgba(105, 177, 255, 0.35);
+  background: var(--accent-glow);
+  text-transform: none;
+}
+
+.controls,
+.controlsCompact {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.controls {
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+}
+
+.controlsCompact {
+  grid-template-columns: 1fr;
+}
+
+.field {
+  display: grid;
+  grid-template-columns: 4.5rem 1fr 2.4rem;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: var(--lab-font-mono);
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+}
+
+.field input[type='range'] {
+  width: 100%;
+  accent-color: var(--accent-bright);
+}
+
+.field strong {
+  text-align: right;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.cluster {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11.5rem, 1fr));
+  gap: 0.5rem;
+}
+
+.agent {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.55rem 0.6rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: #121212;
+  min-height: 8.5rem;
+}
+
+.agentDead {
+  opacity: 0.55;
+  border-style: dashed;
+}
+
+.agentHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.35rem;
+}
+
+.agentName {
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-ui);
+  color: var(--text);
+}
+
+.agentRes {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-meta);
+  color: var(--text-faint);
+  line-height: 1.35;
+}
+
+.taskList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  min-height: 1.6rem;
+  flex: 1;
+}
+
+.emptyTasks {
+  font-size: var(--lab-font-mono);
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+}
+
+.task {
+  border: 1px solid rgba(181, 206, 168, 0.35);
+  background: rgba(181, 206, 168, 0.12);
+  color: #b5cea8;
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-meta);
+  padding: 0.15rem 0.35rem;
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.task:hover {
+  border-color: rgba(244, 135, 113, 0.5);
+  background: rgba(244, 135, 113, 0.12);
+  color: #f48771;
+}
+
+.agentActions {
+  display: flex;
+  gap: 0.3rem;
+}
+
+.tip {
+  margin: 0;
+  font-size: var(--lab-font-ui);
+  line-height: var(--lab-line);
+  color: var(--text-muted);
+}
+
+.log {
+  margin: 0;
+  padding: 0.55rem 0.65rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: #0e0e0e;
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-mono);
+  line-height: var(--lab-line);
+  max-height: 10rem;
+  overflow: auto;
+  white-space: pre-wrap;
+  color: var(--text-muted);
+}
+
+.ok {
+  color: #b5cea8;
+}
+
+.err {
+  color: #f48771;
+}
+
+.info {
+  color: var(--text-muted);
+}

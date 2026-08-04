@@ -16,11 +16,12 @@ type Props = {
 export function TopicSidebar({ onCollapse }: Props) {
   const [topics, setTopics] = useState<TopicSummary[]>([])
   const [query, setQuery] = useState('')
-  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({})
   const hydrated = useProgressHydrated()
   const completedIds = useProgressStore((s) => s.completedIds)
   const sidebarScrollTop = useLayoutStore((s) => s.sidebarScrollTop)
   const setSidebarScrollTop = useLayoutStore((s) => s.setSidebarScrollTop)
+  const collapsedGroups = useLayoutStore((s) => s.collapsedGroups)
+  const toggleCollapsedGroup = useLayoutStore((s) => s.toggleCollapsedGroup)
   const listRef = useRef<HTMLElement>(null)
   const restoredRef = useRef(false)
   const saveTimerRef = useRef<number | null>(null)
@@ -97,17 +98,12 @@ export function TopicSidebar({ onCollapse }: Props) {
   const total = topics.length || 1
   const pct = Math.round((done / total) * 100)
 
-  const toggleGroup = (groupId: string) => {
-    setCollapsed((prev) => ({ ...prev, [groupId]: !prev[groupId] }))
-  }
-
   return (
     <aside className={styles.sidebar}>
       <div className={styles.brand}>
         <div className={styles.brandMark}>AP</div>
         <div className={styles.brandText}>
           <div className={styles.brandTitle}>Assessment Prep</div>
-          <div className={styles.brandSub}>как в Notion · группы и уровни</div>
         </div>
         {onCollapse ? (
           <button
@@ -151,7 +147,7 @@ export function TopicSidebar({ onCollapse }: Props) {
         onScroll={onListScroll}
       >
         {grouped.map(({ group, topics: groupTopics }) => {
-          const isCollapsed = Boolean(collapsed[group.id]) && !query.trim()
+          const isCollapsed = Boolean(collapsedGroups[group.id]) && !query.trim()
           const groupDone = groupTopics.filter((t) => completedIds[t.id]).length
 
           return (
@@ -159,7 +155,7 @@ export function TopicSidebar({ onCollapse }: Props) {
               <button
                 type="button"
                 className={styles.groupHeader}
-                onClick={() => toggleGroup(group.id)}
+                onClick={() => toggleCollapsedGroup(group.id)}
                 aria-expanded={!isCollapsed}
               >
                 <span className={styles.groupTitle}>{group.title}</span>
