@@ -41,12 +41,20 @@ function bandsFromAnalyser(analyser: AnalyserNode, out: number[]) {
   }
 }
 
+function hasAudioContext() {
+  return typeof window !== 'undefined' && ('AudioContext' in window || 'webkitAudioContext' in window)
+}
+
+function createAudioContext() {
+  const Ctx = window.AudioContext ?? window.webkitAudioContext
+  if (!Ctx) throw new Error('AudioContext недоступен')
+  return new Ctx()
+}
+
 export type AudioWorkletLabApi = ReturnType<typeof useAudioWorkletLab>
 
 export function useAudioWorkletLab() {
-  const [supported] = useState(
-    () => typeof AudioContext !== 'undefined' || typeof webkitAudioContext !== 'undefined',
-  )
+  const [supported] = useState(() => hasAudioContext())
   const [playing, setPlaying] = useState(false)
   const [busy, setBusy] = useState(false)
   const [gain, setGain] = useState(0.3)
@@ -123,11 +131,8 @@ export function useAudioWorkletLab() {
   }, [stopMeter])
 
   const ensureContext = async () => {
-    const Ctx = window.AudioContext || window.webkitAudioContext
-    if (!Ctx) throw new Error('AudioContext недоступен')
-
     if (!ctxRef.current) {
-      ctxRef.current = new Ctx()
+      ctxRef.current = createAudioContext()
     }
     const ctx = ctxRef.current
     if (ctx.state === 'suspended') {

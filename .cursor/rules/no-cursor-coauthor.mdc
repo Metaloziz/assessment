@@ -1,0 +1,16 @@
+---
+description: Не добавлять Co-authored-by Cursor в коммиты
+alwaysApply: true
+---
+
+# Коммиты без атрибуции Cursor
+
+При `git commit` **не добавляй** строки вида:
+
+```
+Co-authored-by: Cursor <cursoragent@cursor.com>
+```
+
+и любые другие Co-authored-by / Signed-off-by от имени Cursor или cursoragent.
+
+Коммит должен быть только от git-пользователя репозитория (author/committer из локального git config). Не правь `git config`.

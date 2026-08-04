@@ -8,12 +8,19 @@ function paintWorkletUrl() {
   return `${import.meta.env.BASE_URL}paint-lab-stripes.js`
 }
 
+type CssWithPaint = typeof CSS & {
+  paintWorklet: { addModule: (moduleURL: string) => Promise<void> }
+}
+
+function getPaintWorklet() {
+  if (typeof CSS === 'undefined' || !('paintWorklet' in CSS)) return null
+  return (CSS as CssWithPaint).paintWorklet
+}
+
 export type WorkletsLabApi = ReturnType<typeof useWorkletsLab>
 
 export function useWorkletsLab() {
-  const [supported] = useState(
-    () => typeof CSS !== 'undefined' && 'paintWorklet' in CSS,
-  )
+  const [supported] = useState(() => getPaintWorklet() != null)
   const [ready, setReady] = useState(false)
   const [enabled, setEnabled] = useState(true)
   const [color, setColor] = useState('#69b1ff')
@@ -27,13 +34,14 @@ export function useWorkletsLab() {
   }, [])
 
   const loadWorklet = useCallback(async () => {
-    if (!supported) {
+    const paintWorklet = getPaintWorklet()
+    if (!paintWorklet) {
       pushLog({ kind: 'err', text: 'CSS.paintWorklet не поддерживается в этом браузере' })
       return false
     }
     setBusy(true)
     try {
-      await CSS.paintWorklet.addModule(paintWorkletUrl())
+      await paintWorklet.addModule(paintWorkletUrl())
       setReady(true)
       pushLog({ kind: 'ok', text: `addModule(${paintWorkletUrl()})` })
       return true
@@ -46,7 +54,7 @@ export function useWorkletsLab() {
     } finally {
       setBusy(false)
     }
-  }, [supported, pushLog])
+  }, [pushLog])
 
   useEffect(() => {
     if (!supported) return
