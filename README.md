@@ -124,3 +124,45 @@ npm run preview
 | 74 | [74-server-clusters.md](topics/74-server-clusters.md) | Кластер серверов и системы управления |
 | 75 | [75-configure-jenkins-marathon.md](topics/75-configure-jenkins-marathon.md) | Конфиг Jenkins, Marathon и систем банка |
 | 76 | [76-cicd-systems-comparison.md](topics/76-cicd-systems-comparison.md) | Системы CI/CD: плюсы и минусы |
+| 77 | [77-js-execution-context.md](topics/77-js-execution-context.md) | Определение контекста выполнения, случаи применения |
+| 78 | [78-js-this-default.md](topics/78-js-this-default.md) | Вычисление контекста, его значение по умолчанию |
+| 79 | [79-js-context-closure.md](topics/79-js-context-closure.md) | Сохранение контекста выполнения через замыкание |
+| 80 | [80-js-lose-context.md](topics/80-js-lose-context.md) | Потеря контекста |
+| 81 | [81-js-declarations-functions.md](topics/81-js-declarations-functions.md) | Виды объявления переменных, Function Declaration и Function Expression |
+| 82 | [82-js-hoisting.md](topics/82-js-hoisting.md) | Всплытие переменных |
+| 83 | [83-js-arguments.md](topics/83-js-arguments.md) | Псевдомассив arguments |
+| 84 | [84-js-prototype-class.md](topics/84-js-prototype-class.md) | Определение прототипа, класса |
+| 85 | [85-js-dom-query.md](topics/85-js-dom-query.md) | Методы поиска DOM-узлов |
+| 86 | [86-js-dom-add-remove.md](topics/86-js-dom-add-remove.md) | Методы добавления и удаления DOM-узлов |
+| 87 | [87-js-dom-content.md](topics/87-js-dom-content.md) | Методы изменения содержимого в DOM-узлах |
+| 88 | [88-js-browser-events.md](topics/88-js-browser-events.md) | Основные браузерные события |
+| 89 | [89-js-closure-problems.md](topics/89-js-closure-problems.md) | Замыкание, возможные проблемы |
+| 90 | [90-js-class-inheritance.md](topics/90-js-class-inheritance.md) | Наследование классов |
+| 91 | [91-js-event-bubbling-capturing.md](topics/91-js-event-bubbling-capturing.md) | Всплытие и погружение событий |
+| 92 | [92-js-forms-native.md](topics/92-js-forms-native.md) | Нативная обработка форм и полей |
+| 93 | [93-js-lexical-environment.md](topics/93-js-lexical-environment.md) | Лексическое окружение |
+| 94 | [94-js-scope-chain.md](topics/94-js-scope-chain.md) | Цепочка областей видимости |
+| 95 | [95-js-bind-call-apply.md](topics/95-js-bind-call-apply.md) | Подмена существующего контекста |
+| 96 | [96-js-prototype-chain.md](topics/96-js-prototype-chain.md) | Цепочка прототипов и поиск свойств |
+| 97 | [97-js-arrow-prototype.md](topics/97-js-arrow-prototype.md) | Прототипы и стрелочные функции |
+| 98 | [98-js-live-collections.md](topics/98-js-live-collections.md) | Живые коллекции DOM |
+| 99 | [99-js-event-delegation.md](topics/99-js-event-delegation.md) | Делегирование событий |
+| 100 | [100-js-event-this.md](topics/100-js-event-this.md) | Контекст this в браузерных событиях |
+| 101 | [101-js-arrow-syntax.md](topics/101-js-arrow-syntax.md) | Синтаксис и особенности стрелочных функций |
+| 102 | [102-js-factory-functions.md](topics/102-js-factory-functions.md) | Функции-фабрики |
+| 103 | [103-js-prototypal-inheritance.md](topics/103-js-prototypal-inheritance.md) | Прототипное наследование |
+| 104 | [104-js-null-prototype.md](topics/104-js-null-prototype.md) | Объекты без прототипа |
+| 105 | [105-js-mutation-observer.md](topics/105-js-mutation-observer.md) | MutationObserver |
+| 106 | [106-js-selection-range.md](topics/106-js-selection-range.md) | Selection и Range |
+| 107 | [107-js-iife.md](topics/107-js-iife.md) | IIFE |
+| 108 | [108-js-currying.md](topics/108-js-currying.md) | Каррирование |
+| 109 | [109-js-private-static-fields.md](topics/109-js-private-static-fields.md) | Приватные и статические поля классов |
+| 110 | [110-js-delegation-pattern.md](topics/110-js-delegation-pattern.md) | Делегирование событий |
+| 111 | [111-js-v8-gc.md](topics/111-js-v8-gc.md) | Сборщик мусора V8 |
+| 112 | [112-js-v8-pipeline.md](topics/112-js-v8-pipeline.md) | Процесс обработки кода в V8 |
+| 113 | [113-js-class-engine.md](topics/113-js-class-engine.md) | Как движок реализует классы |
+| 114 | [114-js-mixins.md](topics/114-js-mixins.md) | Примеси |
+| 115 | [115-js-web-components.md](topics/115-js-web-components.md) | Web Components |
+| 116 | [116-js-v8-optimizations.md](topics/116-js-v8-optimizations.md) | Оптимизации V8 |
+| 117 | [117-js-proto-vs-closure-perf.md](topics/117-js-proto-vs-closure-perf.md) | Производительность: прототип против замыкания |
+| 118 | [118-js-webcomponents-css.md](topics/118-js-webcomponents-css.md) | CSS в Web Components |
