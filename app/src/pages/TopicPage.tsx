@@ -19,6 +19,20 @@ import { WorkletsLab } from '../topics/worklets/WorkletsLab'
 import { MesosMarathonLab } from '../topics/mesos-marathon/MesosMarathonLab'
 import { ServerClustersLab } from '../topics/server-clusters/ServerClustersLab'
 import { JenkinsConfigLab } from '../topics/jenkins-config/JenkinsConfigLab'
+import { LexicalEnvironmentLab } from '../topics/js-lexical-environment/LexicalEnvironmentLab'
+import { ScopeChainLab } from '../topics/js-scope-chain/ScopeChainLab'
+import { BindCallApplyLab } from '../topics/js-bind-call-apply/BindCallApplyLab'
+import { PrototypeChainLab } from '../topics/js-prototype-chain/PrototypeChainLab'
+import { ArrowPrototypeLab } from '../topics/js-arrow-prototype/ArrowPrototypeLab'
+import { LiveCollectionsLab } from '../topics/js-live-collections/LiveCollectionsLab'
+import { EventDelegationLab } from '../topics/js-event-delegation/EventDelegationLab'
+import { EventThisLab } from '../topics/js-event-this/EventThisLab'
+import { ArrowSyntaxLab } from '../topics/js-arrow-syntax/ArrowSyntaxLab'
+import { FactoryFunctionsLab } from '../topics/js-factory-functions/FactoryFunctionsLab'
+import { PrototypalInheritanceLab } from '../topics/js-prototypal-inheritance/PrototypalInheritanceLab'
+import { NullPrototypeLab } from '../topics/js-null-prototype/NullPrototypeLab'
+import { MutationObserverLab } from '../topics/js-mutation-observer/MutationObserverLab'
+import { SelectionRangeLab } from '../topics/js-selection-range/SelectionRangeLab'
 import { useDevToolsDocked } from '../hooks/useDevToolsDocked'
 import { LAB_DOCK_ID, useLayoutStore } from '../store/layout'
 import styles from './TopicPage.module.css'
@@ -38,6 +52,20 @@ function TopicLab({ topicId, topic }: { topicId: string; topic: TopicDetail }) {
   if (topicId === '73-mesos-marathon') return <MesosMarathonLab />
   if (topicId === '74-server-clusters') return <ServerClustersLab />
   if (topicId === '75-configure-jenkins-marathon') return <JenkinsConfigLab />
+  if (topicId === '93-js-lexical-environment') return <LexicalEnvironmentLab />
+  if (topicId === '94-js-scope-chain') return <ScopeChainLab />
+  if (topicId === '95-js-bind-call-apply') return <BindCallApplyLab />
+  if (topicId === '96-js-prototype-chain') return <PrototypeChainLab />
+  if (topicId === '97-js-arrow-prototype') return <ArrowPrototypeLab />
+  if (topicId === '98-js-live-collections') return <LiveCollectionsLab />
+  if (topicId === '99-js-event-delegation') return <EventDelegationLab />
+  if (topicId === '100-js-event-this') return <EventThisLab />
+  if (topicId === '101-js-arrow-syntax') return <ArrowSyntaxLab />
+  if (topicId === '102-js-factory-functions') return <FactoryFunctionsLab />
+  if (topicId === '103-js-prototypal-inheritance') return <PrototypalInheritanceLab />
+  if (topicId === '104-js-null-prototype') return <NullPrototypeLab />
+  if (topicId === '105-js-mutation-observer') return <MutationObserverLab />
+  if (topicId === '106-js-selection-range') return <SelectionRangeLab />
   return null
 }
 

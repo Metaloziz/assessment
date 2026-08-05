@@ -115,7 +115,21 @@ export function parseTopicMd(id: string, raw: string, order: number): TopicDetai
       id === '69-worklets' ||
       id === '73-mesos-marathon' ||
       id === '74-server-clusters' ||
-      id === '75-configure-jenkins-marathon',
+      id === '75-configure-jenkins-marathon' ||
+      id === '93-js-lexical-environment' ||
+      id === '94-js-scope-chain' ||
+      id === '95-js-bind-call-apply' ||
+      id === '96-js-prototype-chain' ||
+      id === '97-js-arrow-prototype' ||
+      id === '98-js-live-collections' ||
+      id === '99-js-event-delegation' ||
+      id === '100-js-event-this' ||
+      id === '101-js-arrow-syntax' ||
+      id === '102-js-factory-functions' ||
+      id === '103-js-prototypal-inheritance' ||
+      id === '104-js-null-prototype' ||
+      id === '105-js-mutation-observer' ||
+      id === '106-js-selection-range',
     groupId: meta.groupId,
     groupTitle,
     level: meta.level,
