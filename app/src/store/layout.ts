@@ -3,7 +3,7 @@ import { persist } from 'zustand/middleware'
 
 type LayoutState = {
   sidebarOpen: boolean
-  /** Fraction of shell width for lab dock (default half). */
+  /** Fraction of shell width for the left dock (Topics and Lab share it). */
   labShare: number
   /** Left dock shows lab layer instead of topics. */
   labOpen: boolean

@@ -1,131 +1,301 @@
-import { useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { JsLabShell } from '../../components/lab/JsLabShell'
 import shell from '../../components/lab/JsLabShell.module.css'
 import { LabCodePanel } from '../../components/lab/LabCodePanel'
 import { LabLogView } from '../../components/lab/LabLogView'
 import { useLabLog } from '../../components/lab/useLabLog'
 
-type Timer = { id: number; label: string; stop: () => void }
+type Person = { name: string }
+
+function introduce(this: Person, greeting: string, punctuation: string) {
+  return `${greeting}, ${this.name}${punctuation}`
+}
 
 export function BindCallApplyLab() {
-  const { lines, log, clear } = useLabLog()
-  const [label, setLabel] = useState('Таймер оплаты')
-  const timerRef = useRef<Timer | null>(null)
+  const { lines, log, clear } = useLabLog(60)
+  const [name, setName] = useState('Лена')
+  const [greeting, setGreeting] = useState('Привет')
+  const [punctuation, setPunctuation] = useState('!')
+  const [boundReady, setBoundReady] = useState(false)
+  const intervalRef = useRef<number | null>(null)
+  const boundRef = useRef<((punc: string) => string) | null>(null)
 
-  const api = {
-    label,
-    tick() {
-      log('ok', `${this.label}: tick`)
-    },
+  const person = useMemo<Person>(() => ({ name }), [name])
+  const other = useMemo<Person>(() => ({ name: 'Игорь' }), [])
+
+  const stopInterval = () => {
+    if (intervalRef.current != null) {
+      clearInterval(intervalRef.current)
+      intervalRef.current = null
+      log('info', 'setInterval остановлен')
+    }
   }
 
   const problem = (
     <div className={shell.panel}>
       <p className={shell.pain}>
-        Передали <code>api.tick</code> в <code>setInterval</code> — внутри <code>this</code> пропал,
-        в логе ошибка или «undefined».
+        Нужно поздороваться от имени пользователя. Метод <code>introduce</code> читает{' '}
+        <code>this.name</code>. Его передали в таймер «как есть» — имя пропало, в логе мусор или
+        ошибка. Надо явно подставить контекст.
       </p>
       <ol className={shell.steps}>
-        <li>Сломайте: передайте метод без привязки.</li>
-        <li>Почините через <code>bind</code> или стрелку-обёртку.</li>
-        <li>Сравните <code>call</code>/<code>apply</code> для разового вызова.</li>
+        <li>
+          Шаг 1 — оторвите метод: сохраните <code>const fn = introduce</code> и вызовите без объекта.
+        </li>
+        <li>
+          Шаг 2 — разовый вызов: <code>call(person, greeting, &apos;!&apos;)</code> и{' '}
+          <code>apply(person, [greeting, &apos;.&apos;])</code> (у apply аргументы массивом).
+        </li>
+        <li>
+          Шаг 3 — для таймера: <code>bind(person, greeting)</code>, затем крутите связанную функцию в{' '}
+          <code>setInterval</code>.
+        </li>
       </ol>
+
+      <div className={shell.row}>
+        <span className={shell.badge}>person.name = {person.name}</span>
+      </div>
+
       <div className={shell.row}>
         <button
           type="button"
           className={shell.btn}
           onClick={() => {
-            const detached = api.tick
+            const fn = introduce as (greeting: string, punctuation: string) => string
             try {
-              detached()
+              const result = fn('Привет', '!')
+              log('err', `оторванный вызов → ${result}`)
             } catch (e) {
-              log('err', e instanceof Error ? e.message : String(e))
+              log('err', `оторванный вызов: ${e instanceof Error ? e.message : String(e)}`)
             }
-            log('info', 'метод оторван от api — this больше не таймер')
+            log('info', 'без объекта слева от точки this больше не person')
           }}
         >
-          Сломать (потерять this)
+          1. Сломать (оторвать метод)
+        </button>
+      </div>
+
+      <div className={shell.row}>
+        <button
+          type="button"
+          className={shell.btnPrimary}
+          onClick={() => {
+            const viaCall = introduce.call(person, greeting, '!')
+            log('ok', `call(person, '${greeting}', '!') → ${viaCall}`)
+          }}
+        >
+          2a. call(person, a, b)
         </button>
         <button
           type="button"
           className={shell.btnPrimary}
           onClick={() => {
-            if (timerRef.current) timerRef.current.stop()
-            const bound = api.tick.bind(api)
-            const id = window.setInterval(() => bound(), 800)
-            timerRef.current = {
-              id,
-              label: api.label,
-              stop: () => clearInterval(id),
-            }
-            log('ok', `interval с bind(${api.label})`)
+            const args: [string, string] = [greeting, '.']
+            const viaApply = introduce.apply(person, args)
+            log('ok', `apply(person, ['${greeting}', '.']) → ${viaApply}`)
           }}
         >
-          Починить bind + interval
-        </button>
-        <button
-          type="button"
-          className={shell.btn}
-          onClick={() => {
-            timerRef.current?.stop()
-            timerRef.current = null
-            log('info', 'interval остановлен')
-          }}
-        >
-          Стоп
+          2b. apply(person, [a, b])
         </button>
       </div>
+
+      <div className={shell.row}>
+        <button
+          type="button"
+          className={shell.btnPrimary}
+          onClick={() => {
+            stopInterval()
+            const bound = introduce.bind(person, greeting)
+            boundRef.current = bound
+            setBoundReady(true)
+            let n = 0
+            intervalRef.current = window.setInterval(() => {
+              n += 1
+              log('ok', `interval #${n}: ${bound('!')}`)
+            }, 900)
+            log('info', `bind(person, '${greeting}') → функция для setInterval`)
+          }}
+        >
+          3. bind + setInterval
+        </button>
+        <button type="button" className={shell.btn} onClick={stopInterval}>
+          Стоп interval
+        </button>
+      </div>
+
       <LabLogView lines={lines} />
     </div>
   )
 
   const sandbox = (
     <div className={shell.panel}>
-      <div className={shell.field}>
-        <span>label объекта</span>
-        <input value={label} onChange={(e) => setLabel(e.target.value)} />
-      </div>
+      <p className={shell.hint}>
+        Крутите контекст и аргументы. Смотрите: <code>call</code> — список, <code>apply</code> —
+        массив, <code>bind</code> — новая функция. Стрелка <code>this</code> не меняет.
+      </p>
+
       <div className={shell.row}>
-        <button type="button" className={shell.btn} onClick={() => api.tick.call({ label: 'call-other' })}>
-          call(other)
-        </button>
+        <label className={shell.field}>
+          <span>this.name (person)</span>
+          <input value={name} onChange={(e) => setName(e.target.value)} />
+        </label>
+        <label className={shell.field}>
+          <span>greeting</span>
+          <input value={greeting} onChange={(e) => setGreeting(e.target.value)} />
+        </label>
+        <label className={shell.field}>
+          <span>punctuation</span>
+          <input value={punctuation} onChange={(e) => setPunctuation(e.target.value)} maxLength={3} />
+        </label>
+      </div>
+
+      <div className={shell.row}>
         <button
           type="button"
           className={shell.btn}
-          onClick={() => api.tick.apply({ label: 'apply-other' })}
+          onClick={() => {
+            const result = introduce.call(person, greeting, punctuation)
+            log('ok', `call → ${result}`)
+          }}
         >
-          apply(other)
+          call(person, …)
         </button>
         <button
           type="button"
           className={shell.btn}
           onClick={() => {
-            const f = api.tick.bind({ label: 'bound-once' })
-            f()
+            const result = introduce.apply(person, [greeting, punctuation])
+            log('ok', `apply → ${result}`)
           }}
         >
-          bind(once)
+          apply(person, […])
         </button>
-        <button type="button" className={shell.btn} onClick={clear}>
-          Очистить
+        <button
+          type="button"
+          className={shell.btn}
+          onClick={() => {
+            const result = introduce.call(other, greeting, punctuation)
+            log('ok', `call(other={name:'Игорь'}) → ${result}`)
+          }}
+        >
+          call(другой this)
         </button>
       </div>
+
+      <div className={shell.row}>
+        <button
+          type="button"
+          className={shell.btn}
+          onClick={() => {
+            boundRef.current = introduce.bind(person, greeting)
+            setBoundReady(true)
+            log('info', `создали bound = introduce.bind(person, '${greeting}')`)
+          }}
+        >
+          bind(person, greeting)
+        </button>
+        <button
+          type="button"
+          className={shell.btn}
+          disabled={!boundReady || !boundRef.current}
+          onClick={() => {
+            const fn = boundRef.current
+            if (!fn) return
+            log('ok', `bound('${punctuation}') → ${fn(punctuation)}`)
+          }}
+        >
+          Вызвать bound(punctuation)
+        </button>
+        <button
+          type="button"
+          className={shell.btn}
+          onClick={() => {
+            // Частичное применение: greeting уже в bind, punctuation позже
+            const greet = introduce.bind(person, greeting)
+            log('ok', `частичный bind: greet('?') → ${greet('?')}`)
+          }}
+        >
+          Частичный bind
+        </button>
+      </div>
+
+      <div className={shell.row}>
+        <button
+          type="button"
+          className={shell.btn}
+          onClick={() => {
+            const bad = {
+              name: 'Объект',
+              say: () => `привет, ${bad.name}`,
+            }
+            const detached = bad.say
+            log('info', `стрелка-метод оторвана: ${detached()}`)
+            log(
+              'info',
+              'у стрелки call/apply/bind не меняют this — для подмены нужна обычная function',
+            )
+          }}
+        >
+          Ловушка: стрелка
+        </button>
+        <button
+          type="button"
+          className={shell.btn}
+          onClick={() => {
+            const args = [greeting, punctuation] as [string, string]
+            log('info', `массив args = ${JSON.stringify(args)}`)
+            log('ok', `то же через call+spread: ${introduce.call(person, ...args)}`)
+            log('ok', `то же через apply: ${introduce.apply(person, args)}`)
+          }}
+        >
+          apply vs call+…args
+        </button>
+        <button type="button" className={shell.btn} onClick={clear}>
+          Очистить лог
+        </button>
+      </div>
+
       <LabLogView lines={lines} />
     </div>
   )
 
   const code = (
     <LabCodePanel
+      intro="Одна функция — три способа задать this. Разница call и apply только в форме аргументов."
       snippets={[
         {
-          label: 'bind закрепляет this',
-          code: `const tick = api.tick.bind(api);
-setInterval(tick, 1000);`,
+          label: 'Сигнатура',
+          code: `fn.call(thisArg, a, b)      // аргументы списком
+fn.apply(thisArg, [a, b])  // аргументы одним массивом
+fn.bind(thisArg, a)        // новая функция, this закреплён`,
         },
         {
-          label: 'call / apply — сразу',
-          code: `api.tick.call({ label: 'x' });
-api.tick.apply({ label: 'y' });`,
+          label: 'Пример из теории',
+          code: `function introduce(greeting, punctuation) {
+  return \`\${greeting}, \${this.name}\${punctuation}\`;
+}
+
+const person = { name: 'Лена' };
+
+introduce.call(person, 'Привет', '!');
+introduce.apply(person, ['Здравствуйте', '.']);
+
+const greetLena = introduce.bind(person, 'Привет');
+greetLena('!'); // Привет, Лена!`,
+        },
+        {
+          label: 'Колбэк не теряет this',
+          code: `const tick = introduce.bind(person, 'Тик');
+setInterval(() => tick('!'), 1000);
+
+// или
+setInterval(introduce.bind(person, 'Тик', '!'), 1000);`,
+        },
+        {
+          label: 'Ловушка со стрелкой',
+          note: 'call / apply / bind не подменяют this у стрелочной функции.',
+          code: `const arrow = () => this.name;
+arrow.call({ name: 'Лена' }); // this всё равно внешний`,
         },
       ]}
     />
@@ -134,7 +304,7 @@ api.tick.apply({ label: 'y' });`,
   return (
     <JsLabShell
       title="Метод потерял объект"
-      lead="call/apply вызывают сразу с this, bind создаёт функцию с закреплённым контекстом."
+      lead="call и apply вызывают сразу с нужным this; у apply второй аргумент — массив. bind отдаёт функцию, которую можно безопасно отдать в таймер."
       problem={problem}
       sandbox={sandbox}
       code={code}

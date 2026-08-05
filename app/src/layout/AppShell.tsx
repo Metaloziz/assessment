@@ -14,9 +14,9 @@ function readSidebarWidthPx(): number {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : 300
 }
 
-function labWidthFromShare(shellWidth: number, share: number): number {
-  const topicsW = readSidebarWidthPx()
-  const minW = Math.max(topicsW, Math.round(shellWidth * 0.28))
+/** Shared dock width for Topics and Lab modes (fraction of shell). */
+function dockWidthFromShare(shellWidth: number, share: number): number {
+  const minW = Math.max(readSidebarWidthPx(), Math.round(shellWidth * 0.28))
   const maxW = Math.round(shellWidth * 0.72)
   return Math.min(maxW, Math.max(minW, Math.round(shellWidth * share)))
 }
@@ -53,10 +53,9 @@ export function AppShell() {
       const mobile = window.matchMedia('(max-width: 860px)').matches
       const duration = reduced ? 0 : 0.48
       const ease = 'power3.inOut'
-      const topicsW = readSidebarWidthPx()
       const shellW = shell.getBoundingClientRect().width || window.innerWidth
       const share = useLayoutStore.getState().labShare
-      const labW = labWidthFromShare(shellW, share)
+      const dockW = dockWidthFromShare(shellW, share)
 
       if (labFocus && labOpen) {
         gsap.set(dock, {
@@ -70,15 +69,7 @@ export function AppShell() {
         return
       }
 
-      const targetWidth = !dockExpanded
-        ? 0
-        : labOpen
-          ? mobile
-            ? window.innerWidth
-            : labW
-          : mobile
-            ? window.innerWidth
-            : topicsW
+      const targetWidth = !dockExpanded ? 0 : mobile ? window.innerWidth : dockW
 
       if (!hydratedRef.current) {
         hydratedRef.current = true
@@ -129,22 +120,22 @@ export function AppShell() {
     if (!activeHasLab && labOpen) setLabOpen(false)
   }, [activeHasLab, labOpen, setLabOpen])
 
-  /** Keep dock width in sync while resizing or when share restored with lab already open. */
+  /** Keep dock width in sync for Topics and Lab (same share). */
   useEffect(() => {
     const dock = dockRef.current
     const shell = shellRef.current
-    if (!dock || !shell || !labOpen || labFocus || draggingRef.current) return
+    if (!dock || !shell || !dockExpanded || labFocus || draggingRef.current) return
     if (window.matchMedia('(max-width: 860px)').matches) return
     const shellW = shell.getBoundingClientRect().width || window.innerWidth
-    gsap.set(dock, { width: labWidthFromShare(shellW, labShare) })
-  }, [labShare, labOpen, labFocus])
+    gsap.set(dock, { width: dockWidthFromShare(shellW, labShare) })
+  }, [labShare, dockExpanded, labFocus])
 
   const onResizePointerDown = useCallback(
     (event: ReactPointerEvent<HTMLDivElement>) => {
       event.preventDefault()
       const shell = shellRef.current
       const dock = dockRef.current
-      if (!shell || !dock || !labOpen || labFocus) return
+      if (!shell || !dock || !dockExpanded || labFocus) return
 
       draggingRef.current = true
       const handle = event.currentTarget
@@ -159,7 +150,7 @@ export function AppShell() {
         const share = (ev.clientX - rect.left) / rect.width
         const next = Math.min(0.72, Math.max(0.28, share))
         setLabShare(next)
-        gsap.set(dockRef.current, { width: labWidthFromShare(rect.width, next) })
+        gsap.set(dockRef.current, { width: dockWidthFromShare(rect.width, next) })
       }
 
       const onUp = (ev: PointerEvent) => {
@@ -174,7 +165,7 @@ export function AppShell() {
       window.addEventListener('pointermove', onMove)
       window.addEventListener('pointerup', onUp)
     },
-    [labOpen, labFocus, setLabShare],
+    [dockExpanded, labFocus, setLabShare],
   )
 
   return (
@@ -211,7 +202,7 @@ export function AppShell() {
                 setSidebarOpen(true)
               }}
             >
-              Лаба
+              Лаборатория
             </button>
           </div>
         ) : null}
@@ -229,32 +220,25 @@ export function AppShell() {
             aria-hidden={!labOpen}
             aria-label="Лаборатория"
           >
-            <div className={styles.labChrome}>
-              <span className={styles.labChromeTitle}>Лаборатория</span>
-              <div className={styles.labChromeActions}>
-                {labFocus ? (
+            {labFocus ? (
+              <div className={styles.labChrome}>
+                <span className={styles.labChromeTitle}>Лаборатория</span>
+                <div className={styles.labChromeActions}>
                   <span className={styles.labFocusHint}>DevTools · только лаба</span>
-                ) : null}
-                <button
-                  type="button"
-                  className={`uiBtn uiBtnGhost ${styles.labToTopics}`}
-                  onClick={() => setLabOpen(false)}
-                >
-                  К темам
-                </button>
+                </div>
               </div>
-            </div>
+            ) : null}
             <div id={LAB_DOCK_ID} className={styles.labDockBody} />
           </div>
         </div>
       </div>
 
-      {labOpen && !labFocus ? (
+      {dockExpanded && !labFocus ? (
         <div
           className={styles.dockResizer}
           role="separator"
           aria-orientation="vertical"
-          aria-label="Изменить ширину лаборатории"
+          aria-label="Изменить ширину левой панели"
           onPointerDown={onResizePointerDown}
         />
       ) : null}
