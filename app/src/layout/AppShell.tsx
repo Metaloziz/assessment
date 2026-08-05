@@ -181,31 +181,33 @@ export function AppShell() {
         data-open={dockExpanded ? 'true' : 'false'}
         data-mode={labOpen ? 'lab' : 'topics'}
       >
-        {activeHasLab ? (
-          <div className={styles.dockToggle} role="tablist" aria-label="Панель слева">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={!labOpen}
-              className={`${styles.dockTab} ${!labOpen ? styles.dockTabActive : ''}`}
-              onClick={() => setLabOpen(false)}
-            >
-              Темы
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={labOpen}
-              className={`${styles.dockTab} ${labOpen ? styles.dockTabActive : ''}`}
-              onClick={() => {
-                setLabOpen(true)
-                setSidebarOpen(true)
-              }}
-            >
-              Лаборатория
-            </button>
-          </div>
-        ) : null}
+        <div className={styles.dockToggle} role="tablist" aria-label="Панель слева">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={!labOpen}
+            className={`${styles.dockTab} ${!labOpen ? styles.dockTabActive : ''}`}
+            onClick={() => setLabOpen(false)}
+          >
+            Темы
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={labOpen}
+            aria-disabled={!activeHasLab}
+            disabled={!activeHasLab}
+            title={activeHasLab ? undefined : 'У этой темы нет лаборатории'}
+            className={`${styles.dockTab} ${labOpen ? styles.dockTabActive : ''}`}
+            onClick={() => {
+              if (!activeHasLab) return
+              setLabOpen(true)
+              setSidebarOpen(true)
+            }}
+          >
+            Лаборатория
+          </button>
+        </div>
 
         <div className={styles.dockStage}>
           <div ref={topicsRef} className={styles.topicsLayer} aria-hidden={labOpen}>

@@ -1,0 +1,157 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  font-family: var(--font-sans);
+  font-size: var(--lab-font-body);
+  line-height: var(--lab-line);
+  min-height: 0;
+}
+
+.intro {
+  margin: 0;
+  font-size: var(--lab-font-lead);
+  color: var(--text-muted);
+}
+
+.snippetTabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.snippetTab {
+  appearance: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: var(--lab-font-meta);
+  padding: 0.28rem 0.5rem;
+  cursor: pointer;
+}
+
+.snippetTab:hover {
+  color: var(--text);
+}
+
+.snippetTabActive {
+  background: var(--bg-active);
+  border-color: transparent;
+  color: #fff;
+}
+
+.note {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--lab-font-meta);
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.btn {
+  appearance: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-elevated, #1e1e1e);
+  color: var(--text);
+  font-size: var(--lab-font-ui);
+  padding: 0.3rem 0.6rem;
+  cursor: pointer;
+}
+
+.btn:hover:not(:disabled) {
+  border-color: var(--text-muted);
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.saved {
+  font-size: var(--lab-font-meta);
+  color: var(--text-muted);
+}
+
+.editorShell {
+  border-radius: 6px;
+  background: var(--code-bg);
+  overflow: hidden;
+}
+
+.editorShell:focus-within {
+  outline: 1px solid #3a6ea5;
+  outline-offset: -1px;
+}
+
+.editorMeta {
+  padding: 0.45rem 1rem 0;
+  color: var(--text-faint);
+  font-size: 0.7rem;
+  text-transform: capitalize;
+  letter-spacing: 0.02em;
+  font-family: var(--font-sans);
+  text-align: right;
+}
+
+.editor {
+  font-size: var(--lab-font-mono);
+}
+
+.editor :global(.cm-editor) {
+  background: var(--code-bg);
+}
+
+.console {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--code-bg);
+}
+
+.consoleHead {
+  padding: 0.35rem 0.6rem;
+  border-bottom: 1px solid var(--border);
+  font-size: var(--lab-font-meta);
+  font-weight: 600;
+  color: var(--text-faint);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.consoleBody {
+  margin: 0;
+  padding: 0.5rem 0.65rem;
+  min-height: 4.5rem;
+  max-height: 10rem;
+  overflow: auto;
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-mono);
+  line-height: 1.4;
+  white-space: pre-wrap;
+}
+
+.lineLog {
+  color: #9cdcfe;
+}
+
+.lineWarn {
+  color: #dcdcaa;
+}
+
+.lineError {
+  color: #f14c4c;
+}
+
+.lineResult {
+  color: #6a9955;
+}
+
+.lineSystem {
+  color: var(--text-muted);
+}

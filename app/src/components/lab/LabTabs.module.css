@@ -6,12 +6,19 @@
 
 .toggle {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
   gap: 0.4rem;
   padding: 0.3rem;
   border-radius: var(--radius);
   background: var(--bg-panel);
   border: 1px solid var(--border);
+}
+
+.toggle3 {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+.toggle2 {
+  grid-template-columns: 1fr 1fr;
 }
 
 .tab {

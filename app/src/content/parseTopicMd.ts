@@ -129,7 +129,10 @@ export function parseTopicMd(id: string, raw: string, order: number): TopicDetai
       id === '103-js-prototypal-inheritance' ||
       id === '104-js-null-prototype' ||
       id === '105-js-mutation-observer' ||
-      id === '106-js-selection-range',
+      id === '106-js-selection-range' ||
+      id === '107-js-iife' ||
+      id === '108-js-currying' ||
+      id === '109-js-private-static-fields',
     groupId: meta.groupId,
     groupTitle,
     level: meta.level,

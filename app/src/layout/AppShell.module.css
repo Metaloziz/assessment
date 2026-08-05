@@ -61,6 +61,17 @@
   background: var(--bg-hover);
 }
 
+.dockTab:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  color: var(--text-muted);
+}
+
+.dockTab:disabled:hover {
+  color: var(--text-muted);
+  background: transparent;
+}
+
 .dockTabActive {
   background: var(--bg-active);
   color: #fff;

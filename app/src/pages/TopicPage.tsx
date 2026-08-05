@@ -33,6 +33,9 @@ import { PrototypalInheritanceLab } from '../topics/js-prototypal-inheritance/Pr
 import { NullPrototypeLab } from '../topics/js-null-prototype/NullPrototypeLab'
 import { MutationObserverLab } from '../topics/js-mutation-observer/MutationObserverLab'
 import { SelectionRangeLab } from '../topics/js-selection-range/SelectionRangeLab'
+import { IifeLab } from '../topics/js-iife/IifeLab'
+import { CurryingLab } from '../topics/js-currying/CurryingLab'
+import { PrivateStaticFieldsLab } from '../topics/js-private-static-fields/PrivateStaticFieldsLab'
 import { useDevToolsDocked } from '../hooks/useDevToolsDocked'
 import { LAB_DOCK_ID, useLayoutStore } from '../store/layout'
 import styles from './TopicPage.module.css'
@@ -66,6 +69,9 @@ function TopicLab({ topicId, topic }: { topicId: string; topic: TopicDetail }) {
   if (topicId === '104-js-null-prototype') return <NullPrototypeLab />
   if (topicId === '105-js-mutation-observer') return <MutationObserverLab />
   if (topicId === '106-js-selection-range') return <SelectionRangeLab />
+  if (topicId === '107-js-iife') return <IifeLab />
+  if (topicId === '108-js-currying') return <CurryingLab />
+  if (topicId === '109-js-private-static-fields') return <PrivateStaticFieldsLab />
   return null
 }
 

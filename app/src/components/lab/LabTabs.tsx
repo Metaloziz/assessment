@@ -5,26 +5,36 @@ export type LabTabId = 'problem' | 'sandbox' | 'code'
 
 type LabTabsProps = {
   problem: ReactNode
-  sandbox: ReactNode
+  /** If omitted, «Песочница» tab is hidden (pilot 2-tab labs). */
+  sandbox?: ReactNode
   code: ReactNode
   defaultTab?: LabTabId
 }
 
-const TABS: { id: LabTabId; label: string }[] = [
+const ALL_TABS: { id: LabTabId; label: string }[] = [
+  { id: 'code', label: 'Код' },
   { id: 'problem', label: 'Решение проблемы' },
   { id: 'sandbox', label: 'Песочница' },
-  { id: 'code', label: 'Код' },
 ]
 
-export function LabTabs({ problem, sandbox, code, defaultTab = 'problem' }: LabTabsProps) {
-  const [tab, setTab] = useState<LabTabId>(defaultTab)
+export function LabTabs({ problem, sandbox, code, defaultTab = 'code' }: LabTabsProps) {
+  const hasSandbox = sandbox !== undefined && sandbox !== null
+  const tabs = hasSandbox ? ALL_TABS : ALL_TABS.filter((t) => t.id !== 'sandbox')
+  const initial =
+    defaultTab === 'sandbox' && !hasSandbox ? 'code' : defaultTab
+  const [tab, setTab] = useState<LabTabId>(initial)
   const baseId = useId()
+  const active = tab === 'sandbox' && !hasSandbox ? 'code' : tab
 
   return (
     <div className={styles.root}>
-      <div className={styles.toggle} role="tablist" aria-label="Разделы лаборатории">
-        {TABS.map(({ id, label }) => {
-          const selected = tab === id
+      <div
+        className={`${styles.toggle} ${hasSandbox ? styles.toggle3 : styles.toggle2}`}
+        role="tablist"
+        aria-label="Разделы лаборатории"
+      >
+        {tabs.map(({ id, label }) => {
+          const selected = active === id
           return (
             <button
               key={id}
@@ -44,31 +54,33 @@ export function LabTabs({ problem, sandbox, code, defaultTab = 'problem' }: LabT
 
       <div
         role="tabpanel"
-        id={`${baseId}-panel-problem`}
-        aria-labelledby={`${baseId}-problem`}
-        hidden={tab !== 'problem'}
-        className={styles.panel}
-      >
-        {problem}
-      </div>
-      <div
-        role="tabpanel"
-        id={`${baseId}-panel-sandbox`}
-        aria-labelledby={`${baseId}-sandbox`}
-        hidden={tab !== 'sandbox'}
-        className={styles.panel}
-      >
-        {sandbox}
-      </div>
-      <div
-        role="tabpanel"
         id={`${baseId}-panel-code`}
         aria-labelledby={`${baseId}-code`}
-        hidden={tab !== 'code'}
+        hidden={active !== 'code'}
         className={styles.panel}
       >
         {code}
       </div>
+      <div
+        role="tabpanel"
+        id={`${baseId}-panel-problem`}
+        aria-labelledby={`${baseId}-problem`}
+        hidden={active !== 'problem'}
+        className={styles.panel}
+      >
+        {problem}
+      </div>
+      {hasSandbox ? (
+        <div
+          role="tabpanel"
+          id={`${baseId}-panel-sandbox`}
+          aria-labelledby={`${baseId}-sandbox`}
+          hidden={active !== 'sandbox'}
+          className={styles.panel}
+        >
+          {sandbox}
+        </div>
+      ) : null}
     </div>
   )
 }

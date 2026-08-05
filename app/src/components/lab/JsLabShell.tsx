@@ -6,7 +6,8 @@ type JsLabShellProps = {
   title: string
   lead: string
   problem: ReactNode
-  sandbox: ReactNode
+  /** Omit for pilot labs (problem + interactive code only). */
+  sandbox?: ReactNode
   code: ReactNode
   defaultTab?: LabTabId
 }
@@ -18,7 +19,7 @@ export function JsLabShell({
   problem,
   sandbox,
   code,
-  defaultTab = 'problem',
+  defaultTab = 'code',
 }: JsLabShellProps) {
   return (
     <div className={styles.root}>
