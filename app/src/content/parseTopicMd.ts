@@ -132,7 +132,16 @@ export function parseTopicMd(id: string, raw: string, order: number): TopicDetai
       id === '106-js-selection-range' ||
       id === '107-js-iife' ||
       id === '108-js-currying' ||
-      id === '109-js-private-static-fields',
+      id === '109-js-private-static-fields' ||
+      id === '110-js-delegation-pattern' ||
+      id === '111-js-v8-gc' ||
+      id === '112-js-v8-pipeline' ||
+      id === '113-js-class-engine' ||
+      id === '114-js-mixins' ||
+      id === '115-js-web-components' ||
+      id === '116-js-v8-optimizations' ||
+      id === '117-js-proto-vs-closure-perf' ||
+      id === '118-js-webcomponents-css',
     groupId: meta.groupId,
     groupTitle,
     level: meta.level,

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { JsLabShell } from '../../components/lab/JsLabShell'
+import { LabButton } from '../../components/lab/LabButton'
 import shell from '../../components/lab/JsLabShell.module.css'
 import { InteractiveCodePanel } from '../../components/lab/InteractiveCodePanel'
 import { LabLogView } from '../../components/lab/LabLogView'
@@ -30,10 +31,7 @@ export function IifeLab() {
       </ol>
 
       <div className={shell.row}>
-        <button
-          type="button"
-          className={shell.btn}
-          onClick={() => {
+        <LabButton variant="secondary" onClick={() => {
             // имитация утечки в «глобаль»
             const g = window as unknown as { __labValue?: number }
             g.__labValue = (g.__labValue ?? 0) + 1
@@ -42,11 +40,8 @@ export function IifeLab() {
           }}
         >
           Плохо: глобальный value++
-        </button>
-        <button
-          type="button"
-          className={shell.btnPrimary}
-          onClick={() => {
+        </LabButton>
+        <LabButton variant="primary" onClick={() => {
             const api = (() => {
               let value = 0
               return {
@@ -59,21 +54,18 @@ export function IifeLab() {
           }}
         >
           Хорошо: IIFE-счётчик
-        </button>
-        <button
-          type="button"
-          className={shell.btn}
-          disabled={!privateCount}
+        </LabButton>
+        <LabButton variant="secondary" disabled={!privateCount}
           onClick={() => {
             if (!privateCount) return
             log('ok', `inc → ${privateCount.inc()}, value() → ${privateCount.value()}`)
           }}
         >
           Ещё +1 через API
-        </button>
-        <button type="button" className={shell.btn} onClick={clear}>
+        </LabButton>
+        <LabButton variant="secondary" onClick={clear}>
           Очистить лог
-        </button>
+        </LabButton>
       </div>
 
       {leaked != null ? (
@@ -89,7 +81,7 @@ export function IifeLab() {
   const code = (
     <InteractiveCodePanel
       topicId={TOPIC_ID}
-      intro="Правите код — через ~0.4 с он выполнится; черновик пишется в localStorage. Сброс вернёт пример."
+      intro="Правите код — через ~0.4 с он выполнится; черновик пишется в `localStorage`. Сброс вернёт пример."
       snippets={[
         {
           id: 'counter',
@@ -110,7 +102,7 @@ console.log(counter.getValue());  // 2
         {
           id: 'deps',
           label: 'Передача зависимостей',
-          note: 'Раньше так явно передавали window/jQuery и упрощения для минификации.',
+          note: 'Раньше так явно передавали `window`/`jQuery` и упрощения для минификации.',
           code: `((global) => {
   const secret = 42;
   global.labAnswer = () => secret;
@@ -122,7 +114,7 @@ console.log(window.labAnswer()); // 42`,
         {
           id: 'parens',
           label: 'Зачем скобки',
-          note: 'Без скобок function — declaration, а не выражение; IIFE не собрать.',
+          note: 'Без скобок `function` — declaration, а не выражение; `IIFE` не собрать.',
           code: `// Работает: function превратили в выражение
 const result = (function () {
   return 'ok';

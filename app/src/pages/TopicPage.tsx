@@ -36,6 +36,15 @@ import { SelectionRangeLab } from '../topics/js-selection-range/SelectionRangeLa
 import { IifeLab } from '../topics/js-iife/IifeLab'
 import { CurryingLab } from '../topics/js-currying/CurryingLab'
 import { PrivateStaticFieldsLab } from '../topics/js-private-static-fields/PrivateStaticFieldsLab'
+import { DelegationPatternLab } from '../topics/js-delegation-pattern/DelegationPatternLab'
+import { V8GcLab } from '../topics/js-v8-gc/V8GcLab'
+import { V8PipelineLab } from '../topics/js-v8-pipeline/V8PipelineLab'
+import { ClassEngineLab } from '../topics/js-class-engine/ClassEngineLab'
+import { MixinsLab } from '../topics/js-mixins/MixinsLab'
+import { WebComponentsLab } from '../topics/js-web-components/WebComponentsLab'
+import { V8OptimizationsLab } from '../topics/js-v8-optimizations/V8OptimizationsLab'
+import { ProtoVsClosurePerfLab } from '../topics/js-proto-vs-closure-perf/ProtoVsClosurePerfLab'
+import { WebComponentsCssLab } from '../topics/js-webcomponents-css/WebComponentsCssLab'
 import { useDevToolsDocked } from '../hooks/useDevToolsDocked'
 import { LAB_DOCK_ID, useLayoutStore } from '../store/layout'
 import styles from './TopicPage.module.css'
@@ -72,6 +81,15 @@ function TopicLab({ topicId, topic }: { topicId: string; topic: TopicDetail }) {
   if (topicId === '107-js-iife') return <IifeLab />
   if (topicId === '108-js-currying') return <CurryingLab />
   if (topicId === '109-js-private-static-fields') return <PrivateStaticFieldsLab />
+  if (topicId === '110-js-delegation-pattern') return <DelegationPatternLab />
+  if (topicId === '111-js-v8-gc') return <V8GcLab />
+  if (topicId === '112-js-v8-pipeline') return <V8PipelineLab />
+  if (topicId === '113-js-class-engine') return <ClassEngineLab />
+  if (topicId === '114-js-mixins') return <MixinsLab />
+  if (topicId === '115-js-web-components') return <WebComponentsLab />
+  if (topicId === '116-js-v8-optimizations') return <V8OptimizationsLab />
+  if (topicId === '117-js-proto-vs-closure-perf') return <ProtoVsClosurePerfLab />
+  if (topicId === '118-js-webcomponents-css') return <WebComponentsCssLab />
   return null
 }
 

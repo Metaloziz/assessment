@@ -12,7 +12,6 @@ const editorTheme = EditorView.theme(
       backgroundColor: 'var(--code-bg)',
       color: '#d4d4d4',
       fontSize: 'var(--lab-font-mono)',
-      maxHeight: '22rem',
     },
     '.cm-scroller': {
       fontFamily: 'var(--font-mono)',

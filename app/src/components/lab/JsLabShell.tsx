@@ -10,6 +10,8 @@ type JsLabShellProps = {
   sandbox?: ReactNode
   code: ReactNode
   defaultTab?: LabTabId
+  /** Fill lab dock height so «Код» can stretch the editor (default for all labs). */
+  fill?: boolean
 }
 
 /** Общая оболочка JS-лабораторий: заголовок + LabTabs. */
@@ -20,9 +22,10 @@ export function JsLabShell({
   sandbox,
   code,
   defaultTab = 'code',
+  fill = true,
 }: JsLabShellProps) {
   return (
-    <div className={styles.root}>
+    <div className={`${styles.root} ${fill ? styles.rootFill : ''}`}>
       <section className={styles.section}>
         <h2 className={styles.title}>{title}</h2>
         <p className={styles.lead}>{lead}</p>

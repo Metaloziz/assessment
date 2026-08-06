@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { JsLabShell } from '../../components/lab/JsLabShell'
+import { LabButton } from '../../components/lab/LabButton'
 import shell from '../../components/lab/JsLabShell.module.css'
 import { InteractiveCodePanel } from '../../components/lab/InteractiveCodePanel'
 import { LabLogView } from '../../components/lab/LabLogView'
@@ -29,10 +30,7 @@ export function CurryingLab() {
       </ol>
 
       <div className={shell.row}>
-        <button
-          type="button"
-          className={shell.btnPrimary}
-          onClick={() => {
+        <LabButton variant="primary" onClick={() => {
             const multiply = (a: number) => (b: number) => a * b
             const d = multiply(2)
             setDouble(() => d)
@@ -41,15 +39,12 @@ export function CurryingLab() {
           }}
         >
           Создать double = multiply(2)
-        </button>
+        </LabButton>
         <label className={shell.field}>
           <span>число</span>
           <input value={input} onChange={(e) => setInput(e.target.value)} />
         </label>
-        <button
-          type="button"
-          className={shell.btn}
-          disabled={!double}
+        <LabButton variant="secondary" disabled={!double}
           onClick={() => {
             if (!double) return
             const n = Number(input)
@@ -61,10 +56,10 @@ export function CurryingLab() {
           }}
         >
           Вызвать double(n)
-        </button>
-        <button type="button" className={shell.btn} onClick={clear}>
+        </LabButton>
+        <LabButton variant="secondary" onClick={clear}>
           Очистить лог
-        </button>
+        </LabButton>
       </div>
 
       <LabLogView lines={lines} />
@@ -74,7 +69,7 @@ export function CurryingLab() {
   const code = (
     <InteractiveCodePanel
       topicId={TOPIC_ID}
-      intro="Правите каррированные примеры — результат и console.log появятся в консоли внизу."
+      intro="Правите каррированные примеры — результат и `console.log` появятся в консоли внизу."
       snippets={[
         {
           id: 'multiply',
@@ -103,7 +98,7 @@ console.log(rubRu(99.5));`,
         {
           id: 'curry2',
           label: 'Мини-curry на 2 аргумента',
-          note: 'Упрощённо: не универсальный curry, а идея накопления аргументов.',
+          note: 'Упрощённо: не универсальный `curry`, а идея накопления аргументов.',
           code: `function curry2(fn) {
   return (a) => (b) => fn(a, b);
 }

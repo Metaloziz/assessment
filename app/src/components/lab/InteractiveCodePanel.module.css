@@ -8,70 +8,71 @@
   min-height: 0;
 }
 
+.rootFill {
+  flex: 1;
+  height: 100%;
+  overflow: hidden;
+}
+
+.rootFill .intro,
+.rootFill .snippetTabs,
+.rootFill .note,
+.rootFill .toolbar,
+.rootFill .console {
+  flex-shrink: 0;
+}
+
+.rootFill .editorShell {
+  flex: 0 1 auto;
+  min-height: 11rem;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.rootFill .editor :global(.cm-editor) {
+  height: auto !important;
+}
+
+.rootFill .editor :global(.cm-scroller) {
+  overflow: auto !important;
+}
+
 .intro {
   margin: 0;
   font-size: var(--lab-font-lead);
   color: var(--text-muted);
+  line-height: var(--lab-line);
+}
+
+.intro :global(code),
+.note :global(code) {
+  font-family: var(--font-mono);
+  font-size: 0.88em;
+  background: rgba(255, 255, 255, 0.06);
+  border: none;
+  border-radius: 4px;
+  color: #ce9178;
+  padding: 0.12em 0.35em;
 }
 
 .snippetTabs {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.35rem;
-}
-
-.snippetTab {
-  appearance: none;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: transparent;
-  color: var(--text-muted);
-  font-size: var(--lab-font-meta);
-  padding: 0.28rem 0.5rem;
-  cursor: pointer;
-}
-
-.snippetTab:hover {
-  color: var(--text);
-}
-
-.snippetTabActive {
-  background: var(--bg-active);
-  border-color: transparent;
-  color: #fff;
+  gap: 0.4rem;
 }
 
 .note {
   margin: 0;
   color: var(--text-muted);
   font-size: var(--lab-font-meta);
+  line-height: var(--lab-line);
 }
 
 .toolbar {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.4rem;
+  gap: 0.5rem;
   align-items: center;
-}
-
-.btn {
-  appearance: none;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: var(--bg-elevated, #1e1e1e);
-  color: var(--text);
-  font-size: var(--lab-font-ui);
-  padding: 0.3rem 0.6rem;
-  cursor: pointer;
-}
-
-.btn:hover:not(:disabled) {
-  border-color: var(--text-muted);
-}
-
-.btn:disabled {
-  opacity: 0.45;
-  cursor: default;
 }
 
 .saved {
@@ -98,6 +99,7 @@
   letter-spacing: 0.02em;
   font-family: var(--font-sans);
   text-align: right;
+  flex-shrink: 0;
 }
 
 .editor {

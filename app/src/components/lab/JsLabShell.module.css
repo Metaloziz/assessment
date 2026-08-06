@@ -4,6 +4,24 @@
   gap: 1rem;
 }
 
+.rootFill {
+  height: 100%;
+  min-height: 0;
+}
+
+.rootFill .section {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.rootFill .title,
+.rootFill .lead {
+  flex-shrink: 0;
+}
+
 .section {
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -48,41 +66,86 @@
   margin-top: 0.25rem;
 }
 
+.lead :global(code),
+.pain :global(code),
+.steps :global(code),
+.hint :global(code),
+.listItem :global(code),
+.panel :global(code) {
+  font-family: var(--font-mono);
+  font-size: 0.88em;
+  background: rgba(255, 255, 255, 0.06);
+  border: none;
+  border-radius: 4px;
+  padding: 0.12em 0.35em;
+  color: #ce9178;
+}
+
 .row {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.45rem;
+  gap: 0.5rem;
   align-items: center;
 }
 
 .btn {
   appearance: none;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: var(--bg-elevated, #1e1e1e);
-  color: var(--text);
+  border: 1px solid #5a5a5a;
+  border-radius: 8px;
+  background: #323232;
+  color: #fff;
+  font-family: var(--font-sans);
   font-size: var(--lab-font-ui);
-  padding: 0.35rem 0.65rem;
+  font-weight: 600;
+  line-height: 1.3;
+  padding: 0.5rem 0.9rem;
   cursor: pointer;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06) inset;
 }
 
-.btn:hover {
-  border-color: var(--text-muted);
+.btn:hover:not(:disabled) {
+  background: #3d3d3d;
+  border-color: #7a7a7a;
+}
+
+.btn:active:not(:disabled) {
+  background: #2c2c2c;
+}
+
+.btn:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+  box-shadow: none;
 }
 
 .btnPrimary {
   appearance: none;
-  border: 1px solid #3a6ea5;
-  border-radius: 6px;
-  background: #243447;
-  color: var(--text);
+  border: 1px solid #5b9bd5;
+  border-radius: 8px;
+  background: #2f5f8f;
+  color: #fff;
+  font-family: var(--font-sans);
   font-size: var(--lab-font-ui);
-  padding: 0.35rem 0.65rem;
+  font-weight: 600;
+  line-height: 1.3;
+  padding: 0.5rem 0.9rem;
   cursor: pointer;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.1) inset;
 }
 
-.btnPrimary:hover {
-  border-color: #5b8fc7;
+.btnPrimary:hover:not(:disabled) {
+  background: #3a74ad;
+  border-color: #7eb6e8;
+}
+
+.btnPrimary:active:not(:disabled) {
+  background: #275480;
+}
+
+.btnPrimary:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+  box-shadow: none;
 }
 
 .hint {

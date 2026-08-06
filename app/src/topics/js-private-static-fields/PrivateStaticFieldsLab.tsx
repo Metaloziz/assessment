@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { JsLabShell } from '../../components/lab/JsLabShell'
+import { LabButton } from '../../components/lab/LabButton'
 import shell from '../../components/lab/JsLabShell.module.css'
 import { InteractiveCodePanel } from '../../components/lab/InteractiveCodePanel'
 import { LabLogView } from '../../components/lab/LabLogView'
@@ -61,10 +62,7 @@ export function PrivateStaticFieldsLab() {
       </ol>
 
       <div className={shell.row}>
-        <button
-          type="button"
-          className={shell.btn}
-          onClick={() => {
+        <LabButton variant="secondary" onClick={() => {
             const w = new LeakyWallet()
             w.deposit(50)
             w.balance = 1_000_000
@@ -73,11 +71,8 @@ export function PrivateStaticFieldsLab() {
           }}
         >
           Плохо: хак balance
-        </button>
-        <button
-          type="button"
-          className={shell.btnPrimary}
-          onClick={() => {
+        </LabButton>
+        <LabButton variant="primary" onClick={() => {
             const w = new SafeWallet()
             w.deposit(50)
             setSafe(w)
@@ -87,11 +82,8 @@ export function PrivateStaticFieldsLab() {
           }}
         >
           Хорошо: #balance + static
-        </button>
-        <button
-          type="button"
-          className={shell.btn}
-          disabled={!safe}
+        </LabButton>
+        <LabButton variant="secondary" disabled={!safe}
           onClick={() => {
             if (!safe) return
             safe.deposit(10)
@@ -100,10 +92,10 @@ export function PrivateStaticFieldsLab() {
           }}
         >
           +10 через метод
-        </button>
-        <button type="button" className={shell.btn} onClick={clear}>
+        </LabButton>
+        <LabButton variant="secondary" onClick={clear}>
           Очистить лог
-        </button>
+        </LabButton>
       </div>
 
       {leaky ? (
@@ -125,7 +117,7 @@ export function PrivateStaticFieldsLab() {
   const code = (
     <InteractiveCodePanel
       topicId={TOPIC_ID}
-      intro="Правите примеры с # и static — результат и console.log появятся в консоли внизу."
+      intro="Правите примеры с `#` и `static` — результат и `console.log` появятся в консоли внизу."
       snippets={[
         {
           id: 'private-balance',
@@ -153,7 +145,7 @@ console.log(Object.keys(w));  // []`,
         {
           id: 'static-count',
           label: 'static-счётчик',
-          note: 'static #opened общий для класса; this в static-методе — сам класс.',
+          note: '`static #opened` общий для класса; `this` в static-методе — сам класс.',
           code: `class ConnectionPool {
   static #opened = 0;
   #closed = false;
@@ -180,7 +172,7 @@ console.log(ConnectionPool.opened); // 2 — close не уменьшает сч�
         {
           id: 'subclass-brand',
           label: 'Подкласс не видит # родителя',
-          note: 'Одинаковое написание #x в двух классах — разные поля (разный brand).',
+          note: 'Одинаковое написание `#x` в двух классах — разные поля (разный brand).',
           code: `class Parent {
   #secret = 'parent';
   reveal() {

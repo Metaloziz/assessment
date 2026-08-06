@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import CodeMirror from '@uiw/react-codemirror'
 import { javascript } from '@codemirror/lang-javascript'
 import { cursorCodeMirrorExtensions } from './cursorCodeMirrorTheme'
+import { LabButton } from './LabButton'
 import styles from './InteractiveCodePanel.module.css'
 
 export type InteractiveSnippet = {
@@ -22,6 +23,12 @@ type Props = {
   topicId: string
   intro?: string
   snippets: InteractiveSnippet[]
+  /**
+   * Cap editor by free dock space (pair with JsLabShell fill).
+   * Height follows content; only grows until code fits, then caps and scrolls inside.
+   * Default on for all InteractiveCodePanel labs.
+   */
+  fillAvailable?: boolean
 }
 
 function storageKey(topicId: string, snippetId: string) {
@@ -101,8 +108,25 @@ function runUserCode(source: string): ConsoleLine[] {
 }
 
 const editorExtensions = [javascript(), ...cursorCodeMirrorExtensions]
+const MIN_EDITOR_PX = 176 // ~11rem
 
-export function InteractiveCodePanel({ topicId, intro, snippets }: Props) {
+/** Render `code` backticks like theory inline highlights. */
+function formatLabRichText(text: string): ReactNode {
+  const parts = text.split(/(`[^`]+`)/g)
+  return parts.map((part, i) => {
+    if (part.startsWith('`') && part.endsWith('`') && part.length >= 2) {
+      return <code key={i}>{part.slice(1, -1)}</code>
+    }
+    return <span key={i}>{part}</span>
+  })
+}
+
+export function InteractiveCodePanel({
+  topicId,
+  intro,
+  snippets,
+  fillAvailable = true,
+}: Props) {
   const first = snippets[0]
   const [activeId, setActiveId] = useState(first?.id ?? '')
   const activeMeta = useMemo(
@@ -115,6 +139,9 @@ export function InteractiveCodePanel({ topicId, intro, snippets }: Props) {
     return readStored(topicId, first.id) ?? first.code
   })
   const [consoleLines, setConsoleLines] = useState<ConsoleLine[]>([])
+  const rootRef = useRef<HTMLDivElement>(null)
+  const editorShellRef = useRef<HTMLDivElement>(null)
+  const [maxEditorPx, setMaxEditorPx] = useState<number | undefined>()
 
   const loadSnippet = useCallback(
     (snippet: InteractiveSnippet) => {
@@ -138,38 +165,72 @@ export function InteractiveCodePanel({ topicId, intro, snippets }: Props) {
     return () => window.clearTimeout(id)
   }, [code, topicId, activeMeta, run])
 
+  useLayoutEffect(() => {
+    if (!fillAvailable) {
+      setMaxEditorPx(undefined)
+      return
+    }
+    const root = rootRef.current
+    const shell = editorShellRef.current
+    if (!root || !shell) return
+
+    const measure = () => {
+      const rootH = root.clientHeight
+      if (rootH <= 0) return
+      let used = 0
+      for (const child of Array.from(root.children)) {
+        if (child === shell) continue
+        used += (child as HTMLElement).offsetHeight
+      }
+      const gapRaw = getComputedStyle(root).rowGap || getComputedStyle(root).gap || '0'
+      const gap = Number.parseFloat(gapRaw) || 0
+      const gaps = gap * Math.max(0, root.children.length - 1)
+      const meta = shell.querySelector(`.${styles.editorMeta}`) as HTMLElement | null
+      const metaH = meta?.offsetHeight ?? 0
+      setMaxEditorPx(Math.max(MIN_EDITOR_PX, Math.floor(rootH - used - gaps - metaH)))
+    }
+
+    measure()
+    const ro = new ResizeObserver(measure)
+    ro.observe(root)
+    return () => ro.disconnect()
+  }, [fillAvailable, intro, activeMeta?.note, consoleLines.length])
+
   if (!activeMeta) return null
 
   const dirty = code !== activeMeta.code
 
   return (
-    <div className={styles.root}>
-      {intro ? <p className={styles.intro}>{intro}</p> : null}
+    <div
+      ref={rootRef}
+      className={`${styles.root} ${fillAvailable ? styles.rootFill : ''}`}
+    >
+      {intro ? <p className={styles.intro}>{formatLabRichText(intro)}</p> : null}
 
       <div className={styles.snippetTabs} role="tablist" aria-label="Примеры кода">
         {snippets.map((snippet) => (
-          <button
+          <LabButton
             key={snippet.id}
-            type="button"
             role="tab"
             aria-selected={snippet.id === activeMeta.id}
-            className={`${styles.snippetTab} ${snippet.id === activeMeta.id ? styles.snippetTabActive : ''}`}
+            variant="ghost"
+            size="sm"
+            active={snippet.id === activeMeta.id}
             onClick={() => loadSnippet(snippet)}
           >
             {snippet.label}
-          </button>
+          </LabButton>
         ))}
       </div>
 
-      {activeMeta.note ? <p className={styles.note}>{activeMeta.note}</p> : null}
+      {activeMeta.note ? <p className={styles.note}>{formatLabRichText(activeMeta.note)}</p> : null}
 
       <div className={styles.toolbar}>
-        <button type="button" className={styles.btn} onClick={() => run(code)}>
+        <LabButton variant="primary" onClick={() => run(code)}>
           Выполнить
-        </button>
-        <button
-          type="button"
-          className={styles.btn}
+        </LabButton>
+        <LabButton
+          variant="secondary"
           disabled={!dirty && readStored(topicId, activeMeta.id) == null}
           onClick={() => {
             clearStored(topicId, activeMeta.id)
@@ -177,18 +238,24 @@ export function InteractiveCodePanel({ topicId, intro, snippets }: Props) {
           }}
         >
           Сброс кода
-        </button>
+        </LabButton>
         {dirty ? <span className={styles.saved}>черновик в localStorage</span> : null}
       </div>
 
-      <div className={styles.editorShell}>
+      <div ref={editorShellRef} className={styles.editorShell}>
         <div className={styles.editorMeta}>javascript</div>
         <CodeMirror
           className={styles.editor}
           value={code}
           height="auto"
           minHeight="11rem"
-          maxHeight="22rem"
+          maxHeight={
+            fillAvailable && maxEditorPx != null
+              ? `${maxEditorPx}px`
+              : fillAvailable
+                ? undefined
+                : '22rem'
+          }
           theme="none"
           extensions={editorExtensions}
           basicSetup={{

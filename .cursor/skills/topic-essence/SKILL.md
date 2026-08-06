@@ -9,7 +9,8 @@ description: >-
 
 # Суть темы (assessment)
 
-Эталон стиля: `topics/71-why-cicd.md`, `topics/72-jenkins.md`.
+Эталон стиля «Сути»: `topics/71-why-cicd.md`, `topics/72-jenkins.md`.
+**Эталон хорошо расписанной темы целиком** (Суть + запомнить + Описание со схемой/подразделами/визуализацией): `topics/112-js-v8-pipeline.md`.
 Общий формат файла: `TOPIC_FORMAT.md` и `.cursor/rules/topic-format.mdc`.
 
 ## Цель

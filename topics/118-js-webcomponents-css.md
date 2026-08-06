@@ -1,36 +1,48 @@
 # 1. Тема
 
-**CSS в Web Components**
+**CSS в Web Components:** изоляция Shadow DOM · `:host` · CSS variables · `::part` · `::slotted` · `adoptedStyleSheets`
 
 ---
 
 # 2. Главное в одну фразу
 
-Shadow DOM изолирует CSS компонента, а CSS custom properties, `::part` и `::slotted()` задают контролируемые точки стилизации.
+Shadow DOM изолирует стили компонента; наружу открывают контролируемый API: CSS-переменные, `::part` и точечный `::slotted()`.
 
 ---
 
 # 3. Суть
 
-> Shadow DOM ограничивает область действия CSS: внешние селекторы не попадают во внутреннюю разметку компонента, а внутренние стили не выходят наружу. Это защищает виджет от случайных конфликтов со стилями страницы.
+> Стили внутри shadow root не «вытекают» на страницу, а случайные селекторы страницы не перекрашивают внутренности виджета. Так компонент защищён от конфликтов глобального CSS.
 >
-> Полная изоляция здесь была бы неудобна: продукту всё равно нужна тема и возможность оформить отдельные части компонента. Поэтому стилизация должна быть частью публичного контракта, а не попыткой пробить границу селекторами.
+> Полная герметичность неудобна: теме и продукту всё равно нужны цвет, отступы, акцент на title. Поэтому стилизация — часть публичного контракта, а не взлом границы селекторами.
 >
-> Компонент принимает CSS-переменные, которые наследуются через границу, и может открыть конкретный внутренний узел атрибутом `part` для `::part()`. Контент в `<slot>` остаётся light DOM, а `::slotted()` выбирает только непосредственно вставленный элемент. `mode: 'closed'` не делает стили или данные безопасными, он лишь скрывает удобный доступ к `shadowRoot`.
+> Снаружи задают `var(--token)` (наследуются через shadow), открывают узлы через `part` для `::part()`, а slotted light DOM подправляют `::slotted()` только на непосредственных детях. `mode: 'closed'` — не security.
 
 ---
 
 # 4. Самое главное запомнить
 
-- `:host` выбирает сам custom element изнутри shadow root.
-- CSS-переменные — основной публичный API для темы компонента.
-- `part="name"` открывает внутренний элемент для внешнего `::part(name)`.
-- `::slotted(selector)` стилизует только непосредственные slotted-элементы, не их потомков.
-- `adoptedStyleSheets` позволяет переиспользовать один stylesheet в нескольких shadow roots.
+- `:host` — сам custom element изнутри shadow root.
+- CSS custom properties — основной theming API через границу.
+- `part="name"` + снаружи `::part(name)` — явный доступ к куску UI.
+- `::slotted(sel)` — только непосредственные slotted-узлы, не их потомки.
+- `adoptedStyleSheets` — один CSSStyleSheet на много shadow roots.
+- `closed` shadow не делает стили/данные безопасными.
 
 ---
 
 # 5. Описание
+
+## Изоляция и точки входа
+
+```text
+Страница CSS ──✗──► внутренности shadow (обычные селекторы)
+Страница ──var(--x)──► наследуется внутрь
+Страница ──::part(title)──► только объявленный part
+Компонент ──::slotted(p)──► прямой child в slot (light DOM)
+```
+
+## Пример контракта
 
 ```js
 class NoticeBox extends HTMLElement {
@@ -52,19 +64,29 @@ class NoticeBox extends HTMLElement {
 customElements.define('notice-box', NoticeBox);
 ```
 
-Потребитель компонента меняет только открытый контракт:
+Потребитель:
 
 ```css
 notice-box {
   --notice-color: #8a2be2;
 }
-
 notice-box::part(title) {
   text-transform: uppercase;
 }
 ```
 
-`::part` не даёт внешнему CSS доступ к любому внутреннему селектору: его нужно явно объявить. Содержимое slot остаётся light DOM и наследует стили страницы; `::slotted()` не выбирает вложенные элементы. Не применяйте `mode: 'closed'` как механизм безопасности — это лишь скрывает удобную ссылку `shadowRoot`.
+```html
+<notice-box>
+  <span slot="title">Внимание</span>
+  <p>Текст в default slot</p>
+</notice-box>
+```
+
+## Почему не «пробить» селектором
+
+Без `part` внешний `notice-box h2 { … }` не стилизует `h2` внутри shadow. Это фича изоляции. Открывайте только то, что готовы поддерживать как API.
+
+Light DOM в slot по-прежнему видит стили страницы (он снаружи тени). `::slotted(p span)` не дотянется до вложенного `span` — только до самого `p`, если он прямой child слота.
 
 ---
 
@@ -73,3 +95,4 @@ notice-box::part(title) {
 - [MDN: CSS scoping](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_scoping)
 - [MDN: ::part()](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Selectors/::part)
 - [MDN: ::slotted()](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Selectors/::slotted)
+- [MDN: Constructable Stylesheets](https://developer.mozilla.org/en-US/docs/Web/API/CSSStyleSheet/CSSStyleSheet)

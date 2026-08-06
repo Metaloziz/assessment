@@ -150,11 +150,17 @@
   flex: 1;
   min-height: 0;
   overflow: auto;
+  display: flex;
+  flex-direction: column;
   padding: 1rem 1.05rem 1.2rem;
   font-family: var(--font-sans);
   font-size: var(--lab-font-body);
   line-height: var(--lab-line);
   color: var(--text);
+}
+
+.labDockBody > :global(*) {
+  min-height: 0;
 }
 
 .dockResizer {

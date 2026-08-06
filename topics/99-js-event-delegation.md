@@ -51,6 +51,8 @@ tasks.addEventListener('click', (event) => {
 
 Обработчик сработает и для кнопки, которую добавили после регистрации. При клике на вложенный `<span>` `event.target` будет этим `span`, а `closest()` найдёт кнопку.
 
+**`Element.closest(selector)`** — идёт от текущего элемента вверх по предкам (включая себя) и возвращает ближайший узел, подходящий под CSS-селектор, либо `null`. В делегировании это нужно потому, что клик часто попадает не в кнопку, а во вложенную иконку или текст: `event.target` — мелкий потомок, а «логическая» цель — кнопка или строка списка. Вызов `event.target.closest('[data-action="remove"]')` поднимается от места клика до нужного элемента. После этого обычно проверяют `container.contains(found)`, чтобы не обработать чужой узел вне своего списка. Не путать с `querySelector`: тот ищет потомков вниз, `closest` — предков вверх.
+
 | Подход | Плюсы | Минусы |
 | --- | --- | --- |
 | Обработчик на каждом элементе | Прямой код | Нужно регистрировать для новых элементов |
@@ -63,4 +65,5 @@ tasks.addEventListener('click', (event) => {
 # 6. Ссылки
 
 - [MDN: Event delegation](https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/Scripting/Event_bubbling)
+- [MDN: Element.closest()](https://developer.mozilla.org/en-US/docs/Web/API/Element/closest)
 - [JavaScript.info: Делегирование событий](https://javascript.info/event-delegation)
