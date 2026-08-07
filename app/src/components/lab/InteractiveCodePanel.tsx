@@ -10,6 +10,11 @@ export type InteractiveSnippet = {
   label: string
   code: string
   note?: string
+  /**
+   * false — эталон (часто React+TS), без автозапуска в песочнице `new Function`.
+   * Живой UI — во вкладке «Решение проблемы».
+   */
+  executable?: boolean
 }
 
 type ConsoleKind = 'log' | 'info' | 'warn' | 'error' | 'result' | 'system'
@@ -29,6 +34,8 @@ type Props = {
    * Default on for all InteractiveCodePanel labs.
    */
   fillAvailable?: boolean
+  /** Языковая метка редактора. Для Redux-эталонов — `typescript`. */
+  languageLabel?: string
 }
 
 function storageKey(topicId: string, snippetId: string) {
@@ -121,11 +128,19 @@ function formatLabRichText(text: string): ReactNode {
   })
 }
 
+const REFERENCE_CONSOLE: ConsoleLine[] = [
+  {
+    kind: 'system',
+    text: 'Эталон React + TypeScript — без запуска здесь. Живой UI во вкладке «Решение проблемы».',
+  },
+]
+
 export function InteractiveCodePanel({
   topicId,
   intro,
   snippets,
   fillAvailable = true,
+  languageLabel = 'javascript',
 }: Props) {
   const first = snippets[0]
   const [activeId, setActiveId] = useState(first?.id ?? '')
@@ -133,6 +148,7 @@ export function InteractiveCodePanel({
     () => snippets.find((s) => s.id === activeId) ?? first,
     [snippets, activeId, first],
   )
+  const executable = activeMeta?.executable !== false
 
   const [code, setCode] = useState(() => {
     if (!first) return ''
@@ -157,6 +173,14 @@ export function InteractiveCodePanel({
 
   useEffect(() => {
     if (!activeMeta) return
+    if (activeMeta.executable === false) {
+      setConsoleLines(REFERENCE_CONSOLE)
+      const id = window.setTimeout(() => {
+        if (code === activeMeta.code) clearStored(topicId, activeMeta.id)
+        else writeStored(topicId, activeMeta.id, code)
+      }, 400)
+      return () => window.clearTimeout(id)
+    }
     const id = window.setTimeout(() => {
       if (code === activeMeta.code) clearStored(topicId, activeMeta.id)
       else writeStored(topicId, activeMeta.id, code)
@@ -226,9 +250,15 @@ export function InteractiveCodePanel({
       {activeMeta.note ? <p className={styles.note}>{formatLabRichText(activeMeta.note)}</p> : null}
 
       <div className={styles.toolbar}>
-        <LabButton variant="primary" onClick={() => run(code)}>
-          Выполнить
-        </LabButton>
+        {executable ? (
+          <LabButton variant="primary" onClick={() => run(code)}>
+            Выполнить
+          </LabButton>
+        ) : (
+          <LabButton variant="secondary" disabled>
+            Эталон (без запуска)
+          </LabButton>
+        )}
         <LabButton
           variant="secondary"
           disabled={!dirty && readStored(topicId, activeMeta.id) == null}
@@ -243,7 +273,9 @@ export function InteractiveCodePanel({
       </div>
 
       <div ref={editorShellRef} className={styles.editorShell}>
-        <div className={styles.editorMeta}>javascript</div>
+        <div className={styles.editorMeta}>
+          {executable ? languageLabel : 'typescript'}
+        </div>
         <CodeMirror
           className={styles.editor}
           value={code}

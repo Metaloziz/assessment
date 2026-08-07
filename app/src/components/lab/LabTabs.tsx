@@ -1,4 +1,6 @@
 import { useId, useState, type ReactNode } from 'react'
+import { useMatch } from 'react-router-dom'
+import { useLabTabUrl } from '../../hooks/useTopicViewUrl'
 import styles from './LabTabs.module.css'
 
 export type LabTabId = 'problem' | 'sandbox' | 'code'
@@ -20,11 +22,24 @@ const ALL_TABS: { id: LabTabId; label: string }[] = [
 export function LabTabs({ problem, sandbox, code, defaultTab = 'code' }: LabTabsProps) {
   const hasSandbox = sandbox !== undefined && sandbox !== null
   const tabs = hasSandbox ? ALL_TABS : ALL_TABS.filter((t) => t.id !== 'sandbox')
-  const initial =
+  const fallback =
     defaultTab === 'sandbox' && !hasSandbox ? 'code' : defaultTab
-  const [tab, setTab] = useState<LabTabId>(initial)
+
+  const onTopicPage = Boolean(useMatch('/topics/:topicId'))
+  const { labTab: urlTab, setLabTab, fromUrl } = useLabTabUrl(onTopicPage, fallback)
+
+  const [localTab, setLocalTab] = useState<LabTabId>(fallback)
+
+  let active: LabTabId = onTopicPage ? urlTab : localTab
+  if (active === 'sandbox' && !hasSandbox) active = 'code'
+  if (onTopicPage && fromUrl === 'sandbox' && !hasSandbox) active = 'code'
+
   const baseId = useId()
-  const active = tab === 'sandbox' && !hasSandbox ? 'code' : tab
+
+  const selectTab = (id: LabTabId) => {
+    if (onTopicPage) setLabTab(id)
+    else setLocalTab(id)
+  }
 
   return (
     <div className={styles.root}>
@@ -44,7 +59,7 @@ export function LabTabs({ problem, sandbox, code, defaultTab = 'code' }: LabTabs
               aria-selected={selected}
               aria-controls={`${baseId}-panel-${id}`}
               className={`${styles.tab} ${selected ? styles.active : ''}`}
-              onClick={() => setTab(id)}
+              onClick={() => selectTab(id)}
             >
               {label}
             </button>

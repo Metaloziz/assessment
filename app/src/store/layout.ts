@@ -9,8 +9,10 @@ type LayoutState = {
   labOpen: boolean
   /** Current topic has a lab (drives Topics/Lab toggle). */
   activeHasLab: boolean
-  /** Hide theory; lab full-bleed (DevTools docked while lab is open). */
-  labFocus: boolean
+  /**
+   * Show theory (main pane). When false — same full-bleed dock animation as former labFocus.
+   */
+  theoryOpen: boolean
   /** Scroll position of the topics list (nav). */
   sidebarScrollTop: number
   /** Collapsed topic groups in the sidebar (`groupId` → collapsed). */
@@ -20,7 +22,7 @@ type LayoutState = {
   setLabShare: (share: number) => void
   setLabOpen: (open: boolean) => void
   setActiveHasLab: (hasLab: boolean) => void
-  setLabFocus: (focus: boolean) => void
+  setTheoryOpen: (open: boolean) => void
   setSidebarScrollTop: (top: number) => void
   toggleCollapsedGroup: (groupId: string) => void
 }
@@ -36,7 +38,7 @@ export const useLayoutStore = create<LayoutState>()(
       labShare: 0.5,
       labOpen: false,
       activeHasLab: false,
-      labFocus: false,
+      theoryOpen: true,
       sidebarScrollTop: 0,
       collapsedGroups: {},
       setSidebarOpen: (open) => set({ sidebarOpen: open }),
@@ -44,7 +46,7 @@ export const useLayoutStore = create<LayoutState>()(
       setLabShare: (share) => set({ labShare: clampLabShare(share) }),
       setLabOpen: (open) => set({ labOpen: open }),
       setActiveHasLab: (hasLab) => set({ activeHasLab: hasLab }),
-      setLabFocus: (focus) => set({ labFocus: focus }),
+      setTheoryOpen: (open) => set({ theoryOpen: open }),
       setSidebarScrollTop: (top) => set({ sidebarScrollTop: Math.max(0, Math.round(top)) }),
       toggleCollapsedGroup: (groupId) =>
         set((s) => {

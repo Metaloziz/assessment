@@ -45,12 +45,16 @@ import { WebComponentsLab } from '../topics/js-web-components/WebComponentsLab'
 import { V8OptimizationsLab } from '../topics/js-v8-optimizations/V8OptimizationsLab'
 import { ProtoVsClosurePerfLab } from '../topics/js-proto-vs-closure-perf/ProtoVsClosurePerfLab'
 import { WebComponentsCssLab } from '../topics/js-webcomponents-css/WebComponentsCssLab'
+import { ReduxSagaThunkLab } from '../topics/redux-saga-thunk/ReduxSagaThunkLab'
+import { ReduxFeatureFirstDucksLab } from '../topics/redux-feature-first-ducks/ReduxFeatureFirstDucksLab'
+import { NormalizeImmutableLibsLab } from '../topics/normalize-immutable-libs/NormalizeImmutableLibsLab'
 import { useDevToolsDocked } from '../hooks/useDevToolsDocked'
 import { LAB_DOCK_ID, useLayoutStore } from '../store/layout'
 import styles from './TopicPage.module.css'
 
 function TopicLab({ topicId, topic }: { topicId: string; topic: TopicDetail }) {
-  if (topicId === '01-immutability-js') return <ImmutabilityLab topic={topic} />
+  if (topicId === '01-immutability-js') return <ImmutabilityLab />
+  if (topicId === '02-normalize-immutable-libs') return <NormalizeImmutableLibsLab />
   if (topicId === '24-devtools-lighthouse') return <PerformanceLab />
   if (topicId === '31-git-switch') return <GitSwitchLab />
   if (topicId === '32-git-restore') return <GitRestoreLab />
@@ -90,6 +94,8 @@ function TopicLab({ topicId, topic }: { topicId: string; topic: TopicDetail }) {
   if (topicId === '116-js-v8-optimizations') return <V8OptimizationsLab />
   if (topicId === '117-js-proto-vs-closure-perf') return <ProtoVsClosurePerfLab />
   if (topicId === '118-js-webcomponents-css') return <WebComponentsCssLab />
+  if (topicId === '124-redux-saga-thunk') return <ReduxSagaThunkLab />
+  if (topicId === '126-redux-feature-first-ducks') return <ReduxFeatureFirstDucksLab />
   return null
 }
 
@@ -99,9 +105,9 @@ export function TopicPage() {
   const [error, setError] = useState<string | null>(null)
   const [dockEl, setDockEl] = useState<HTMLElement | null>(null)
   const labOpen = useLayoutStore((s) => s.labOpen)
-  const setLabOpen = useLayoutStore((s) => s.setLabOpen)
-  const setLabFocus = useLayoutStore((s) => s.setLabFocus)
   const setActiveHasLab = useLayoutStore((s) => s.setActiveHasLab)
+  const setTheoryOpen = useLayoutStore((s) => s.setTheoryOpen)
+  const setLabOpen = useLayoutStore((s) => s.setLabOpen)
   const devToolsDocked = useDevToolsDocked()
 
   useEffect(() => {
@@ -112,7 +118,6 @@ export function TopicPage() {
     let cancelled = false
     setTopic(null)
     setError(null)
-    setLabOpen(false)
     setActiveHasLab(false)
     void contentSource
       .getTopic(topicId)
@@ -129,17 +134,17 @@ export function TopicPage() {
       })
     return () => {
       cancelled = true
-      setLabOpen(false)
-      setLabFocus(false)
       setActiveHasLab(false)
+      setLabOpen(false)
+      setTheoryOpen(true)
     }
-  }, [topicId, setLabOpen, setLabFocus, setActiveHasLab])
+  }, [topicId, setActiveHasLab, setLabOpen, setTheoryOpen])
 
+  /** DevTools + лаба → прячем теорию (как раньше labFocus). */
   useEffect(() => {
-    const focus = Boolean(topic?.hasLab && labOpen && devToolsDocked)
-    setLabFocus(focus)
-    return () => setLabFocus(false)
-  }, [topic?.hasLab, labOpen, devToolsDocked, setLabFocus])
+    if (!topic?.hasLab || !labOpen || !devToolsDocked) return
+    setTheoryOpen(false)
+  }, [topic?.hasLab, labOpen, devToolsDocked, setTheoryOpen])
 
   if (error) {
     return <div className={styles.state}>{error}</div>

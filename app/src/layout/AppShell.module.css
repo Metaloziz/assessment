@@ -1,47 +1,26 @@
 .shell {
   display: flex;
+  flex-direction: column;
   height: 100%;
   min-height: 100%;
   position: relative;
-}
-
-.leftDock {
-  flex: 0 0 auto;
-  width: var(--sidebar-width);
-  min-width: 0;
   overflow: hidden;
-  border-right: 1px solid var(--border);
-  background: var(--bg-panel);
-  display: flex;
-  flex-direction: column;
+}
+
+.chrome {
+  flex: 0 0 auto;
+  padding: 0.45rem 0.5rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-elevated);
+  z-index: 40;
   position: relative;
-  z-index: 5;
-  will-change: width;
-}
-
-.leftDock[data-open='false'] {
-  pointer-events: none;
-  border-right-width: 0;
-}
-
-.shell[data-lab-focus='true'] .leftDock {
-  position: absolute;
-  inset: 0;
-  z-index: 30;
-  border-right: 0;
-  width: 100% !important;
-  max-height: none !important;
 }
 
 .dockToggle {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, minmax(5.5rem, 1fr));
   gap: 0.3rem;
-  padding: 0.45rem 0.5rem;
-  border-bottom: 1px solid var(--border);
-  background: var(--bg-elevated);
-  flex-shrink: 0;
-  z-index: 2;
+  max-width: 28rem;
 }
 
 .dockTab {
@@ -54,6 +33,7 @@
   font-size: var(--lab-font-ui);
   font-weight: 600;
   cursor: pointer;
+  white-space: nowrap;
 }
 
 .dockTab:hover {
@@ -76,6 +56,40 @@
   background: var(--bg-active);
   color: #fff;
   border-color: var(--border);
+}
+
+.workspace {
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: row;
+  position: relative;
+  overflow: hidden;
+}
+
+.leftDock {
+  flex: 0 0 auto;
+  width: var(--sidebar-width);
+  height: 100%;
+  min-width: 0;
+  overflow: hidden;
+  border-right: 1px solid var(--border);
+  background: var(--bg-panel);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  z-index: 5;
+  will-change: width;
+}
+
+.leftDock[data-open='false'] {
+  pointer-events: none;
+  border-right-width: 0;
+}
+
+.shell[data-lab-focus='true'] .leftDock {
+  border-right: 0;
 }
 
 .dockStage {
@@ -141,11 +155,6 @@
   color: var(--text-faint);
 }
 
-.labToTopics {
-  font-size: var(--lab-font-ui);
-  padding: 0.3rem 0.65rem;
-}
-
 .labDockBody {
   flex: 1;
   min-height: 0;
@@ -190,27 +199,31 @@
 }
 
 .main {
-  flex: 1;
-  min-width: 0;
-  min-height: 0;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 8;
   overflow: hidden;
   background: var(--bg-deep);
   display: flex;
   flex-direction: column;
-  position: relative;
+  will-change: transform;
+  /* width / xPercent задаёт GSAP — только сдвиг, без сжатия контента */
 }
 
-.shell[data-lab-focus='true'] .main {
-  visibility: hidden;
+.main[aria-hidden='true'] {
   pointer-events: none;
 }
 
 .mainBody {
   flex: 1;
   min-height: 0;
+  min-width: 0;
+  width: 100%;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow: auto;
 }
 
 .mainBody > * {
@@ -244,7 +257,12 @@
 }
 
 @media (max-width: 860px) {
-  .shell {
+  .dockToggle {
+    max-width: none;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .workspace {
     flex-direction: column;
   }
 
@@ -262,10 +280,6 @@
 
   .shell[data-lab-focus='true'] .leftDock {
     max-height: none;
-  }
-
-  .main {
-    overflow: auto;
   }
 
   .sidebarReveal {
