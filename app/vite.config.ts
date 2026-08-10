@@ -2,13 +2,24 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'node:path'
 
+const topicsDir = path.resolve(__dirname, '../topics')
+
 export default defineConfig({
   base: '/assessment/',
-  plugins: [react()],
+  plugins: [
+    react(),
+    {
+      name: 'watch-topics-md',
+      configureServer(server) {
+        // topics/ вне app/ — без этого новые .md не попадают в import.meta.glob до рестарта
+        server.watcher.add(topicsDir)
+      },
+    },
+  ],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, 'src'),
-      '@topics': path.resolve(__dirname, '../topics'),
+      '@topics': topicsDir,
     },
   },
   server: {

@@ -144,7 +144,14 @@ export function parseTopicMd(id: string, raw: string, order: number): TopicDetai
       id === '118-js-webcomponents-css' ||
       id === '124-redux-saga-thunk' ||
       id === '126-redux-feature-first-ducks' ||
-      id === '02-normalize-immutable-libs',
+      id === '02-normalize-immutable-libs' ||
+      id === '129-algorithms-big-o' ||
+      id === '130-algorithms-sorting' ||
+      id === '131-algorithms-dp' ||
+      id === '132-algorithms-patterns' ||
+      id === '133-algorithms-stack-hashmap' ||
+      id === '134-algorithms-graphs-list' ||
+      id === '135-algorithms-complexity-notations',
     groupId: meta.groupId,
     groupTitle,
     level: meta.level,

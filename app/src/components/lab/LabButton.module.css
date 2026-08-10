@@ -14,8 +14,10 @@
 }
 
 .md {
+  box-sizing: border-box;
   font-size: var(--lab-font-ui);
   padding: 0.5rem 0.9rem;
+  min-height: 2.35rem;
 }
 
 .sm {

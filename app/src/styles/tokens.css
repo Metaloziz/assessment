@@ -59,6 +59,9 @@
   --lab-line: var(--line-height-body);
   --radius: 6px;
   --sidebar-width: 300px;
+  /* Max content width when «Темы»/«Лаборатория» alone (theory hidden, full-bleed dock) */
+  --focus-pane-max-width: 52rem;
+  --focus-topics-max-width: 28rem;
   --shadow: none;
 }
 

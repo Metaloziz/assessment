@@ -48,6 +48,13 @@ import { WebComponentsCssLab } from '../topics/js-webcomponents-css/WebComponent
 import { ReduxSagaThunkLab } from '../topics/redux-saga-thunk/ReduxSagaThunkLab'
 import { ReduxFeatureFirstDucksLab } from '../topics/redux-feature-first-ducks/ReduxFeatureFirstDucksLab'
 import { NormalizeImmutableLibsLab } from '../topics/normalize-immutable-libs/NormalizeImmutableLibsLab'
+import { AlgorithmsBigOLab } from '../topics/algorithms-big-o/AlgorithmsBigOLab'
+import { AlgorithmsSortingLab } from '../topics/algorithms-sorting/AlgorithmsSortingLab'
+import { AlgorithmsDpLab } from '../topics/algorithms-dp/AlgorithmsDpLab'
+import { AlgorithmsPatternsLab } from '../topics/algorithms-patterns/AlgorithmsPatternsLab'
+import { AlgorithmsStackHashmapLab } from '../topics/algorithms-stack-hashmap/AlgorithmsStackHashmapLab'
+import { AlgorithmsGraphsListLab } from '../topics/algorithms-graphs-list/AlgorithmsGraphsListLab'
+import { AlgorithmsComplexityNotationsLab } from '../topics/algorithms-complexity-notations/AlgorithmsComplexityNotationsLab'
 import { useDevToolsDocked } from '../hooks/useDevToolsDocked'
 import { LAB_DOCK_ID, useLayoutStore } from '../store/layout'
 import styles from './TopicPage.module.css'
@@ -55,6 +62,14 @@ import styles from './TopicPage.module.css'
 function TopicLab({ topicId, topic }: { topicId: string; topic: TopicDetail }) {
   if (topicId === '01-immutability-js') return <ImmutabilityLab />
   if (topicId === '02-normalize-immutable-libs') return <NormalizeImmutableLibsLab />
+  if (topicId === '129-algorithms-big-o') return <AlgorithmsBigOLab />
+  if (topicId === '130-algorithms-sorting') return <AlgorithmsSortingLab />
+  if (topicId === '131-algorithms-dp') return <AlgorithmsDpLab />
+  if (topicId === '132-algorithms-patterns') return <AlgorithmsPatternsLab />
+  if (topicId === '133-algorithms-stack-hashmap') return <AlgorithmsStackHashmapLab />
+  if (topicId === '134-algorithms-graphs-list') return <AlgorithmsGraphsListLab />
+  if (topicId === '135-algorithms-complexity-notations')
+    return <AlgorithmsComplexityNotationsLab />
   if (topicId === '24-devtools-lighthouse') return <PerformanceLab />
   if (topicId === '31-git-switch') return <GitSwitchLab />
   if (topicId === '32-git-restore') return <GitRestoreLab />

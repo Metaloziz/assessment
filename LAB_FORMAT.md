@@ -6,6 +6,8 @@
 
 Связанный формат теории: [`TOPIC_FORMAT.md`](TOPIC_FORMAT.md).
 
+Тон как в теории: **учёба и практика**, без лексики собеседований / найма (см. «Назначение проекта» в `TOPIC_FORMAT.md`). В `pain` / `lead` / `hint` — зачем механизм в коде, не «что спросят».
+
 ---
 
 ## Формат (обязателен для новых)
@@ -103,6 +105,10 @@ note: '`target` — источник; `currentTarget` — узел с обраб
 - во вкладке «Код» — эталоны TS/TSX со `executable: false` (песочница `new Function` не исполняет JSX/типы);
 - оболочка по-прежнему `JsLabShell` + `InteractiveCodePanel`.
 
+### Визуализации (структуры / обходы)
+
+Если лаба про графы, списки, деревья, обходы — **по возможности** схема в духе эталона `algorithms-graphs-list` (тёмная панель, accent/ok подсветка, SVG или цепочка узлов). Детали стиля: [`.cursor/rules/lab-visualizations.mdc`](.cursor/rules/lab-visualizations.mdc). В SVG не давать подписям цеплять край круга (`font-size` в user units viewBox).
+
 ---
 
 ## Чеклист новой лабы
@@ -114,3 +120,4 @@ note: '`target` — источник; `currentTarget` — узел с обраб
 - [ ] В `intro` и каждом `note` — backticks на терминах
 - [ ] 2–4 сниппета; автозапуск / LS / сброс из коробки панели (для Redux-эталонов — `executable: false`)
 - [ ] Тема подключена в `parseTopicMd.ts` и `TopicPage.tsx`
+- [ ] Если уместна схема структуры/обхода — визуализация по `lab-visualizations`

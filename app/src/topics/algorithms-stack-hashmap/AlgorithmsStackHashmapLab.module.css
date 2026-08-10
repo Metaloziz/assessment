@@ -1,0 +1,277 @@
+.viz {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background:
+    radial-gradient(120% 80% at 10% 0%, rgba(105, 177, 255, 0.08), transparent 55%),
+    radial-gradient(90% 70% at 90% 100%, rgba(77, 183, 132, 0.06), transparent 50%),
+    var(--bg-elevated);
+  padding: 0.85rem 0.9rem 1rem;
+  overflow: hidden;
+}
+
+.vizCompact {
+  padding: 0.65rem 0.75rem 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.vizHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.vizTitle {
+  margin: 0;
+  font-size: var(--lab-font-ui);
+  font-weight: 650;
+  color: var(--text);
+}
+
+.vizMeta {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-meta);
+  color: var(--text-faint);
+}
+
+.codePane {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+}
+
+.codeSwitch {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.55rem;
+}
+
+/* —— Stack —— */
+.stackScene {
+  display: grid;
+  grid-template-columns: minmax(7rem, 9rem) 1fr;
+  gap: 1rem;
+  align-items: end;
+  min-height: 11rem;
+}
+
+.stackWell {
+  position: relative;
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: stretch;
+  gap: 0.28rem;
+  min-height: 9.5rem;
+  padding: 0.55rem 0.45rem 0.65rem;
+  border: 1px solid rgba(105, 177, 255, 0.28);
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(20, 24, 30, 0.5), rgba(30, 36, 44, 0.9));
+  box-shadow: inset 0 -10px 24px rgba(0, 0, 0, 0.25);
+}
+
+.stackBase {
+  position: absolute;
+  left: 0.35rem;
+  right: 0.35rem;
+  bottom: 0.25rem;
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(105, 177, 255, 0.35);
+}
+
+.stackEmpty {
+  margin: auto;
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-meta);
+  color: var(--text-faint);
+}
+
+.plate {
+  display: grid;
+  place-items: center;
+  min-height: 2rem;
+  border-radius: 8px;
+  border: 1px solid rgba(105, 177, 255, 0.4);
+  background: linear-gradient(165deg, #2a3340 0%, #222830 100%);
+  color: #e8f1ff;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 1.05rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.28);
+  animation: plateIn 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.plateTop {
+  border-color: rgba(139, 194, 255, 0.75);
+  box-shadow:
+    0 0 0 1px rgba(105, 177, 255, 0.2),
+    0 0 14px rgba(105, 177, 255, 0.35),
+    0 4px 12px rgba(0, 0, 0, 0.28);
+}
+
+.stackSide {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  justify-content: center;
+  min-height: 9.5rem;
+}
+
+.cursorChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  align-self: flex-start;
+  padding: 0.4rem 0.65rem;
+  border-radius: 999px;
+  border: 1px solid rgba(105, 177, 255, 0.35);
+  background: rgba(105, 177, 255, 0.1);
+  color: var(--accent-bright);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 650;
+}
+
+.actionText {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-meta);
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
+.actionOk {
+  color: var(--ok);
+}
+
+.actionErr {
+  color: var(--danger);
+}
+
+/* —— Hash map —— */
+.hashScene {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.arrayRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  align-items: center;
+}
+
+.arrayCell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  min-width: 2.4rem;
+}
+
+.arrayIdx {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--text-faint);
+}
+
+.arrayVal {
+  display: grid;
+  place-items: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 8px;
+  border: 1px solid rgba(105, 177, 255, 0.3);
+  background: #252b33;
+  color: #e8f1ff;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.9rem;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+}
+
+.arrayValActive {
+  border-color: var(--accent-bright);
+  background: #1e3a55;
+  box-shadow: 0 0 12px rgba(105, 177, 255, 0.4);
+}
+
+.arrayValDone {
+  border-color: rgba(77, 183, 132, 0.55);
+  background: #243528;
+}
+
+.buckets {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(7.5rem, 1fr));
+  gap: 0.45rem;
+}
+
+.bucket {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.45rem 0.5rem;
+  border-radius: 10px;
+  border: 1px solid rgba(105, 177, 255, 0.28);
+  background: linear-gradient(165deg, #2a3340 0%, #222830 100%);
+  animation: plateIn 0.35s ease both;
+}
+
+.bucketKey {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text-faint);
+}
+
+.bucketPair {
+  font-family: var(--font-mono);
+  font-size: 0.88rem;
+  font-weight: 650;
+  color: #e8f1ff;
+}
+
+.bucketHit {
+  border-color: rgba(77, 183, 132, 0.7);
+  box-shadow: 0 0 0 1px rgba(77, 183, 132, 0.25), 0 0 14px rgba(77, 183, 132, 0.25);
+}
+
+.bucketEmpty {
+  grid-column: 1 / -1;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-meta);
+  color: var(--text-faint);
+  padding: 0.75rem;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+}
+
+@keyframes plateIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (max-width: 520px) {
+  .stackScene {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .plate,
+  .bucket {
+    animation: none;
+  }
+}
