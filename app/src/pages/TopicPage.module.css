@@ -1,8 +1,25 @@
 .page {
+  position: relative;
   padding: 2.5rem clamp(1.5rem, 10vw, 7rem) 4rem;
   background: var(--bg-deep);
   min-height: 100%;
   overflow: auto;
+}
+
+.topicNum {
+  position: absolute;
+  top: 0.85rem;
+  right: 0.85rem;
+  z-index: 1;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  color: var(--text-faint);
+  pointer-events: none;
+  user-select: none;
 }
 
 .reading {

@@ -8,6 +8,7 @@ alwaysApply: false
 
 **Источник истины:** [`TOPIC_FORMAT.md`](../../TOPIC_FORMAT.md) в корне репозитория.
 
-Эталон темы: [`topics/112-js-v8-pipeline.md`](../../topics/112-js-v8-pipeline.md).
+- Эталон **целой темы**: [`topics/112-js-v8-pipeline.md`](../../topics/112-js-v8-pipeline.md).
+- Эталон плотности **«Сути»** (широкая тема, 4 абзаца что/зачем/как/ловушка): [`topics/140-project-prod-dev-plugins.md`](../../topics/140-project-prod-dev-plugins.md) — образец также встроен в `TOPIC_FORMAT.md` (§ «Хорошо (широкая тема)»).
 
 Не дублируй правила здесь — читай и следуй `TOPIC_FORMAT.md`.

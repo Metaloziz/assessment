@@ -55,6 +55,12 @@ import { AlgorithmsPatternsLab } from '../topics/algorithms-patterns/AlgorithmsP
 import { AlgorithmsStackHashmapLab } from '../topics/algorithms-stack-hashmap/AlgorithmsStackHashmapLab'
 import { AlgorithmsGraphsListLab } from '../topics/algorithms-graphs-list/AlgorithmsGraphsListLab'
 import { AlgorithmsComplexityNotationsLab } from '../topics/algorithms-complexity-notations/AlgorithmsComplexityNotationsLab'
+import { ProjectLoadersPluginsSemverLab } from '../topics/project-loaders-plugins-semver/ProjectLoadersPluginsSemverLab'
+import { ProjectScriptsHmrTreeshakeLab } from '../topics/project-scripts-hmr-treeshake/ProjectScriptsHmrTreeshakeLab'
+import { ProjectProdDevPluginsLab } from '../topics/project-prod-dev-plugins/ProjectProdDevPluginsLab'
+import { ProjectHotColdLab } from '../topics/project-hot-cold/ProjectHotColdLab'
+import { ProjectBundlersLab } from '../topics/project-bundlers/ProjectBundlersLab'
+import { ProjectFederationLab } from '../topics/project-federation/ProjectFederationLab'
 import { useDevToolsDocked } from '../hooks/useDevToolsDocked'
 import { LAB_DOCK_ID, useLayoutStore } from '../store/layout'
 import styles from './TopicPage.module.css'
@@ -70,6 +76,12 @@ function TopicLab({ topicId, topic }: { topicId: string; topic: TopicDetail }) {
   if (topicId === '134-algorithms-graphs-list') return <AlgorithmsGraphsListLab />
   if (topicId === '135-algorithms-complexity-notations')
     return <AlgorithmsComplexityNotationsLab />
+  if (topicId === '138-project-loaders-plugins-semver') return <ProjectLoadersPluginsSemverLab />
+  if (topicId === '139-project-scripts-hmr-treeshake') return <ProjectScriptsHmrTreeshakeLab />
+  if (topicId === '140-project-prod-dev-plugins') return <ProjectProdDevPluginsLab />
+  if (topicId === '03-build-hot-cold') return <ProjectHotColdLab />
+  if (topicId === '04-bundlers-gulp-rollup') return <ProjectBundlersLab />
+  if (topicId === '05-module-federation-babel-postcss') return <ProjectFederationLab />
   if (topicId === '24-devtools-lighthouse') return <PerformanceLab />
   if (topicId === '31-git-switch') return <GitSwitchLab />
   if (topicId === '32-git-restore') return <GitRestoreLab />
@@ -174,10 +186,15 @@ export function TopicPage() {
       ? createPortal(<TopicLab topicId={topic.id} topic={topic} />, dockEl)
       : null
 
+  const topicNum = topic.id.match(/^(\d+)/)?.[1] ?? String(topic.order)
+
   return (
     <>
       {labPortal}
       <article className={styles.page}>
+        <span className={styles.topicNum} title={`Тема ${topicNum}`} aria-label={`Тема ${topicNum}`}>
+          {topicNum}
+        </span>
         <div className={styles.reading}>
           <header className={styles.header}>
             <h1 className={styles.title}>{topic.title}</h1>

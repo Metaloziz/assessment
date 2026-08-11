@@ -56,7 +56,7 @@ export const LEVEL_META: Record<
 };
 
 /** Временно скрыты из списка (файл остаётся в topics/). */
-export const HIDDEN_TOPIC_IDS = new Set<string>(["03-build-hot-cold"]);
+export const HIDDEN_TOPIC_IDS = new Set<string>([]);
 
 /** Маппинг существующих markdown-тем → группа + уровень (из Notion). */
 export const TOPIC_META: Record<
@@ -425,16 +425,46 @@ export const TOPIC_META: Record<
     sortInGroup: 10,
   },
 
-  // Проект / сборка
-  "04-bundlers-gulp-rollup": {
+  // Проект / сборка (после Redux)
+  "136-project-webpack-what": {
+    groupId: "project",
+    level: "junior",
+    sortInGroup: 1,
+  },
+  "137-project-webpack-config-pkgs": {
+    groupId: "project",
+    level: "junior",
+    sortInGroup: 2,
+  },
+  "138-project-loaders-plugins-semver": {
     groupId: "project",
     level: "middle",
-    sortInGroup: 1,
+    sortInGroup: 3,
+  },
+  "139-project-scripts-hmr-treeshake": {
+    groupId: "project",
+    level: "middle",
+    sortInGroup: 4,
+  },
+  "140-project-prod-dev-plugins": {
+    groupId: "project",
+    level: "middle",
+    sortInGroup: 5,
+  },
+  "03-build-hot-cold": {
+    groupId: "project",
+    level: "senior",
+    sortInGroup: 6,
+  },
+  "04-bundlers-gulp-rollup": {
+    groupId: "project",
+    level: "senior",
+    sortInGroup: 7,
   },
   "05-module-federation-babel-postcss": {
     groupId: "project",
     level: "senior",
-    sortInGroup: 2,
+    sortInGroup: 8,
   },
 
   // Логирование

@@ -1,33 +1,33 @@
 # 1. Тема
 
-**Gulp, Rollup и принцип выбора сборщика под задачу**
+**Инструменты для сборки (gulp, rollup). Принцип выбора сборщика исходя из задачи**
 
 ---
 
 # 2. Главное в одну фразу
 
-Gulp — task runner для пайплайнов над файлами, Rollup — bundler для библиотек и tree shaking; выбор зависит от того, собираете ли вы приложение, библиотеку или набор файловых задач.
+Gulp — task runner для файловых пайплайнов, Rollup — bundler с сильным tree shaking для библиотек; Webpack/Vite — приложения; выбор определяется задачей, а не модой.
 
 ---
 
-# 3. Ответ для собеседования
+# 3. Суть
 
-> «Сборщик выбирают по задаче, не по моде.
+> **Bundler** и **task runner** решают разные задачи. Bundler (Webpack, Rollup, Vite, esbuild) строит граф `import`/`require` и собирает JS/TS в бандлы. **Gulp** гоняет файлы через `src → pipe → dest` (scss, картинки, копирование) и сам по себе не заменяет module graph — это оркестратор файловых шагов, а не сборщик приложения.
 >
-> **Webpack/Vite** — SPA: loaders, HMR, splitting.
-> **Rollup** — npm-библиотеки: отличный tree shaking, `esm`/`cjs`/`umd`.
-> **Gulp** — оркестратор задач (Sass, спрайты, копирование), без полноценного module graph.
+> Зачем различать: от артефакта зависит инструмент. **SPA / админка** — Vite или Webpack: HMR, code splitting, лоадеры. **npm-библиотека / SDK** — Rollup или tsup: чистый ESM и CJS, сильный tree shaking, `external` для peerDeps вроде React. **Только ассеты без JS-графа** — Gulp или простые npm-скрипты.
 >
-> Принцип: bundler связывает модули; task runner автоматизирует файловые операции. Часто комбинируют.»
+> Как выбирать на практике: сначала тип выхода (приложение / пакет / пайп файлов), потом DX и форматы. В монорепо часто комбинируют — Vite для app, Rollup/tsup для пакета рядом. Один «универсальный» инструмент на всё обычно хуже явного выбора под задачу.
+>
+> Ловушка: ставить Gulp «вместо Webpack», потому что «так было в старом проекте», или тащить Rollup в большую SPA только из-за tree shaking. Bundler ≠ task runner; библиотечный конфиг ≠ аппликационный.
 
 ---
 
 # 4. Самое главное запомнить
 
-- Bundler (Webpack/Rollup/Vite) ≠ task runner (Gulp).
-- Rollup — лучший для **библиотек**.
-- Gulp: `src → pipe → dest`.
-- Выбор = тип проекта + DX + формат выхода.
+- Bundler ≠ task runner.
+- Rollup / tsup — библиотеки; Vite / Webpack — приложения.
+- Gulp: потоки файлов, не граф `import`.
+- Выбор = задача + формат выхода + скорость feedback loop.
 
 ---
 
@@ -43,7 +43,7 @@ export function styles() {
 }
 ```
 
-Когда: legacy, ассеты, кастомные шаги без ES-module graph.
+Когда: legacy-ассеты, спрайты, кастомные шаги без ES-module graph.
 
 ## Rollup
 
@@ -58,16 +58,26 @@ export default {
 };
 ```
 
-Когда: UI kit, SDK, нужен чистый tree-shaken output.
+Когда: UI kit, SDK, нужен предсказуемый tree-shaken output.
 
 ## Выбор
 
 | Задача | Инструмент |
 |--------|------------|
-| SPA | Vite / Webpack |
+| SPA / админка | Vite / Webpack |
 | npm-библиотека | Rollup / tsup |
 | Файловые пайплайны | Gulp |
-| Monorepo orchestration | Turborepo / Nx |
+| Оркестрация монорепо | Turborepo / Nx |
+
+```text
+нужен module graph? ──нет──► Gulp (или скрипты)
+        │да
+        ▼
+библиотека с ESM/CJS? ──да──► Rollup/tsup
+        │нет (приложение)
+        ▼
+Vite (DX) или Webpack (гибкий legacy/кастом)
+```
 
 ---
 

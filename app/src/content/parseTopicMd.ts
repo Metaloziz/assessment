@@ -151,7 +151,13 @@ export function parseTopicMd(id: string, raw: string, order: number): TopicDetai
       id === '132-algorithms-patterns' ||
       id === '133-algorithms-stack-hashmap' ||
       id === '134-algorithms-graphs-list' ||
-      id === '135-algorithms-complexity-notations',
+      id === '135-algorithms-complexity-notations' ||
+      id === '138-project-loaders-plugins-semver' ||
+      id === '139-project-scripts-hmr-treeshake' ||
+      id === '140-project-prod-dev-plugins' ||
+      id === '03-build-hot-cold' ||
+      id === '04-bundlers-gulp-rollup' ||
+      id === '05-module-federation-babel-postcss',
     groupId: meta.groupId,
     groupTitle,
     level: meta.level,

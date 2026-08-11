@@ -1,32 +1,34 @@
 # 1. Тема
 
-**Module Federation. Как писать свои плагины для Babel и PostCSS**
+**Module Federation · Как писать свои плагины для Babel и PostCSS**
 
 ---
 
 # 2. Главное в одну фразу
 
-Module Federation загружает модули из других приложений в runtime, а плагины Babel и PostCSS — функции-трансформеры, которые обходят AST и меняют JS или CSS на этапе сборки.
+Module Federation подгружает модули другого приложения в runtime; плагины Babel и PostCSS обходят AST и меняют JS или CSS на этапе сборки — не через regex по тексту.
 
 ---
 
-# 3. Ответ для собеседования
+# 3. Суть
 
-> «**Module Federation** (Webpack 5) — микрофронтенды: host подгружает remote через `remoteEntry.js`. Remote — `exposes`, host — `remotes`, общие зависимости в `shared` (часто `singleton` для React).
+> **Module Federation** (Webpack 5) склеивает приложения в runtime: host подтягивает remote по `remoteEntry.js`, remote отдаёт модули через `exposes`, host прописывает их в `remotes`. Общие зависимости (React, react-dom) кладут в `shared` — часто с `singleton: true`, чтобы не оказалось двух копий React и сломанного контекста.
 >
-> **Babel plugin** — функция с `visitor` по AST-узлам JS.
-> **PostCSS plugin** — функция с хуками (`Once`, `Rule`, `Declaration`) по CSS-AST.
+> Рядом по теме — свои плагины трансформации. **Babel plugin** возвращает `visitor`: колбэки по типам узлов JS-AST (`Identifier`, `CallExpression`, …). **PostCSS plugin** — объект с `postcssPlugin` и хуками по CSS-AST (`Once`, `Rule`, `Declaration`). Оба идут по одному пайплайну: parse → правка дерева → generate.
 >
-> Общий принцип обоих: parse → transform AST → generate. Не regex по тексту.»
+> Зачем так: MF даёт независимый деплой кусков UI без монолитного бандла; AST-плагины — предсказуемые правки кода и стилей (автофиксы, директивы, кодоген), а не хрупкий regex по тексту файла. Отладка Babel — через AST Explorer.
+>
+> Ловушки: в MF — разные major shared без согласования и забытый `singleton` для React; в плагинах — «найти-заменить» строкой вместо обхода дерева (ломается на комментариях, строках, вложенности).
 
 ---
 
 # 4. Самое главное запомнить
 
-- MF = runtime sharing: host / remote / `shared`.
-- Babel plugin = `visitor`.
-- PostCSS plugin = `postcssPlugin` + хуки.
-- Работаем с **AST**, не с текстом.
+- MF: host / remote / `shared` / `remoteEntry.js`.
+- Babel plugin = `visitor` на JS-AST.
+- PostCSS plugin = `postcssPlugin` + хуки по CSS-AST.
+- Работаем с деревом, не с текстом файла.
+- `shared.singleton` критичен для React.
 
 ---
 
@@ -39,12 +41,18 @@ new ModuleFederationPlugin({
   name: 'shop',
   filename: 'remoteEntry.js',
   exposes: { './ProductCard': './src/ProductCard' },
-  shared: { react: { singleton: true } },
+  shared: { react: { singleton: true }, 'react-dom': { singleton: true } },
 });
 ```
 
 ```javascript
 const ProductCard = React.lazy(() => import('shop/ProductCard'));
+```
+
+```text
+Host ──fetch remoteEntry.js──► Remote
+  │                               │
+  └── shared react (одна копия) ──┘
 ```
 
 ## Babel plugin (минимум)
@@ -53,11 +61,15 @@ const ProductCard = React.lazy(() => import('shop/ProductCard'));
 module.exports = function ({ types: t }) {
   return {
     visitor: {
-      CallExpression(path) { /* transform */ },
+      Identifier(path) {
+        if (path.node.name === 'OLD') path.node.name = 'NEW';
+      },
     },
   };
 };
 ```
+
+Отладка: [AST Explorer](https://astexplorer.net/).
 
 ## PostCSS plugin (минимум)
 
@@ -65,7 +77,7 @@ module.exports = function ({ types: t }) {
 module.exports = () => ({
   postcssPlugin: 'remove-comments',
   Once(root) {
-    root.walkComments(c => c.remove());
+    root.walkComments((c) => c.remove());
   },
 });
 module.exports.postcss = true;
