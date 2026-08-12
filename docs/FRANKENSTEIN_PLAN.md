@@ -27,8 +27,8 @@
 1. [x] Render Blueprint → `assessment-db` + `assessment-api`
 2. [x] API Live: https://assessment-api-fm0e.onrender.com
 3. [x] GitHub secret `VITE_API_BASE_URL`
-4. [ ] Actions → Deploy GitHub Pages (запущено)
-5. [ ] На сайте → **API** → `db-ping` → `ok: true`
+4. [x] Actions → Deploy GitHub Pages (успех, `ca55f3f`)
+5. [x] Фронт на Pages содержит `VITE_API_BASE_URL` → `assessment-api-fm0e`; smoke route есть. Проверка UI: шапка **API** → `db-ping`.
 
 После зелёного smoke — можно итерацию лаб (security first по бэклогу ниже).
 
@@ -43,7 +43,7 @@
 - [x] Убрать лабу `24-devtools-lighthouse`
 - [x] Скиллы лаб + `LAB_FORMAT` (viz)
 - [x] README + `render.yaml` как meme-app + CI `VITE_API_BASE_URL`
-- [ ] **Деплой Render Blueprint + secret + проверка db-ping** ← следующий шаг
+- [x] **Деплой Render Blueprint + secret + Pages** (smoke на сайте — проверить)
 
 ---
 
