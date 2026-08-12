@@ -1,18 +1,48 @@
 # Франкенштейн: план
 
-Актуально на 2026-08-12. Этап 1 — инфраструктура без лаб тем.
+Актуально на **2026-08-12 (вечер)** — checkpoint перед продолжением завтра.
 
-## Overview
+## Статус сейчас
 
-Этап 1: монорепо `server` + Postgres + smoke UI; убрать лабу 24; обновить скилл лаб (визуализации + анимации в общем стиле). Лабы тем — следующие итерации.
+| | |
+|--|--|
+| Ветка | `cursor/interview-prep-topics` (запушена) |
+| Последние коммиты | `566310a` Blueprint как meme-app; `7047611` server + smoke UI |
+| Код этапа 1 | **готов** в репо |
+| Облачный стенд | **ещё не поднят** — завтра Render Blueprint |
 
-## Todos (этап 1)
+### Сделано (код)
 
-- [x] Структура `server/` (Fastify+Drizzle), docker-compose Postgres, env examples, корневые scripts
-- [x] Vite proxy + apiBase; `/health` и `/api/demo/*` (echo + db-ping); минимальный smoke UI на фронте
-- [x] Убрать лабу `24-devtools-lighthouse` (TopicPage, hasLab, файлы `topics/performance` lab)
-- [x] Дописать `write-assessment-labs` + расширить `assessment-lab-visualizations` (общий стиль) + якорь в `LAB_FORMAT`
-- [x] README (remote-first: Pages + API + облачная БД; Docker опционален) + черновик деплоя ≥7 дней
+- [x] `server/` Fastify + Drizzle, `/api/health`, `/api/demo/echo`, `/api/demo/db-ping`
+- [x] `render.yaml` — **как meme-app**: `assessment-api` + `assessment-db`, `DATABASE_URL` из `fromDatabase`
+- [x] Smoke UI `/#/dev/api-smoke` + ссылка **API** в шапке; Vite proxy; `apiBase`
+- [x] Убрана лаба `24-devtools-lighthouse`
+- [x] Скиллы viz + якорь в `LAB_FORMAT.md`; README remote-first
+- [x] Pages CI читает secret `VITE_API_BASE_URL`
+- [x] SSL для cloud Postgres в `server/src/db.ts`
+
+### Завтра (деплой — руками в дашбордах)
+
+1. [ ] Render → **New → Blueprint** → репо `Metaloziz/assessment`, ветка `cursor/interview-prep-topics` → Approve (`assessment-db` + `assessment-api`)
+2. [ ] Дождаться Live; скопировать URL API
+3. [ ] GitHub → Actions secret `VITE_API_BASE_URL` = URL API
+4. [ ] Actions → Deploy GitHub Pages → Run workflow
+5. [ ] На сайте → **API** → `db-ping` → `ok: true`
+
+После зелёного smoke — можно итерацию лаб (security first по бэклогу ниже).
+
+## Overview (этап 1)
+
+Монорепо `server` + Postgres + smoke UI; лаба 24 убрана; скилл визуализаций; лабы тем — следующие итерации. Деплой = Pages + Render (API+DB), как meme-app.
+
+## Todos (этап 1 — код)
+
+- [x] Структура `server/` (Fastify+Drizzle), docker-compose (опц.), env, scripts
+- [x] Vite proxy + apiBase; health/demo; smoke UI
+- [x] Убрать лабу `24-devtools-lighthouse`
+- [x] Скиллы лаб + `LAB_FORMAT` (viz)
+- [x] README + `render.yaml` как meme-app + CI `VITE_API_BASE_URL`
+- [ ] **Деплой Render Blueprint + secret + проверка db-ping** ← следующий шаг
 
 ---
 
