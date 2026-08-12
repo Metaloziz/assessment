@@ -12,5 +12,6 @@ alwaysApply: false
 
 - Эталон **целой темы**: [`topics/112-js-v8-pipeline.md`](../../topics/112-js-v8-pipeline.md).
 - Эталон плотности **«Сути»**: [`topics/140-project-prod-dev-plugins.md`](../../topics/140-project-prod-dev-plugins.md).
+- Middle / senior: лаба по [`skills/write-assessment-labs/SKILL.md`](../../skills/write-assessment-labs/SKILL.md).
 
 Не дублируй длинные правила здесь — следуй скиллу и `TOPIC_FORMAT.md`.

@@ -2,22 +2,23 @@
 name: write-assessment-topics
 description: >-
   Writes and edits assessment theory topics (`topics/*.md`) and related group
-  metadata: structure, dense «Суть», remember bullets, description, links;
-  junior/middle/senior levels; labs when required. Use when creating or rewriting
-  topics, groups, «Суть», interview-prep content in this repo, or when the user
-  asks to добавить/оформить тему, группу тем, или теорию assessment.
+  metadata: structure, dense «Суть», remember bullets, visual Description
+  (ASCII scheme), links; junior/middle/senior levels; labs when required. Use
+  when creating or rewriting topics, groups, «Суть», interview-prep content
+  (write as study material, not hiring), or when the user asks to
+  добавить/оформить тему, группу тем, или теорию assessment.
 ---
 
 # Как писать темы assessment
 
-Проектный скилл (`skills/` в корне репо, не в `.cursor`). Полные правила — рядом в корне; здесь workflow и обязательные якоря.
+Проектный скилл (`skills/` в корне репо, не в `.cursor`). Полные правила — [`TOPIC_FORMAT.md`](../../TOPIC_FORMAT.md).
 
 Связанный скилл лаб: [`write-assessment-labs`](../write-assessment-labs/SKILL.md).
 
 ## Источники истины (читать перед работой)
 
-1. [`TOPIC_FORMAT.md`](../../TOPIC_FORMAT.md) — структура markdown-темы и раздел **«Суть»**.
-2. [`LAB_FORMAT.md`](../../LAB_FORMAT.md) — лабы (если нужны).
+1. [`TOPIC_FORMAT.md`](../../TOPIC_FORMAT.md) — структура, «Суть», Описание, ссылки, стык с лабой.
+2. [`LAB_FORMAT.md`](../../LAB_FORMAT.md) + [`write-assessment-labs`](../write-assessment-labs/SKILL.md) — если нужна лаба.
 3. Метаданные: [`app/src/content/groups.ts`](../../app/src/content/groups.ts) — группа, уровень, `sortInGroup`.
 
 Правило Cursor `.cursor/rules/topic-format.mdc` только отсылает сюда и к `TOPIC_FORMAT.md` — **не дублируй** длинные правила в новых местах.
@@ -26,10 +27,11 @@ description: >-
 
 | Что | Файл |
 |-----|------|
-| Целая тема (описание, структура) | `topics/112-js-v8-pipeline.md` |
+| Целая тема (описание, схема, ссылки) | `topics/112-js-v8-pipeline.md` |
 | Плотность **«Сути»** (широкая тема) | `topics/140-project-prod-dev-plugins.md` |
 | Короткая «Суть» | `topics/71-why-cicd.md` |
-| Вкладка «Код» в лабе | `app/src/topics/project-scripts-hmr-treeshake/ProjectScriptsHmrTreeshakeLab.tsx` |
+| Лаба, вкладка «Код» | `app/src/topics/project-scripts-hmr-treeshake/ProjectScriptsHmrTreeshakeLab.tsx` |
+| Лаба, вкладка «Проблема» | `app/src/topics/cors/CorsLab.tsx` (схема + действие; не 5 сценариев) |
 
 Перед написанием «Сути» для широкой темы — **прочитай** эталон 140 (или § «Хорошо (широкая тема)» в `TOPIC_FORMAT.md`).
 
@@ -39,13 +41,15 @@ description: >-
 |--------|----------|
 | Новая тема / группа | `topics/NNN-….md` + запись в `TOPIC_META` / при необходимости группа в `TOPIC_GROUPS` |
 | Только теория | junior → **без** лабы, пока явно не попросили |
-| middle / senior | теория **+ лаба** по `LAB_FORMAT.md`; проводка `hasLab` в `parseTopicMd.ts` и `TopicPage.tsx` |
+| middle / senior | теория **+ лаба** по скиллу лаб; проводка `hasLab` в `parseTopicMd.ts` и `TopicPage.tsx` |
 | Правка одной темы | тяни качество к эталонам; **не** массовый рерайт всех файлов |
-| Старый «Ответ для собеседования» | заменить на `# 3. Суть` |
+| Старый «Ответ для собеседования» | заменить на `# 3. Суть`; убрать подразделы «ответ на собесе» |
 
 Имена файлов: `NNN-slug.md`, номер = префикс id (как `140-project-prod-dev-plugins`). Уровень **только** в `groups.ts`, не в заголовке markdown.
 
 ## Структура `topics/*.md` (обязательна)
+
+Заголовки секций буквальные — парсер режет по `# 1.` … `# 6.`:
 
 ```markdown
 # 1. Тема
@@ -68,23 +72,26 @@ description: >-
 ## Подразделы, схемы, примеры кода
 
 # 6. Ссылки
-- первоисточники
+- [название](url)
 ```
 
 Язык: **русский**. Тон: учёба и практика в коде — **не** найм / собеседования.
+
+Теория объясняет; лаба показывает **один** механизм. Не копировать всё «Описание» в стенд.
 
 ### Запрещённая лексика
 
 Не писать: собеседование, интервью, interview, кандидат, оффер, «часто спрашивают», «как отвечать», «шпаргалка к интервью» и т.п. (полный список — в `TOPIC_FORMAT.md`).
 
-## «Суть» — кратко
+## Оформление разделов
 
-- Один blockquote `>`; 2–4 абзаца: **что → зачем → как → ловушка** (ловушка желательна).
-- ~80–160 слов; широкая тема — до ~200–220.
-- Не буллеты, не копия раздела 2, не каталог фич без «зачем».
-- Между абзацами — строка с одним `>`.
+- **2:** одна фраза, согласована с Сутью.
+- **3 «Суть»:** один `>`; 2–4 абзаца **что → зачем → как → ловушка**; ~80–160 слов (широкая — до ~200–220); не буллеты, не копия §2.
+- **4:** 4–7 проверяемых утверждений, не слоганы.
+- **5:** если есть поток — ASCII-схема (` ```text `) **сразу**; затем `##`. Рендерер не рисует mermaid. Термины в `` `code` ``. Код короткий.
+- **6:** 3–6 первоисточников (spec / MDN / официальные доки).
 
-Чеклист после написания:
+Чеклист «Сути»:
 
 - [ ] что / зачем / как на месте
 - [ ] читается вслух ~за минуту
@@ -94,13 +101,9 @@ description: >-
 
 ## Лаба (middle / senior)
 
-Читай и следуй [`LAB_FORMAT.md`](../../LAB_FORMAT.md). Якоря:
+Читай [`write-assessment-labs`](../write-assessment-labs/SKILL.md) и [`LAB_FORMAT.md`](../../LAB_FORMAT.md). Не копируй каркас сюда.
 
-- `JsLabShell` + `InteractiveCodePanel`; без sandbox / песочницы.
-- «Код» = **реальные** файлы (`webpack.config.js`, `store.js`, …) с пометками `// ← …` **внутри кода**.
-- `executable: false` для Node/`require` — консоль и «Выполнить» скрыты.
-- В `intro` / `lead` / `pain` **не** писать мета про «настоящие файлы» и «выделено комментариями» — это правило автора, не UI.
-- Эталон кода: lab `139-project-scripts-hmr-treeshake`.
+Якоря: стенд на **один** механизм «Сути»; схема на «Решении проблемы»; 2–3 сценария; лог — квитанция. Проводка: `hasLab` + `TopicPage`.
 
 ## Workflow новой темы
 
@@ -108,9 +111,9 @@ description: >-
 1. Уточнить группу, уровень, заголовок, id (NNN-slug)
 2. Прочитать TOPIC_FORMAT.md (+ эталон Сути при широкой теме)
 3. Добавить TOPIC_META в groups.ts (sortInGroup)
-4. Написать topics/NNN-….md
-5. Если middle/senior → лаба + parseTopicMd hasLab + TopicPage import
-6. Чеклист Сути и (если есть) LAB_FORMAT
+4. Написать topics/NNN-….md (схема в Описании, если есть поток)
+5. Если middle/senior → лаба по скиллу лаб + parseTopicMd hasLab + TopicPage import
+6. Чеклист темы в TOPIC_FORMAT.md
 ```
 
 ## Чего не делать
@@ -119,3 +122,5 @@ description: >-
 - Не массово переписывать старые темы без запроса.
 - Не ставить лабу junior «на всякий случай».
 - Не оставлять в UI агентские инструкции про формат.
+- Не писать mermaid в темах — рендерер его не рисует.
+- Не делать «Описание» каталогом API без схемы и «зачем».

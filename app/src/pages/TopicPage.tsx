@@ -73,6 +73,7 @@ import { CspLab } from '../topics/csp/CspLab'
 import { XssLab } from '../topics/xss/XssLab'
 import { SqlInjectionLab } from '../topics/sql-injection/SqlInjectionLab'
 import { CsrfLab } from '../topics/csrf/CsrfLab'
+import { IncrementalIterativeSpiralLab } from '../topics/software-incremental-iterative-spiral/IncrementalIterativeSpiralLab'
 import { useDevToolsDocked } from '../hooks/useDevToolsDocked'
 import { LAB_DOCK_ID, useLayoutStore } from '../store/layout'
 import styles from './TopicPage.module.css'
@@ -108,6 +109,8 @@ function TopicLab({ topicId }: { topicId: string; topic: TopicDetail }) {
   if (topicId === '11-xss') return <XssLab />
   if (topicId === '12-sql-injection') return <SqlInjectionLab />
   if (topicId === '13-csrf') return <CsrfLab />
+  if (topicId === '259-software-incremental-iterative-spiral')
+    return <IncrementalIterativeSpiralLab />
   if (topicId === '31-git-switch') return <GitSwitchLab />
   if (topicId === '32-git-restore') return <GitRestoreLab />
   if (topicId === '56-dead-code-tools') return <DeadCodeLab />

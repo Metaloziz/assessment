@@ -173,7 +173,8 @@ export function parseTopicMd(id: string, raw: string, order: number): TopicDetai
       id === '10-csp' ||
       id === '11-xss' ||
       id === '12-sql-injection' ||
-      id === '13-csrf',
+      id === '13-csrf' ||
+      id === '259-software-incremental-iterative-spiral',
     groupId: meta.groupId,
     groupTitle,
     level: meta.level,

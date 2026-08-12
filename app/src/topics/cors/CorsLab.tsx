@@ -13,7 +13,7 @@ gsap.registerPlugin(useGSAP)
 
 const TOPIC_ID = '07-cors'
 
-type Scenario = 'simple-ok' | 'preflight' | 'star-creds' | 'no-acao' | 'curl'
+type Scenario = 'simple' | 'preflight' | 'star'
 type FlowPhase = 'idle' | 'browser' | 'preflight' | 'request' | 'ok' | 'blocked'
 
 /** Cross-origin base: prod URL или localhost:3000 (не Vite proxy — иначе same-origin и CORS не виден). */
@@ -24,13 +24,9 @@ function corsApiUrl(path: string): string {
   return `${base}${normalized}`
 }
 
-function pickHeader(res: Response, name: string): string | null {
-  return res.headers.get(name)
-}
-
 type FlowVizProps = {
   phase: FlowPhase
-  scenario: Scenario
+  scenario: Scenario | null
   pageOrigin: string
 }
 
@@ -128,7 +124,7 @@ function CorsFlowViz({ phase, scenario, pageOrigin }: FlowVizProps) {
 
 export function CorsLab() {
   const { lines, log, clear } = useLabLog()
-  const [scenario, setScenario] = useState<Scenario>('simple-ok')
+  const [scenario, setScenario] = useState<Scenario | null>(null)
   const [hint, setHint] = useState<string | null>(null)
   const [phase, setPhase] = useState<FlowPhase>('idle')
   const [busy, setBusy] = useState(false)
@@ -138,53 +134,27 @@ export function CorsLab() {
     setPageOrigin(window.location.origin)
   }, [])
 
-  const run = async () => {
+  const run = async (next: Scenario) => {
     clear()
     setBusy(true)
+    setScenario(next)
     setPhase('browser')
-    const origin = window.location.origin
-    log('info', `страница Origin: ${origin}`)
-    log('info', `API base: ${(import.meta.env.VITE_API_BASE_URL as string) || 'http://localhost:3000'}`)
+    setHint(null)
 
     try {
-      if (scenario === 'curl') {
-        setPhase('request')
-        log('info', 'curl / Postman не применяют Same-Origin Policy')
-        log('ok', 'тот же URL без браузера отдаст 200 даже без ACAO')
-        log('warn', 'CORS — политика браузера для JS, не firewall API')
-        const url = corsApiUrl('/api/cors/lab/no-acao')
-        log('info', `для сравнения: fetch(${url}) из JS…`)
-        try {
-          await fetch(url, { credentials: 'include' })
-          log('warn', 'браузер неожиданно пропустил — проверьте, не same-origin ли запрос')
-          setPhase('ok')
-        } catch {
-          log('err', 'в браузере: Failed to fetch (нет ACAO) — это и есть CORS')
-          setPhase('blocked')
-        }
-        setHint('проверка CORS только в браузере / DevTools')
-        return
-      }
-
-      if (scenario === 'simple-ok') {
+      if (next === 'simple') {
         const url = corsApiUrl('/api/cors/lab/simple')
-        log('info', `GET ${url} (simple, credentials)`)
         setPhase('request')
         const res = await fetch(url, { credentials: 'include' })
-        const acao = pickHeader(res, 'Access-Control-Allow-Origin')
-        const data = (await res.json()) as { ok?: boolean }
-        log('ok', `HTTP ${res.status}`)
-        log('ok', `Access-Control-Allow-Origin: ${acao ?? '(нет в JS — opaque?)'}`)
-        log('ok', `тело: ${JSON.stringify(data)}`)
+        const acao = res.headers.get('Access-Control-Allow-Origin')
+        log('ok', `GET ${res.status} · ACAO: ${acao ?? '—'}`)
         setPhase('ok')
-        setHint('simple request — сразу GET, без OPTIONS')
+        setHint('simple GET — без OPTIONS, ACAO = Origin')
         return
       }
 
-      if (scenario === 'preflight') {
+      if (next === 'preflight') {
         const url = corsApiUrl('/api/cors/lab/orders')
-        log('info', `POST ${url} Content-Type: application/json`)
-        log('info', 'браузер сначала шлёт preflight OPTIONS')
         setPhase('preflight')
         await new Promise((r) => setTimeout(r, 280))
         setPhase('request')
@@ -194,116 +164,81 @@ export function CorsLab() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ item: 'cors-lab' }),
         })
-        const acao = pickHeader(res, 'Access-Control-Allow-Origin')
-        const data = (await res.json()) as { ok?: boolean; item?: string }
-        log('ok', `HTTP ${res.status} после preflight`)
-        log('ok', `Access-Control-Allow-Origin: ${acao}`)
-        log('ok', `тело: ${JSON.stringify(data)}`)
+        const acao = res.headers.get('Access-Control-Allow-Origin')
+        log('ok', `POST ${res.status} после OPTIONS · ACAO: ${acao}`)
         setPhase('ok')
-        setHint('без OPTIONS на API фронт увидит CORS error')
+        setHint('application/json → сначала OPTIONS')
         return
       }
 
-      if (scenario === 'star-creds') {
-        const url = corsApiUrl('/api/cors/lab/star')
-        log('info', `GET ${url} с credentials: 'include'`)
-        log('warn', 'сервер отвечает Access-Control-Allow-Origin: *')
-        setPhase('request')
-        try {
-          await fetch(url, { credentials: 'include' })
-          log('warn', 'запрос прошёл — неожиданно (проверьте Origin / credentials)')
-          setPhase('ok')
-        } catch {
-          log('err', 'браузер блокирует: * несовместим с credentials')
-          log('ok', 'нужно: Allow-Origin = конкретный origin + Allow-Credentials: true')
-          setPhase('blocked')
-        }
-        setHint('credentials → отражать Origin, не *')
-        return
-      }
-
-      // no-acao
-      const url = corsApiUrl('/api/cors/lab/no-acao')
-      log('info', `GET ${url}`)
+      // star: * + credentials
+      const url = corsApiUrl('/api/cors/lab/star')
       setPhase('request')
       try {
-        const res = await fetch(url, { credentials: 'include' })
-        log('warn', `HTTP ${res.status} — но без ACAO чтение в JS обычно невозможно`)
-        setPhase('blocked')
+        await fetch(url, { credentials: 'include' })
+        log('warn', 'запрос прошёл — проверьте Origin / credentials')
+        setPhase('ok')
       } catch {
-        log('err', 'Failed to fetch: нет Access-Control-Allow-Origin')
-        log('info', 'на транспорте ответ мог быть 200 — JS его не видит')
+        log('err', 'блокировка: Allow-Origin: * + credentials')
         setPhase('blocked')
       }
-      setHint('CORS режет чтение в браузере, не «защищает сервер»')
+      setHint('credentials → конкретный Origin, не *')
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e)
       log('err', msg)
       setPhase('blocked')
-      setHint('CORS error или сеть — смотрите DevTools → Network / Console')
+      setHint('сеть или CORS — DevTools → Network / Console')
     } finally {
       setBusy(false)
     }
+  }
+
+  const reset = () => {
+    clear()
+    setHint(null)
+    setScenario(null)
+    setPhase('idle')
   }
 
   const problem = (
     <div className={shell.panel}>
       <p className={shell.pain}>
         Фронт и API на разных origin: браузер шлёт <code>Origin</code> и смотрит{' '}
-        <code>Access-Control-Allow-*</code>. Без них <code>fetch</code> падает с CORS error — хотя
+        <code>Access-Control-Allow-Origin</code>. Без совпадения <code>fetch</code> падает — хотя
         сервер мог ответить 200.
       </p>
       <ol className={shell.steps}>
-        <li>Выберите сценарий и нажмите «Прогнать» — запрос идёт в живой API.</li>
-        <li>Сверьте поток на схеме и заголовки в логе / DevTools → Network.</li>
+        <li>Нажмите сценарий — живой запрос и схема обновятся.</li>
         <li>
-          В «Код»: <code>index.ts</code>, <code>corsLab.ts</code>, <code>env.ts</code>.
+          Сверьте с «Код»: <code>index.ts</code>, <code>corsLab.ts</code>.
         </li>
       </ol>
 
       <CorsFlowViz phase={phase} scenario={scenario} pageOrigin={pageOrigin} />
 
       <div className={shell.row}>
-        {(
-          [
-            ['simple-ok', 'Simple GET'],
-            ['preflight', 'Preflight'],
-            ['star-creds', '* + credentials'],
-            ['no-acao', 'Без ACAO'],
-            ['curl', 'curl vs браузер'],
-          ] as const
-        ).map(([id, label]) => (
-          <LabButton
-            key={id}
-            variant="ghost"
-            size="sm"
-            active={scenario === id}
-            disabled={busy}
-            onClick={() => {
-              setScenario(id)
-              setPhase('idle')
-              setHint(null)
-            }}
-          >
-            {label}
-          </LabButton>
-        ))}
-      </div>
-
-      <div className={shell.row}>
-        <LabButton variant="primary" disabled={busy} onClick={() => void run()}>
-          Прогнать
+        <LabButton
+          variant="primary"
+          disabled={busy}
+          onClick={() => void run('simple')}
+        >
+          Simple GET
         </LabButton>
         <LabButton
           variant="secondary"
           disabled={busy}
-          onClick={() => {
-            clear()
-            setHint(null)
-            setScenario('simple-ok')
-            setPhase('idle')
-          }}
+          onClick={() => void run('preflight')}
         >
+          Preflight
+        </LabButton>
+        <LabButton
+          variant="secondary"
+          disabled={busy}
+          onClick={() => void run('star')}
+        >
+          * + credentials
+        </LabButton>
+        <LabButton variant="secondary" disabled={busy} onClick={reset}>
           Сброс
         </LabButton>
       </div>
@@ -313,7 +248,7 @@ export function CorsLab() {
           Итог: <code>{hint}</code>
         </p>
       ) : (
-        <p className={shell.hint}>Выберите сценарий и прогоните против API.</p>
+        <p className={shell.hint}>Выберите сценарий — схема покажет ok или CORS error.</p>
       )}
       <LabLogView lines={lines} />
     </div>
@@ -322,12 +257,12 @@ export function CorsLab() {
   const code = (
     <InteractiveCodePanel
       topicId={TOPIC_ID}
-      intro="Глобальный CORS allow-list и учебные маршруты `/api/cors/lab/*` (star / no-acao)."
+      intro="Глобальный CORS allow-list и учебные маршруты `/api/cors/lab/*`."
       snippets={[
         {
           id: 'index',
           label: 'server/src/index.ts',
-          note: '`@fastify/cors`: origin из env, credentials: true.',
+          note: '`@fastify/cors`: origin из env, `credentials: true`.',
           executable: false,
           code: `import Fastify from 'fastify';
 import cors from '@fastify/cors';
@@ -351,43 +286,22 @@ await app.listen({ port: env.port, host: env.host });`,
         {
           id: 'corsLab',
           label: 'server/src/routes/corsLab.ts',
-          note: 'Демо: правильный simple/POST и намеренно «ломаные» star / no-acao.',
+          note: 'Simple GET, POST с preflight и ловушка `*` + credentials.',
           executable: false,
-          code: `// onSend: для учебных путей переписываем CORS-заголовки
-
-app.get('/api/cors/lab/simple', async (req) => ({
+          code: `app.get('/api/cors/lab/simple', async (req) => ({
   ok: true,
-  origin: req.headers.origin ?? null, // ← global cors уже выставил ACAO
+  origin: req.headers.origin ?? null, // ← global cors выставил ACAO
 }));
 
 app.post('/api/cors/lab/orders', async (req) => {
-  // Content-Type: application/json → браузер шлёт OPTIONS (preflight)
+  // ← Content-Type: application/json → браузер шлёт OPTIONS
   return { ok: true, item: req.body?.item ?? 'widget' };
 });
 
 app.get('/api/cors/lab/star', async (_req, reply) => {
   // в onSend: Access-Control-Allow-Origin: *  // ← ловушка с credentials
   return { ok: true, acao: '*' };
-});
-
-app.get('/api/cors/lab/no-acao', async (_req, reply) => {
-  // в onSend: strip Access-Control-*  // ← JS не читает тело
-  return { ok: true, kind: 'no-acao' };
 });`,
-        },
-        {
-          id: 'env',
-          label: 'server/src/env.ts',
-          note: 'CORS_ORIGINS на Render включает GitHub Pages.',
-          executable: false,
-          code: `export const env = {
-  // …
-  corsOrigins: (process.env.CORS_ORIGINS ??
-    'http://localhost:5173,http://127.0.0.1:5173')
-    .split(',')
-    .map((s) => s.trim())
-    .filter(Boolean), // ← https://metaloziz.github.io на проде
-};`,
         },
       ]}
     />
@@ -396,7 +310,7 @@ app.get('/api/cors/lab/no-acao', async (_req, reply) => {
   return (
     <JsLabShell
       title="CORS"
-      lead="Живой API: simple vs preflight, ловушка `*` + credentials, ответ без ACAO."
+      lead="Браузер сверяет `Origin` с `Access-Control-Allow-*`: simple, preflight и ловушка `*`."
       problem={problem}
       code={code}
     />
