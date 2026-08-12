@@ -424,16 +424,6 @@ export function AppShell() {
               aria-label="Лаборатория"
             >
               <div className={styles.labColumn}>
-                {theoryHidden ? (
-                  <div className={styles.labChrome}>
-                    <span className={styles.labChromeTitle}>
-                      {labOpen ? 'Лаборатория' : 'Темы'}
-                    </span>
-                    <div className={styles.labChromeActions}>
-                      <span className={styles.labFocusHint}>теория скрыта</span>
-                    </div>
-                  </div>
-                ) : null}
                 <div id={LAB_DOCK_ID} className={styles.labDockBody} />
               </div>
             </div>

@@ -116,13 +116,6 @@
   padding: 0.35rem 0.7rem;
 }
 
-.labFocusHint {
-  font-family: var(--font-mono);
-  font-size: var(--lab-font-meta);
-  letter-spacing: 0.03em;
-  color: var(--text-faint);
-}
-
 .split[data-lab-focus='true'] .labPane {
   flex: 1 1 auto;
   max-width: none;

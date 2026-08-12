@@ -182,7 +182,12 @@ export function TopicSidebar({ onCollapse }: Props) {
                         >
                           <LevelBadge level={topic.level} size="sm" />
                           <span className={styles.title}>{topic.title}</span>
-                          {topic.hasLab ? <span className={styles.lab}>lab</span> : null}
+                          {topic.hasLab || topic.hasApi ? (
+                            <span className={styles.tags}>
+                              {topic.hasLab ? <span className={styles.lab}>lab</span> : null}
+                              {topic.hasApi ? <span className={styles.api}>api</span> : null}
+                            </span>
+                          ) : null}
                         </NavLink>
                       </div>
                     )

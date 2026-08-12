@@ -186,40 +186,6 @@
   pointer-events: none;
 }
 
-.labChrome {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.55rem;
-  padding: 0.7rem 1.05rem;
-  border-bottom: 1px solid var(--border);
-  background: var(--bg-elevated);
-  flex-shrink: 0;
-}
-
-.labChromeTitle {
-  font-family: var(--font-sans);
-  font-size: var(--lab-font-title);
-  font-weight: 700;
-  color: #fff;
-  line-height: 1.25;
-  margin: 0;
-}
-
-.labChromeActions {
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-  flex-wrap: wrap;
-}
-
-.labFocusHint {
-  font-family: var(--font-mono);
-  font-size: var(--lab-font-meta);
-  line-height: 1.25;
-  color: var(--text-faint);
-}
-
 .labDockBody {
   flex: 1;
   min-height: 0;

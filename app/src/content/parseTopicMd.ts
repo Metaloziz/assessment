@@ -96,11 +96,15 @@ export function parseTopicMd(id: string, raw: string, order: number): TopicDetai
   const groupTitle =
     TOPIC_GROUPS.find((g) => g.id === meta.groupId)?.title ?? 'Прочее'
 
+  /** Темы с лабой против живого `assessment-api` (не симуляция). */
+  const hasApi = id === '07-cors'
+
   return {
     id,
     title,
     oneLiner,
     order,
+    hasApi,
     hasLab:
       id === '01-immutability-js' ||
       id === '31-git-switch' ||
@@ -188,6 +192,7 @@ export function toSummary(detail: TopicDetail): TopicSummary {
     oneLiner: detail.oneLiner,
     order: detail.order,
     hasLab: detail.hasLab,
+    hasApi: detail.hasApi,
     groupId: detail.groupId,
     groupTitle: detail.groupTitle,
     level: detail.level,

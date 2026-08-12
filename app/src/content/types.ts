@@ -14,6 +14,8 @@ export type TopicSummary = {
   oneLiner: string
   order: number
   hasLab: boolean
+  /** Лаба ходит в живой assessment API (не симуляция). */
+  hasApi: boolean
   groupId: string
   groupTitle: string
   level: TopicLevel

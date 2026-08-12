@@ -216,6 +216,13 @@
   text-overflow: ellipsis;
 }
 
+.tags {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-shrink: 0;
+}
+
 .lab {
   font-size: 0.62rem;
   letter-spacing: 0.02em;
@@ -223,6 +230,16 @@
   border-radius: 3px;
   padding: 0.08rem 0.3rem;
   background: var(--accent-glow);
+  flex-shrink: 0;
+}
+
+.api {
+  font-size: 0.62rem;
+  letter-spacing: 0.02em;
+  color: var(--ok);
+  border-radius: 3px;
+  padding: 0.08rem 0.3rem;
+  background: color-mix(in srgb, var(--ok) 16%, transparent);
   flex-shrink: 0;
 }
 
