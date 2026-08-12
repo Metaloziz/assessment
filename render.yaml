@@ -1,5 +1,5 @@
-# Blueprint: Render Dashboard → New → Blueprint → this repo
-# DB: create free Postgres on Neon, paste DATABASE_URL in the service env (Render free DB often unavailable).
+# Same pattern as meme-app: Render Web (Docker) + Render Postgres.
+# Dashboard → New → Blueprint → this repo / branch.
 
 services:
   - type: web
@@ -16,7 +16,13 @@ services:
         value: 0.0.0.0
       - key: PORT
         value: "10000"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: assessment-db
+          property: connectionString
       - key: CORS_ORIGINS
         value: https://metaloziz.github.io,http://localhost:5173,http://127.0.0.1:5173
-      - key: DATABASE_URL
-        sync: false
+
+databases:
+  - name: assessment-db
+    plan: free

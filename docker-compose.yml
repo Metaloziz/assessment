@@ -1,5 +1,5 @@
 # Optional local Postgres for offline API development.
-# Default workflow: cloud Postgres (Neon/Render) via DATABASE_URL — see README.
+# Default workflow: Render Postgres via Blueprint DATABASE_URL — see README / render.yaml.
 
 services:
   db:

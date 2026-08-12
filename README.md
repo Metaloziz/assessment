@@ -11,22 +11,21 @@
 | Слой | Где | Примечание |
 |------|-----|------------|
 | Фронт | GitHub Pages | как сейчас; `VITE_API_BASE_URL` на URL API |
-| API | Render / Fly.io | `server/` + `server/Dockerfile` |
-| БД | Neon free (или Render Postgres) | `DATABASE_URL` у API; хватает на ≥7 дней |
+| API | **Render** (Docker, free) | [`render.yaml`](render.yaml) — как в meme-app |
+| БД | **Render Postgres** (free) | `DATABASE_URL` из Blueprint автоматически |
 
 Smoke: в шапке **API** или `/#/dev/api-smoke` → `/api/health`, `/api/demo/echo`, `/api/demo/db-ping`.
 
-### Деплой API + БД
+### Деплой API + БД (как meme-app)
 
-1. **БД (Neon, ~2 мин):** [console.neon.tech](https://console.neon.tech) → New Project → скопировать connection string (`sslmode=require`).
-2. **API (Render Blueprint):** [dashboard.render.com](https://dashboard.render.com) → **New → Blueprint** → этот репозиторий → применить [`render.yaml`](render.yaml).  
-   В env сервиса `assessment-api` вставить `DATABASE_URL` из Neon. Дождаться Deploy Live.
-3. **Фронт:** GitHub → Settings → Secrets and variables → Actions → secret  
-   `VITE_API_BASE_URL` = `https://assessment-api.onrender.com` (точный URL из Render).  
-   Пуш в ветку Pages или **Actions → Deploy GitHub Pages → Run workflow**.
-4. Проверка: сайт → шапка **API** → `db-ping` должен вернуть `ok: true`.
+1. [dashboard.render.com](https://dashboard.render.com) → **New → Blueprint** → репозиторий `Metaloziz/assessment`, ветка с [`render.yaml`](render.yaml).
+2. Approve: поднимутся `assessment-db` (Postgres) и `assessment-api` (Docker). `DATABASE_URL` прокинется сам.
+3. Дождаться **Live** у API. Скопировать URL вида `https://assessment-api.onrender.com`.
+4. **Фронт:** GitHub → Settings → Secrets and variables → Actions → secret  
+   `VITE_API_BASE_URL` = URL API → **Actions → Deploy GitHub Pages → Run workflow**.
+5. Проверка: сайт → шапка **API** → `db-ping` → `ok: true`.
 
-`CORS_ORIGINS` в Blueprint уже включает `https://metaloziz.github.io`.
+`CORS_ORIGINS` уже включает `https://metaloziz.github.io`. Free Postgres на Render может засыпать / иметь срок — для стенда на неделю обычно достаточно (как у meme-app).
 
 ### Разработка фронта против боевого API
 

@@ -24,7 +24,7 @@
 2. **Лабу** темы «Инструмент проверки производительности (DevTools, Lighthouse)» (`24-devtools-lighthouse`) **убираем** (junior; симуляция Lighthouse не нужна).
 3. **Этап 1 — только связка** frontend ↔ API ↔ DB. Лабы тем не пишем.
 4. В скилл написания лаб — правило про **визуализации + анимации** (когда уместно) и **единый стиль**.
-5. **Remote-first:** основной стенд — Pages + задеплоенный API + облачная Postgres; `docker-compose` только опционально для офлайна.
+5. **Remote-first как meme-app:** Pages + Render API (Docker) + Render Postgres из [`render.yaml`](../render.yaml). `docker-compose` только опционально для офлайна.
 6. Ниже — **бэклог тем** под API/БД для следующих итераций.
 
 ## Целевая структура (этап 1)
@@ -68,7 +68,7 @@ sequenceDiagram
 - CORS: localhost + Pages origin.
 - Smoke UI: `/#/dev/api-smoke` (не учебная лаба темы).
 
-Деплой: Pages (фронт) + Render/Fly (API) + Neon или Render Postgres (≥7 дней).
+Деплой: Pages (фронт) + Render API + Render Postgres через Blueprint (≥7 дней, как meme-app).
 
 ## Удаление лабы 24
 
