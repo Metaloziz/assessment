@@ -13,6 +13,15 @@ export type TopicGroupId =
   | "project"
   | "logging"
   | "security"
+  | "patterns"
+  | "layout"
+  | "react"
+  | "regex"
+  | "async"
+  | "ts"
+  | "nodejs"
+  | "network"
+  | "software"
   | "other";
 
 export type TopicGroup = {
@@ -39,6 +48,15 @@ export const TOPIC_GROUPS: TopicGroup[] = [
     order: 11,
   },
   { id: "security", title: "Безопасность", order: 12 },
+  { id: "patterns", title: "Паттерны", order: 13 },
+  { id: "layout", title: "Вёрстка", order: 14 },
+  { id: "react", title: "React", order: 15 },
+  { id: "regex", title: "Регулярки", order: 16 },
+  { id: "async", title: "Асинхронность", order: 17 },
+  { id: "ts", title: "TS", order: 18 },
+  { id: "nodejs", title: "NodeJS", order: 19 },
+  { id: "network", title: "Сеть", order: 20 },
+  { id: "software", title: "Разработка ПО", order: 21 },
   { id: "other", title: "Прочее", order: 99 },
 ];
 
@@ -552,6 +570,551 @@ export const TOPIC_META: Record<
     groupId: "security",
     level: "senior",
     sortInGroup: 15,
+  },
+
+  // Тестирование (дополнение)
+  "156-testing-extra-tools": {
+    groupId: "testing",
+    level: "senior",
+    sortInGroup: 13,
+  },
+
+  // Паттерны
+  "157-patterns-what": {
+    groupId: "patterns",
+    level: "junior",
+    sortInGroup: 1,
+  },
+  "158-patterns-command-facade-observer": {
+    groupId: "patterns",
+    level: "junior",
+    sortInGroup: 2,
+  },
+  "159-patterns-factory-prototype-proxy-singleton-adapter": {
+    groupId: "patterns",
+    level: "middle",
+    sortInGroup: 3,
+  },
+  "160-patterns-chain-abstract-factory-strategy-decorator": {
+    groupId: "patterns",
+    level: "middle",
+    sortInGroup: 4,
+  },
+  "161-patterns-mediator-composite-memento": {
+    groupId: "patterns",
+    level: "senior",
+    sortInGroup: 5,
+  },
+  "162-patterns-dependency-injection": {
+    groupId: "patterns",
+    level: "senior",
+    sortInGroup: 6,
+  },
+  "163-patterns-template-flyweight-bridge": {
+    groupId: "patterns",
+    level: "senior",
+    sortInGroup: 7,
+  },
+
+  // Вёрстка
+  "164-layout-vector-raster": {
+    groupId: "layout",
+    level: "junior",
+    sortInGroup: 1,
+  },
+  "165-layout-typography": {
+    groupId: "layout",
+    level: "junior",
+    sortInGroup: 2,
+  },
+  "166-layout-bem": {
+    groupId: "layout",
+    level: "junior",
+    sortInGroup: 3,
+  },
+  "167-layout-pseudo-classes": {
+    groupId: "layout",
+    level: "junior",
+    sortInGroup: 4,
+  },
+  "168-layout-scss-postcss": {
+    groupId: "layout",
+    level: "middle",
+    sortInGroup: 5,
+  },
+  "169-layout-flexbox": {
+    groupId: "layout",
+    level: "middle",
+    sortInGroup: 6,
+  },
+  "170-layout-animation": {
+    groupId: "layout",
+    level: "middle",
+    sortInGroup: 7,
+  },
+  "171-layout-stacking-context": {
+    groupId: "layout",
+    level: "middle",
+    sortInGroup: 8,
+  },
+  "172-layout-css-modules-css-in-js": {
+    groupId: "layout",
+    level: "middle",
+    sortInGroup: 9,
+  },
+  "173-layout-grid": {
+    groupId: "layout",
+    level: "middle",
+    sortInGroup: 10,
+  },
+  "174-layout-browserslist": {
+    groupId: "layout",
+    level: "senior",
+    sortInGroup: 11,
+  },
+  "175-layout-tools-by-browsers": {
+    groupId: "layout",
+    level: "senior",
+    sortInGroup: 12,
+  },
+  "176-layout-design-system": {
+    groupId: "layout",
+    level: "senior",
+    sortInGroup: 13,
+  },
+  "177-layout-a11y": {
+    groupId: "layout",
+    level: "senior",
+    sortInGroup: 14,
+  },
+  "178-layout-microdata": {
+    groupId: "layout",
+    level: "senior",
+    sortInGroup: 15,
+  },
+
+  // React
+  "179-react-purpose": {
+    groupId: "react",
+    level: "junior",
+    sortInGroup: 1,
+  },
+  "180-react-props-state": {
+    groupId: "react",
+    level: "junior",
+    sortInGroup: 2,
+  },
+  "181-react-jsx": {
+    groupId: "react",
+    level: "junior",
+    sortInGroup: 3,
+  },
+  "182-react-hooks": {
+    groupId: "react",
+    level: "junior",
+    sortInGroup: 4,
+  },
+  "183-react-lifecycle": {
+    groupId: "react",
+    level: "junior",
+    sortInGroup: 5,
+  },
+  "184-react-hoc": {
+    groupId: "react",
+    level: "junior",
+    sortInGroup: 6,
+  },
+  "185-react-virtual-dom": {
+    groupId: "react",
+    level: "middle",
+    sortInGroup: 7,
+  },
+  "186-react-optimization": {
+    groupId: "react",
+    level: "middle",
+    sortInGroup: 8,
+  },
+  "187-react-fragments": {
+    groupId: "react",
+    level: "middle",
+    sortInGroup: 9,
+  },
+  "188-react-error-boundaries": {
+    groupId: "react",
+    level: "middle",
+    sortInGroup: 10,
+  },
+  "189-react-portals": {
+    groupId: "react",
+    level: "middle",
+    sortInGroup: 11,
+  },
+  "190-react-router": {
+    groupId: "react",
+    level: "middle",
+    sortInGroup: 12,
+  },
+  "191-react-context": {
+    groupId: "react",
+    level: "middle",
+    sortInGroup: 13,
+  },
+  "192-react-ssr": {
+    groupId: "react",
+    level: "middle",
+    sortInGroup: 14,
+  },
+  "193-react-compound-components": {
+    groupId: "react",
+    level: "middle",
+    sortInGroup: 15,
+  },
+  "194-react-form-managers": {
+    groupId: "react",
+    level: "middle",
+    sortInGroup: 16,
+  },
+  "195-react-render-props": {
+    groupId: "react",
+    level: "senior",
+    sortInGroup: 17,
+  },
+  "196-react-reconciliation": {
+    groupId: "react",
+    level: "senior",
+    sortInGroup: 18,
+  },
+  "197-react-fiber": {
+    groupId: "react",
+    level: "senior",
+    sortInGroup: 19,
+  },
+  "198-react-web-components": {
+    groupId: "react",
+    level: "senior",
+    sortInGroup: 20,
+  },
+  "199-react-server-components": {
+    groupId: "react",
+    level: "senior",
+    sortInGroup: 21,
+  },
+
+  // Регулярки
+  "200-regex-purpose": {
+    groupId: "regex",
+    level: "junior",
+    sortInGroup: 1,
+  },
+  "201-regex-literal": {
+    groupId: "regex",
+    level: "junior",
+    sortInGroup: 2,
+  },
+  "202-regex-special-chars": {
+    groupId: "regex",
+    level: "junior",
+    sortInGroup: 3,
+  },
+  "203-regex-string-methods": {
+    groupId: "regex",
+    level: "junior",
+    sortInGroup: 4,
+  },
+  "204-regex-regexp-object": {
+    groupId: "regex",
+    level: "middle",
+    sortInGroup: 5,
+  },
+  "205-regex-groups": {
+    groupId: "regex",
+    level: "middle",
+    sortInGroup: 6,
+  },
+  "206-regex-sets-ranges": {
+    groupId: "regex",
+    level: "middle",
+    sortInGroup: 7,
+  },
+  "207-regex-quantifiers": {
+    groupId: "regex",
+    level: "middle",
+    sortInGroup: 8,
+  },
+  "208-regex-word-boundaries": {
+    groupId: "regex",
+    level: "middle",
+    sortInGroup: 9,
+  },
+  "209-regex-backreferences": {
+    groupId: "regex",
+    level: "middle",
+    sortInGroup: 10,
+  },
+  "210-regex-performance": {
+    groupId: "regex",
+    level: "senior",
+    sortInGroup: 11,
+  },
+  "211-regex-lookahead-lookbehind": {
+    groupId: "regex",
+    level: "senior",
+    sortInGroup: 12,
+  },
+  "212-regex-search-at-position": {
+    groupId: "regex",
+    level: "senior",
+    sortInGroup: 13,
+  },
+
+  // Асинхронность
+  "213-async-js-single-thread": {
+    groupId: "async",
+    level: "junior",
+    sortInGroup: 1,
+  },
+  "214-async-xhr-fetch": {
+    groupId: "async",
+    level: "junior",
+    sortInGroup: 2,
+  },
+  "215-async-event-loop": {
+    groupId: "async",
+    level: "middle",
+    sortInGroup: 3,
+  },
+  "216-async-tasks-microtasks": {
+    groupId: "async",
+    level: "middle",
+    sortInGroup: 4,
+  },
+  "217-async-callback-promises": {
+    groupId: "async",
+    level: "middle",
+    sortInGroup: 5,
+  },
+  "218-async-callback-hell": {
+    groupId: "async",
+    level: "middle",
+    sortInGroup: 6,
+  },
+  "219-async-await": {
+    groupId: "async",
+    level: "middle",
+    sortInGroup: 7,
+  },
+  "220-async-promise-after-catch": {
+    groupId: "async",
+    level: "senior",
+    sortInGroup: 8,
+  },
+  "221-async-generators": {
+    groupId: "async",
+    level: "senior",
+    sortInGroup: 9,
+  },
+  "222-async-infinite-generators": {
+    groupId: "async",
+    level: "senior",
+    sortInGroup: 10,
+  },
+
+  // TS
+  "223-ts-purpose": {
+    groupId: "ts",
+    level: "junior",
+    sortInGroup: 1,
+  },
+  "224-ts-fewer-bugs": {
+    groupId: "ts",
+    level: "junior",
+    sortInGroup: 2,
+  },
+  "225-ts-basic-types": {
+    groupId: "ts",
+    level: "junior",
+    sortInGroup: 3,
+  },
+  "226-ts-interface-types": {
+    groupId: "ts",
+    level: "middle",
+    sortInGroup: 4,
+  },
+  "227-ts-declaration-files": {
+    groupId: "ts",
+    level: "middle",
+    sortInGroup: 5,
+  },
+  "228-ts-type-guards": {
+    groupId: "ts",
+    level: "middle",
+    sortInGroup: 6,
+  },
+  "229-ts-type-transforms": {
+    groupId: "ts",
+    level: "middle",
+    sortInGroup: 7,
+  },
+  "230-ts-generics": {
+    groupId: "ts",
+    level: "middle",
+    sortInGroup: 8,
+  },
+  "231-ts-keyof-typeof": {
+    groupId: "ts",
+    level: "middle",
+    sortInGroup: 9,
+  },
+  "232-ts-optional-nullish": {
+    groupId: "ts",
+    level: "middle",
+    sortInGroup: 10,
+  },
+  "233-ts-conditional-mapped-infer": {
+    groupId: "ts",
+    level: "middle",
+    sortInGroup: 11,
+  },
+  "234-ts-template-literal-types": {
+    groupId: "ts",
+    level: "senior",
+    sortInGroup: 12,
+  },
+  "235-ts-function-overloads": {
+    groupId: "ts",
+    level: "senior",
+    sortInGroup: 13,
+  },
+  "236-ts-reference-types": {
+    groupId: "ts",
+    level: "senior",
+    sortInGroup: 14,
+  },
+  "237-ts-tsc": {
+    groupId: "ts",
+    level: "senior",
+    sortInGroup: 15,
+  },
+  "238-ts-decorators": {
+    groupId: "ts",
+    level: "senior",
+    sortInGroup: 16,
+  },
+  "239-ts-mixins": {
+    groupId: "ts",
+    level: "senior",
+    sortInGroup: 17,
+  },
+
+  // NodeJS
+  "240-nodejs-purpose": {
+    groupId: "nodejs",
+    level: "junior",
+    sortInGroup: 1,
+  },
+  "241-nodejs-frontend-pros-cons": {
+    groupId: "nodejs",
+    level: "junior",
+    sortInGroup: 2,
+  },
+  "242-nodejs-modules-globals": {
+    groupId: "nodejs",
+    level: "middle",
+    sortInGroup: 3,
+  },
+  "243-nodejs-routing-static": {
+    groupId: "nodejs",
+    level: "middle",
+    sortInGroup: 4,
+  },
+  "244-nodejs-db-async-config": {
+    groupId: "nodejs",
+    level: "middle",
+    sortInGroup: 5,
+  },
+  "245-nodejs-cache-crud": {
+    groupId: "nodejs",
+    level: "senior",
+    sortInGroup: 6,
+  },
+  "246-nodejs-worker-threads": {
+    groupId: "nodejs",
+    level: "senior",
+    sortInGroup: 7,
+  },
+
+  // Сеть
+  "247-network-ip-hostname": {
+    groupId: "network",
+    level: "junior",
+    sortInGroup: 1,
+  },
+  "248-network-query-params": {
+    groupId: "network",
+    level: "junior",
+    sortInGroup: 2,
+  },
+  "249-network-rest": {
+    groupId: "network",
+    level: "junior",
+    sortInGroup: 3,
+  },
+  "250-network-http-https": {
+    groupId: "network",
+    level: "middle",
+    sortInGroup: 4,
+  },
+  "251-network-api-first": {
+    groupId: "network",
+    level: "middle",
+    sortInGroup: 5,
+  },
+  "252-network-long-polling-ws-sse": {
+    groupId: "network",
+    level: "middle",
+    sortInGroup: 6,
+  },
+  "253-network-tcpip-internet-app": {
+    groupId: "network",
+    level: "senior",
+    sortInGroup: 7,
+  },
+  "254-network-tcpip-transport-link": {
+    groupId: "network",
+    level: "senior",
+    sortInGroup: 8,
+  },
+
+  // Разработка ПО
+  "255-software-fp-vs-oop": {
+    groupId: "software",
+    level: "junior",
+    sortInGroup: 1,
+  },
+  "256-software-solid": {
+    groupId: "software",
+    level: "middle",
+    sortInGroup: 2,
+  },
+  "257-software-mvc-mvp-mvvm": {
+    groupId: "software",
+    level: "middle",
+    sortInGroup: 3,
+  },
+  "258-software-waterfall-vmodel": {
+    groupId: "software",
+    level: "senior",
+    sortInGroup: 4,
+  },
+  "259-software-incremental-iterative-spiral": {
+    groupId: "software",
+    level: "senior",
+    sortInGroup: 5,
+  },
+  "260-software-paradigms": {
+    groupId: "software",
+    level: "senior",
+    sortInGroup: 6,
   },
 };
 
