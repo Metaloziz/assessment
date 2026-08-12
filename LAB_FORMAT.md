@@ -3,7 +3,7 @@
 Документ — **источник истины** для лаб в assessment. Новые лабы и правки существующих — только по этому файлу.
 
 **Скилл агента (workflow):** [`skills/write-assessment-labs/SKILL.md`](skills/write-assessment-labs/SKILL.md).  
-Визуализации algorithms: [`skills/assessment-lab-visualizations/SKILL.md`](skills/assessment-lab-visualizations/SKILL.md).
+Визуализации (общий стиль для всех лаб): [`skills/assessment-lab-visualizations/SKILL.md`](skills/assessment-lab-visualizations/SKILL.md).
 
 **Эталон оболочки:** пилоты `107+` (IIFE, классы, V8, Web Components и т.д.) в `app/src/topics/js-*/*Lab.tsx`.
 
@@ -18,6 +18,10 @@
 
 - Уровень **middle** или **senior** (новые темы и те, которые правим) — **лаба обязательна**.
 - Уровень **junior** — лаба только если явно попросили; по умолчанию только теория.
+
+### Визуализации
+
+Если механизм темы можно показать схемой или потоком состояний — добавь визуализацию и короткие анимации (не декор). Единый стиль: [`skills/assessment-lab-visualizations/SKILL.md`](skills/assessment-lab-visualizations/SKILL.md). Правило и чеклист — в [`skills/write-assessment-labs/SKILL.md`](skills/write-assessment-labs/SKILL.md).
 
 ---
 

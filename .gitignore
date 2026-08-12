@@ -9,6 +9,18 @@ Thumbs.db
 *.tmp
 *.log
 
+# Env
+.env
+server/.env
+app/.env
+app/.env.local
+
 # App
 app/node_modules/
 app/dist/
+
+# Server
+server/node_modules/
+server/dist/
+server/*.tsbuildinfo
+

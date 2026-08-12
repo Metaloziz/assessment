@@ -8,11 +8,11 @@
 
 ## Todos (этап 1)
 
-- [ ] Структура `server/` (Fastify+Drizzle), docker-compose Postgres, env examples, корневые scripts
-- [ ] Vite proxy + apiBase; `/health` и `/api/demo/*` (echo + db-ping); минимальный smoke UI на фронте
-- [ ] Убрать лабу `24-devtools-lighthouse` (TopicPage, hasLab, файлы `topics/performance` lab)
-- [ ] Дописать `write-assessment-labs` + расширить `assessment-lab-visualizations` (общий стиль) + якорь в `LAB_FORMAT`
-- [ ] README (локальный запуск треугольника) + черновик деплоя Pages+Render/Neon на ≥7 дней
+- [x] Структура `server/` (Fastify+Drizzle), docker-compose Postgres, env examples, корневые scripts
+- [x] Vite proxy + apiBase; `/health` и `/api/demo/*` (echo + db-ping); минимальный smoke UI на фронте
+- [x] Убрать лабу `24-devtools-lighthouse` (TopicPage, hasLab, файлы `topics/performance` lab)
+- [x] Дописать `write-assessment-labs` + расширить `assessment-lab-visualizations` (общий стиль) + якорь в `LAB_FORMAT`
+- [x] README (remote-first: Pages + API + облачная БД; Docker опционален) + черновик деплоя ≥7 дней
 
 ---
 
@@ -24,7 +24,8 @@
 2. **Лабу** темы «Инструмент проверки производительности (DevTools, Lighthouse)» (`24-devtools-lighthouse`) **убираем** (junior; симуляция Lighthouse не нужна).
 3. **Этап 1 — только связка** frontend ↔ API ↔ DB. Лабы тем не пишем.
 4. В скилл написания лаб — правило про **визуализации + анимации** (когда уместно) и **единый стиль**.
-5. Ниже — **бэклог тем** под API/БД для следующих итераций.
+5. **Remote-first:** основной стенд — Pages + задеплоенный API + облачная Postgres; `docker-compose` только опционально для офлайна.
+6. Ниже — **бэклог тем** под API/БД для следующих итераций.
 
 ## Целевая структура (этап 1)
 
@@ -37,15 +38,15 @@ assessment/
       db.ts
       routes/health.ts
       routes/demo.ts   # smoke: echo + db-ping
-    drizzle/
-  docker-compose.yml   # только Postgres
+    Dockerfile
+  docker-compose.yml   # опционально: локальный Postgres
   .env.example
-  README.md            # как поднять треугольник
+  README.md            # remote-first + опциональный локальный треугольник
 ```
 
 Стек: **Node + Fastify + Postgres + Drizzle**. Один язык с учебным фронтом; позже security/Node-лабы лягут на тот же `server/`.
 
-Корень без обязательного npm-workspaces: `app/` и `server/` — отдельные `package.json`; в README две команды dev (+ `docker compose up -d`).
+Корень без обязательного npm-workspaces: `app/` и `server/` — отдельные `package.json`.
 
 ## Что доказываем на этапе 1
 
@@ -62,13 +63,12 @@ sequenceDiagram
   API-->>UI: db ok + latencyMs
 ```
 
-- Postgres из Compose.
-- `server` слушает `:3000`, CORS для `localhost` (и заготовка под Pages origin).
-- В Vite — proxy `/api` → `http://localhost:3000`.
-- На фронте — **минимальный smoke** (не лаба темы): например блок на главной или `/#/dev/api-smoke` с двумя кнопками и логом ответа. Цель — увидеть живой ответ API и БД, не учебный сценарий темы.
-- Prod: `VITE_API_BASE_URL` на URL API.
+- **Основной:** API и БД в облаке; фронт (Pages или `npm run dev` с `VITE_API_BASE_URL`) бьёт в публичный API.
+- **Опционально:** локальный `server` + Compose Postgres; Vite proxy `/api` → `:3000`.
+- CORS: localhost + Pages origin.
+- Smoke UI: `/#/dev/api-smoke` (не учебная лаба темы).
 
-Деплой (документация, без обязательного раската в этом же PR): Pages (фронт) + Render/Fly (API) + Neon или Render Postgres (≥7 дней).
+Деплой: Pages (фронт) + Render/Fly (API) + Neon или Render Postgres (≥7 дней).
 
 ## Удаление лабы 24
 

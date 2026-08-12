@@ -28,7 +28,11 @@ jobs:
           cache: npm
           cache-dependency-path: app/package-lock.json
       - run: npm ci
-      - run: npm run build
+      - name: Build
+        env:
+          # Repo → Settings → Secrets → Actions → VITE_API_BASE_URL=https://assessment-api.onrender.com
+          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
+        run: npm run build
       - uses: actions/upload-pages-artifact@v3
         with:
           path: app/dist

@@ -103,7 +103,6 @@ export function parseTopicMd(id: string, raw: string, order: number): TopicDetai
     order,
     hasLab:
       id === '01-immutability-js' ||
-      id === '24-devtools-lighthouse' ||
       id === '31-git-switch' ||
       id === '32-git-restore' ||
       id === '56-dead-code-tools' ||

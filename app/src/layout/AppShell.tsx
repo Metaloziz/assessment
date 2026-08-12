@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, type PointerEvent as ReactPointerEvent } from 'react'
-import { Outlet, useMatch } from 'react-router-dom'
+import { Outlet, Link, useMatch } from 'react-router-dom'
 import gsap from 'gsap'
 import { useGSAP } from '@gsap/react'
 import { TopicSidebar } from './TopicSidebar'
@@ -398,6 +398,9 @@ export function AppShell() {
             Теория
           </button>
         </div>
+        <Link className={styles.apiSmokeLink} to="/dev/api-smoke" title="Проверка API и БД">
+          API
+        </Link>
       </header>
 
       <div ref={workspaceRef} className={styles.workspace}>

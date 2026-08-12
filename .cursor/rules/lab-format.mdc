@@ -10,4 +10,4 @@ alwaysApply: true
 
 **Источник истины:** [`LAB_FORMAT.md`](../../LAB_FORMAT.md).
 
-Эталон кода: `project-scripts-hmr-treeshake`. Визуализации algorithms: [`skills/assessment-lab-visualizations/SKILL.md`](../../skills/assessment-lab-visualizations/SKILL.md).
+Эталон кода: `project-scripts-hmr-treeshake`. Визуализации (общий стиль): [`skills/assessment-lab-visualizations/SKILL.md`](../../skills/assessment-lab-visualizations/SKILL.md).

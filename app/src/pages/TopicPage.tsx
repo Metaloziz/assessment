@@ -6,7 +6,6 @@ import type { TopicDetail } from '../content'
 import { MarkdownSections } from '../components/MarkdownSections'
 import { CodeBlock } from '../components/CodeBlock'
 import { ImmutabilityLab } from '../topics/immutability/ImmutabilityLab'
-import { PerformanceLab } from '../topics/performance/PerformanceLab'
 import { GitSwitchLab } from '../topics/git-switch/GitSwitchLab'
 import { GitRestoreLab } from '../topics/git-restore/GitRestoreLab'
 import { DeadCodeLab } from '../topics/dead-code/DeadCodeLab'
@@ -109,7 +108,6 @@ function TopicLab({ topicId, topic }: { topicId: string; topic: TopicDetail }) {
   if (topicId === '11-xss') return <XssLab />
   if (topicId === '12-sql-injection') return <SqlInjectionLab />
   if (topicId === '13-csrf') return <CsrfLab />
-  if (topicId === '24-devtools-lighthouse') return <PerformanceLab />
   if (topicId === '31-git-switch') return <GitSwitchLab />
   if (topicId === '32-git-restore') return <GitRestoreLab />
   if (topicId === '56-dead-code-tools') return <DeadCodeLab />

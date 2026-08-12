@@ -2,9 +2,58 @@
 
 Конспект тем + веб-приложение для прокачки к senior assessment.
 
+План монорепо (API + БД): [`docs/FRANKENSTEIN_PLAN.md`](docs/FRANKENSTEIN_PLAN.md).
+
+## Архитектура стенда (remote-first)
+
+Основной путь: **фронт на GitHub Pages** ходит в **задеплоенный API**, API — в **облачную Postgres**. Локальный Docker для БД не нужен.
+
+| Слой | Где | Примечание |
+|------|-----|------------|
+| Фронт | GitHub Pages | как сейчас; `VITE_API_BASE_URL` на URL API |
+| API | Render / Fly.io | `server/` + `server/Dockerfile` |
+| БД | Neon free (или Render Postgres) | `DATABASE_URL` у API; хватает на ≥7 дней |
+
+Smoke: в шапке **API** или `/#/dev/api-smoke` → `/api/health`, `/api/demo/echo`, `/api/demo/db-ping`.
+
+### Деплой API + БД
+
+1. **БД (Neon, ~2 мин):** [console.neon.tech](https://console.neon.tech) → New Project → скопировать connection string (`sslmode=require`).
+2. **API (Render Blueprint):** [dashboard.render.com](https://dashboard.render.com) → **New → Blueprint** → этот репозиторий → применить [`render.yaml`](render.yaml).  
+   В env сервиса `assessment-api` вставить `DATABASE_URL` из Neon. Дождаться Deploy Live.
+3. **Фронт:** GitHub → Settings → Secrets and variables → Actions → secret  
+   `VITE_API_BASE_URL` = `https://assessment-api.onrender.com` (точный URL из Render).  
+   Пуш в ветку Pages или **Actions → Deploy GitHub Pages → Run workflow**.
+4. Проверка: сайт → шапка **API** → `db-ping` должен вернуть `ok: true`.
+
+`CORS_ORIGINS` в Blueprint уже включает `https://metaloziz.github.io`.
+
+### Разработка фронта против боевого API
+
+```bash
+cd app
+cp ../.env.example .env.local   # или создайте app/.env.local
+# VITE_API_BASE_URL=https://<your-api>
+npm install
+npm run dev
+```
+
+Без `VITE_API_BASE_URL` Vite проксирует `/api` на `localhost:3000` (нужен локальный `server`).
+
+### Опционально: локальный API + локальная БД
+
+Только если нужен офлайн или не хотите трогать облако:
+
+```bash
+cp .env.example .env          # DATABASE_URL на localhost
+docker compose up -d          # Postgres; файл docker-compose.yml — опциональный
+cd server && npm install && npm run dev
+cd ../app && npm run dev      # без VITE_API_BASE_URL → proxy на :3000
+```
+
 ## Приложение (`app/`)
 
-Тёмный RemNote-like UI: список тем, чекбоксы «пройдено», теория из markdown, GSAP-лаборатория для иммутабельности.
+Тёмный RemNote-like UI: список тем, чекбоксы «пройдено», теория из markdown, интерактивные лаборатории.
 
 Визуальная тема (Cursor IDE): [app/THEME.md](app/THEME.md)
 
@@ -32,6 +81,12 @@ npm run preview
 `https://metaloziz.github.io/assessment/`
 
 Прогресс чекбоксов хранится в `localStorage` (`assessment-progress`).
+
+## Сервер (`server/`)
+
+Fastify + Drizzle + Postgres. Smoke-роуты: `/api/health`, `/api/demo/echo`, `/api/demo/db-ping`.
+
+Env: корневой `.env` / `server/.env` / переменные хостинга — см. [`.env.example`](.env.example).
 
 ## Формат заметок (`topics/`)
 

@@ -2,9 +2,10 @@
 name: write-assessment-labs
 description: >-
   Creates and edits assessment interactive labs (`*Lab.tsx`): JsLabShell,
-  InteractiveCodePanel, real-file Code tab with ← markers, problem tab, wiring
-  in parseTopicMd and TopicPage. Use when adding or rewriting labs, вкладка Код,
-  лаборатория, middle/senior lab, or LAB_FORMAT work in this repo.
+  InteractiveCodePanel, real-file Code tab with ← markers, problem tab,
+  visualizations/animations when useful, wiring in parseTopicMd and TopicPage.
+  Use when adding or rewriting labs, вкладка Код, лаборатория, middle/senior
+  lab, or LAB_FORMAT work in this repo.
 ---
 
 # Как писать лабы assessment
@@ -12,7 +13,7 @@ description: >-
 Проектный скилл (`skills/` в корне репо). Полные правила — [`LAB_FORMAT.md`](../../LAB_FORMAT.md).
 
 Связанный скилл теории: [`write-assessment-topics`](../write-assessment-topics/SKILL.md).  
-Визуализации графов/списков: [`assessment-lab-visualizations`](../assessment-lab-visualizations/SKILL.md).
+Визуализации (общий стиль): [`assessment-lab-visualizations`](../assessment-lab-visualizations/SKILL.md).
 
 ## Когда лаба нужна
 
@@ -26,6 +27,7 @@ description: >-
 1. [`LAB_FORMAT.md`](../../LAB_FORMAT.md)
 2. Эталон оболочки: `app/src/topics/js-*/*Lab.tsx` (пилоты `107+`)
 3. Эталон вкладки «Код»: `app/src/topics/project-scripts-hmr-treeshake/ProjectScriptsHmrTreeshakeLab.tsx`
+4. Визуальный язык: [`assessment-lab-visualizations`](../assessment-lab-visualizations/SKILL.md)
 
 ## Обязательный каркас
 
@@ -63,6 +65,15 @@ description: >-
 - 2–4 шага, `LabButton`, лог (`useLabLog` / `LabLogView`)
 - Ссылки на «Код» уместны («см. store.js»), без рассказа про формат оформления
 
+## Визуализации и анимации
+
+Если механизм темы **можно показать схемой или потоком состояний** (запрос↔ответ, cookie/JWT, очередь, критический путь, SQL vs injection, WebSocket handshake, обход графа и т.п.) — **делай визуализацию + короткие анимации**, чтобы студенту было видно «что происходит сейчас», а не только текст лога.
+
+- Не ради декора: нет понятного состояния/перехода → схема не обязательна (достаточно кода + шагов).
+- Стиль **только** по [`assessment-lab-visualizations`](../assessment-lab-visualizations/SKILL.md) — не изобретать отдельный look на лабу.
+- Уважать `prefers-reduced-motion: reduce`.
+- Общие примитивы (`app/src/components/lab/viz/`) — переиспользовать, когда появятся; до этого копировать язык эталонов algorithms.
+
 ## Тон
 
 Как в теории: учёба и практика. Запрет лексики найма/собеседований — см. `TOPIC_FORMAT.md`.
@@ -73,4 +84,5 @@ description: >-
 - [ ] Код = узнаваемые файлы + `←` в коде
 - [ ] `executable: false` где нужно; нет плейсхолдера «эталон без запуска» в консоли
 - [ ] intro/lead/pain без мета-инструкций агенту
+- [ ] Если уместно — схема/анимация в общем стиле (`assessment-lab-visualizations`)
 - [ ] Следование `LAB_FORMAT.md`
