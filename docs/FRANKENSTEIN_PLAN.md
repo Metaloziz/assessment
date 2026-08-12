@@ -6,10 +6,11 @@
 
 | | |
 |--|--|
-| Ветка | `cursor/interview-prep-topics` (запушена) |
-| Последние коммиты | `566310a` Blueprint как meme-app; `7047611` server + smoke UI |
-| Код этапа 1 | **готов** в репо |
-| Облачный стенд | **ещё не поднят** — завтра Render Blueprint |
+| Ветка | `cursor/interview-prep-topics` |
+| API | https://assessment-api-fm0e.onrender.com (**Live**) |
+| БД | Render `assessment-db` (**Available**) |
+| Smoke | `health` / `echo` / `db-ping` — **ok** (2026-08-12) |
+| Pages | secret `VITE_API_BASE_URL` задан; ждём пересборку |
 
 ### Сделано (код)
 
@@ -21,12 +22,12 @@
 - [x] Pages CI читает secret `VITE_API_BASE_URL`
 - [x] SSL для cloud Postgres в `server/src/db.ts`
 
-### Завтра (деплой — руками в дашбордах)
+### Деплой
 
-1. [ ] Render → **New → Blueprint** → репо `Metaloziz/assessment`, ветка `cursor/interview-prep-topics` → Approve (`assessment-db` + `assessment-api`)
-2. [ ] Дождаться Live; скопировать URL API
-3. [ ] GitHub → Actions secret `VITE_API_BASE_URL` = URL API
-4. [ ] Actions → Deploy GitHub Pages → Run workflow
+1. [x] Render Blueprint → `assessment-db` + `assessment-api`
+2. [x] API Live: https://assessment-api-fm0e.onrender.com
+3. [x] GitHub secret `VITE_API_BASE_URL`
+4. [ ] Actions → Deploy GitHub Pages (запущено)
 5. [ ] На сайте → **API** → `db-ping` → `ok: true`
 
 После зелёного smoke — можно итерацию лаб (security first по бэклогу ниже).

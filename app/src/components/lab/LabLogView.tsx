@@ -15,7 +15,13 @@ export function LabLogView({ lines, emptyText = 'Лог пуст — нажми�
     <pre className={styles.log}>
       {lines.map((line, i) => {
         const cls =
-          line.kind === 'ok' ? styles.logOk : line.kind === 'err' ? styles.logErr : styles.logInfo
+          line.kind === 'ok'
+            ? styles.logOk
+            : line.kind === 'err'
+              ? styles.logErr
+              : line.kind === 'warn'
+                ? styles.logWarn
+                : styles.logInfo
         return (
           <div key={`${i}-${line.text}`} className={cls}>
             {line.text}

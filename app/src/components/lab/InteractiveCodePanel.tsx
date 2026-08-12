@@ -10,6 +10,8 @@ export type InteractiveSnippet = {
   label: string
   code: string
   note?: string
+  /** Переопределяет метку языка панели для этого сниппета. */
+  languageLabel?: string
   /**
    * false — эталон без песочницы `new Function` (консоль и «Выполнить» скрыты).
    * Живой UI — во вкладке «Решение проблемы», если нужен.
@@ -262,7 +264,7 @@ export function InteractiveCodePanel({
       </div>
 
       <div ref={editorShellRef} className={styles.editorShell}>
-        <div className={styles.editorMeta}>{languageLabel}</div>
+        <div className={styles.editorMeta}>{activeMeta.languageLabel ?? languageLabel}</div>
         <CodeMirror
           className={styles.editor}
           value={code}

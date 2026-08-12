@@ -225,6 +225,10 @@
   color: #9cdcfe;
 }
 
+.logWarn {
+  color: #dcdcaa;
+}
+
 .badge {
   display: inline-block;
   padding: 0.15rem 0.4rem;

@@ -77,7 +77,7 @@ import { useDevToolsDocked } from '../hooks/useDevToolsDocked'
 import { LAB_DOCK_ID, useLayoutStore } from '../store/layout'
 import styles from './TopicPage.module.css'
 
-function TopicLab({ topicId, topic }: { topicId: string; topic: TopicDetail }) {
+function TopicLab({ topicId }: { topicId: string; topic: TopicDetail }) {
   if (topicId === '01-immutability-js') return <ImmutabilityLab />
   if (topicId === '02-normalize-immutable-libs') return <NormalizeImmutableLibsLab />
   if (topicId === '129-algorithms-big-o') return <AlgorithmsBigOLab />

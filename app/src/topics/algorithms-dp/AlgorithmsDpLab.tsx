@@ -62,7 +62,7 @@ export function AlgorithmsDpLab() {
 
     // naive выше ~20 уже тяжело для UI — режем
     const naiveN = Math.min(size, 18)
-    const naiveValue = fibNaive(naiveN, naiveCounter)
+    void fibNaive(naiveN, naiveCounter)
     const memoValue = fibMemo(size, new Map(), memoCounter)
     const tableValue = fibTable(size, tableCounter)
 

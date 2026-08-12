@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react'
 
-export type LabLogKind = 'ok' | 'err' | 'info'
+export type LabLogKind = 'ok' | 'err' | 'info' | 'warn'
 
 export type LabLogLine = {
   kind: LabLogKind
