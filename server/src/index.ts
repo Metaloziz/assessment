@@ -3,6 +3,7 @@ import cors from '@fastify/cors'
 import { env } from './env.js'
 import { healthRoutes } from './routes/health.js'
 import { demoRoutes } from './routes/demo.js'
+import { corsLabRoutes } from './routes/corsLab.js'
 import { sqlClient } from './db.js'
 
 const app = Fastify({ logger: true })
@@ -10,10 +11,13 @@ const app = Fastify({ logger: true })
 await app.register(cors, {
   origin: env.corsOrigins,
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 })
 
 await app.register(healthRoutes)
 await app.register(demoRoutes)
+await app.register(corsLabRoutes)
 
 const shutdown = async () => {
   await app.close()

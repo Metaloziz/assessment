@@ -1,0 +1,110 @@
+.viz {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background:
+    radial-gradient(120% 80% at 10% 0%, rgba(105, 177, 255, 0.08), transparent 55%),
+    radial-gradient(90% 70% at 90% 100%, rgba(77, 183, 132, 0.06), transparent 50%),
+    var(--bg-elevated);
+  padding: 0.85rem 0.9rem 1rem;
+  margin-bottom: 0.85rem;
+  overflow: hidden;
+}
+
+.vizHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.vizTitle {
+  margin: 0;
+  font-size: var(--lab-font-ui);
+  font-weight: 650;
+  color: var(--text);
+}
+
+.vizMeta {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-meta);
+  color: var(--text-faint);
+}
+
+.flow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem 0.35rem;
+  min-height: 3.2rem;
+}
+
+.node {
+  flex: 0 0 auto;
+  min-width: 5.5rem;
+  padding: 0.45rem 0.55rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: rgba(20, 24, 30, 0.55);
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-meta);
+  color: var(--text-muted);
+  transition:
+    border-color 0.25s ease,
+    color 0.25s ease,
+    box-shadow 0.25s ease,
+    background 0.25s ease;
+}
+
+.nodeActive {
+  border-color: var(--accent-bright, #69b1ff);
+  color: var(--text);
+  background: color-mix(in srgb, var(--accent) 16%, rgba(20, 24, 30, 0.7));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+.nodeOk {
+  border-color: color-mix(in srgb, var(--ok) 55%, var(--border));
+  color: var(--ok);
+}
+
+.nodeErr {
+  border-color: color-mix(in srgb, #f14c4c 55%, var(--border));
+  color: #f14c4c;
+}
+
+.nodeLabel {
+  display: block;
+  font-weight: 650;
+  margin-bottom: 0.15rem;
+}
+
+.nodeSub {
+  display: block;
+  color: inherit;
+  opacity: 0.85;
+}
+
+.arrow {
+  flex: 0 0 auto;
+  color: var(--text-faint);
+  font-size: 0.95rem;
+  transition:
+    color 0.25s ease,
+    opacity 0.25s ease;
+}
+
+.arrowActive {
+  color: var(--accent-bright, #69b1ff);
+}
+
+.arrowErr {
+  color: #f14c4c;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .node {
+    transition: none;
+  }
+}

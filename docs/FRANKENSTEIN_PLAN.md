@@ -225,6 +225,7 @@ sequenceDiagram
 ### Порядок следующих итераций (после этапа 1)
 
 1. Security + cookies/CORS/JWT/SQLi/CSRF (максимум пользы от живого API).
+   - **Сейчас:** `07-cors` — живые `/api/cors/lab/*` + схема потока в лабе.
 2. Network transport (REST / WS / SSE) + Node CRUD/DB.
 3. Performance (`27`, затем `15` / RUM для `14`).
 4. Точечно Redux/async/forms.
