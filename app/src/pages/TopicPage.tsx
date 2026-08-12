@@ -70,6 +70,10 @@ import { XFrameOptionsLab } from '../topics/x-frame-options/XFrameOptionsLab'
 import { CorsLab } from '../topics/cors/CorsLab'
 import { NpmAuditLab } from '../topics/npm-audit/NpmAuditLab'
 import { JwtSecurityLab } from '../topics/jwt-security/JwtSecurityLab'
+import { CspLab } from '../topics/csp/CspLab'
+import { XssLab } from '../topics/xss/XssLab'
+import { SqlInjectionLab } from '../topics/sql-injection/SqlInjectionLab'
+import { CsrfLab } from '../topics/csrf/CsrfLab'
 import { useDevToolsDocked } from '../hooks/useDevToolsDocked'
 import { LAB_DOCK_ID, useLayoutStore } from '../store/layout'
 import styles from './TopicPage.module.css'
@@ -101,6 +105,10 @@ function TopicLab({ topicId, topic }: { topicId: string; topic: TopicDetail }) {
   if (topicId === '07-cors') return <CorsLab />
   if (topicId === '08-npm-audit') return <NpmAuditLab />
   if (topicId === '09-jwt-security') return <JwtSecurityLab />
+  if (topicId === '10-csp') return <CspLab />
+  if (topicId === '11-xss') return <XssLab />
+  if (topicId === '12-sql-injection') return <SqlInjectionLab />
+  if (topicId === '13-csrf') return <CsrfLab />
   if (topicId === '24-devtools-lighthouse') return <PerformanceLab />
   if (topicId === '31-git-switch') return <GitSwitchLab />
   if (topicId === '32-git-restore') return <GitRestoreLab />

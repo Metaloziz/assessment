@@ -533,6 +533,26 @@ export const TOPIC_META: Record<
     level: "middle",
     sortInGroup: 11,
   },
+  "152-owasp-top-10": {
+    groupId: "security",
+    level: "senior",
+    sortInGroup: 12,
+  },
+  "153-ssl-tls": {
+    groupId: "security",
+    level: "senior",
+    sortInGroup: 13,
+  },
+  "154-websocket-security": {
+    groupId: "security",
+    level: "senior",
+    sortInGroup: 14,
+  },
+  "155-tcp-hijacking": {
+    groupId: "security",
+    level: "senior",
+    sortInGroup: 15,
+  },
 };
 
 export function resolveTopicMeta(topicId: string): {

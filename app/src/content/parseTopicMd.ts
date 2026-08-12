@@ -166,7 +166,11 @@ export function parseTopicMd(id: string, raw: string, order: number): TopicDetai
       id === '151-x-frame-options' ||
       id === '07-cors' ||
       id === '08-npm-audit' ||
-      id === '09-jwt-security',
+      id === '09-jwt-security' ||
+      id === '10-csp' ||
+      id === '11-xss' ||
+      id === '12-sql-injection' ||
+      id === '13-csrf',
     groupId: meta.groupId,
     groupTitle,
     level: meta.level,

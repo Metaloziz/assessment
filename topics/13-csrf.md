@@ -6,55 +6,107 @@
 
 # 2. Главное в одну фразу
 
-CSRF — атака, при которой злоумышленник заставляет браузер жертвы отправить запрос на доверенный сайт от её имени, используя уже существующую сессию (обычно cookies).
+CSRF — браузер жертвы сам отправляет state-changing запрос на ваш сайт с её cookie-сессией, потому что вредоносная страница инициировала запрос на ваш origin.
 
 ---
 
-# 3. Ответ для собеседования
+# 3. Суть
 
-> «Жертва залогинена на `bank.com`. Открывает `evil.com`, который инициирует POST на `bank.com`. Браузер **сам** прикрепляет cookies домена `bank.com` — это не «вкладка шлёт во вкладку», а запрос вредоносной страницы напрямую на сервер.
+> **Cross-Site Request Forgery (CSRF)** — подделка **действия**, а не кража данных из ответа. Жертва залогинена на `bank.com` (сессия в cookie). Она открывает `evil.com`, тот инициирует `POST https://bank.com/transfer`. Браузер **сам** прикрепляет cookies домена `bank.com` — cookies привязаны к домену, не к «вкладке». Сервер видит валидную сессию и выполняет перевод.
 >
-> Работает при cookie-based auth и state-changing действиях без CSRF-защиты.
+> Когда это работает: cookie-based auth (или другая credential, которую браузер подставляет автоматически) + изменение состояния без дополнительной проверки «запрос реально с нашего UI». Same-Origin Policy мешает `evil.com` **прочитать** ответ банка, но для CSRF достаточно, чтобы действие **выполнилось**.
 >
-> Защита: CSRF-токен, SameSite cookies (`Lax`/`Strict`), проверка Origin/Referer, re-auth для критичных операций.
-> Bearer в header обычно не уязвим к классическому CSRF — браузер сам его не подставит.
-> XSS ≠ CSRF, но XSS может украсть CSRF-токен.»
+> Защита слоями. **CSRF-токен** (synchronizer): секрет в сессии + то же значение в форме/`X-CSRF-Token`; сервер сверяет. **`SameSite=Lax`/`Strict`** на session cookie — браузер не шлёт cookie в многих cross-site POST. Проверка **`Origin`/`Referer`**. Критичные операции — повторный пароль / MFA. Меняющие состояние методы — не через `GET` (картинка/`<img src>` не должны списывать деньги).
+>
+> Ловушка: Bearer в `Authorization` классический CSRF обычно не цепляет — браузер сам header не подставит. XSS ≠ CSRF, но XSS обходит CSRF-защиту: скрипт на вашем origin читает токен и шлёт запросы «легитимно». `SameSite=None` для кросс-сайтовых виджетов снова требует токен/Origin-check.
 
 ---
 
 # 4. Самое главное запомнить
 
-- Cookies привязаны к **домену**, не к вкладке.
-- CSRF = подделка **действия**, не чтение ответа.
-- Cookie-auth → нужна CSRF-защита.
-- CSRF-токен + SameSite.
-- Опасные действия не через GET.
+- Cookies → домен, не вкладка; браузер сам приложит их к запросу на ваш сайт.
+- CSRF = выполнить действие от имени жертвы; читать JSON с `evil.com` SOP не даст.
+- Cookie-сессия → CSRF-токен и/или SameSite (+ Origin).
+- Не делать мутации через `GET`.
+- XSS может украсть CSRF-токен; Bearer-header — другая модель угроз.
+
+| Защита | Что даёт |
+|--------|----------|
+| CSRF token | Секрет, которого нет у `evil.com` |
+| `SameSite=Lax/Strict` | Cookie не уйдёт в типичный cross-site POST |
+| Origin / Referer | Откуда пришёл запрос |
+| re-auth / MFA | Критичные действия |
 
 ---
 
 # 5. Описание
 
-## Уточнение механики
+## Механика
 
+```text
+victim: session cookie на bank.com
+
+evil.com
+  └── form/fetch/img → POST https://bank.com/transfer
+        └── Cookie: session=…   ← браузер добавил сам
+              └── bank выполняет перевод
 ```
-evil.com → POST https://bank.com/transfer
-Браузер добавляет Cookie: session=...
-bank.com выполняет действие
+
+```html
+<!-- идея атаки (упрощённо) -->
+<form action="https://bank.com/transfer" method="POST">
+  <input name="to" value="attacker" />
+  <input name="amount" value="1000" />
+</form>
+<script>document.forms[0].submit()</script>
 ```
 
-SOP мешает прочитать ответ; для CSRF достаточно выполнить действие.
+## CSRF-токен (сервер)
 
-## Защита
+```javascript
+// выдача: спрятать токен в сессии + отдать в HTML/JSON клиенту
+req.session.csrf = crypto.randomBytes(32).toString('hex');
 
-- Synchronizer CSRF token в form/header
-- `SameSite=Lax|Strict; HttpOnly; Secure`
-- Origin/Referer check
-- Не использовать GET для изменений
+// мутация
+if (req.body._csrf !== req.session.csrf) {
+  return res.sendStatus(403);
+}
+```
+
+Клиент шлёт токен в body или заголовке; `evil.com` его не знает (и из ответа банка не прочитает из-за SOP), если нет XSS.
+
+## SameSite
+
+- **Strict** — cookie почти не едет с чужого сайта.
+- **Lax** — top-level GET-навигация ок; типичный cross-site POST без cookie — хороший дефолт для многих сессий.
+- **None; Secure** — нужен cross-site; CSRF закрывают токеном/Origin отдельно.
+
+## CSRF vs XSS vs CORS
+
+| | CSRF | XSS |
+|--|------|-----|
+| Кто исполняет | браузер шлёт запрос «с cookie» | чужой JS **в вашем** origin |
+| Цель | действие | код + часто кража сессии |
+| SOP | ответ чужому сайту не отдать | не мешает скрипту на вашем origin |
+
+CORS настраивает, может ли **JS с другого origin читать ответ**; это не замена CSRF-токена для cookie-сессий.
+
+## Частые ошибки
+
+- Session cookie без SameSite и без токена.
+- «Защита» только проверкой custom header без CORS-осознанности (простые form POST header не пошлют — токен всё равно нужен для форм).
+- Logout / смена email через `GET`.
+- Считать SPA с Bearer полностью «как cookie» — модели разные.
+
+## Связь с лабой и соседями
+
+Лаба: атака form-POST, SameSite, CSRF-токен, отличие от Bearer. Рядом: **безопасность cookie**, **CORS**, **XSS**, **JWT** (хранение access).
 
 ---
 
 # 6. Ссылки
 
-- [OWASP CSRF](https://owasp.org/www-community/attacks/csrf)
-- [OWASP CSRF Prevention](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html)
+- [OWASP — Cross-Site Request Forgery](https://owasp.org/www-community/attacks/csrf)
+- [OWASP — CSRF Prevention Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Cross_Site_Request_Forgery_Prevention_Cheat_Sheet.html)
 - [MDN — SameSite cookies](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie#samesitesamesite-value)
+- [MDN — CSRF](https://developer.mozilla.org/en-US/docs/Glossary/CSRF)
