@@ -35,7 +35,7 @@ export const TOPIC_GROUPS: TopicGroup[] = [
   { id: "project", title: "Проект", order: 10 },
   {
     id: "logging",
-    title: "Обработка исключений, логирование, дебагинг",
+    title: "Обработка исключений, логирование, дебаг",
     order: 11,
   },
   { id: "security", title: "Безопасность", order: 12 },
@@ -467,17 +467,72 @@ export const TOPIC_META: Record<
     sortInGroup: 8,
   },
 
-  // Логирование
-  "06-logging-nodes": { groupId: "logging", level: "middle", sortInGroup: 1 },
+  // Обработка исключений, логирование, дебаг
+  "141-logging-try-catch": {
+    groupId: "logging",
+    level: "junior",
+    sortInGroup: 1,
+  },
+  "142-logging-console-methods": {
+    groupId: "logging",
+    level: "junior",
+    sortInGroup: 2,
+  },
+  "143-logging-browser-debug": {
+    groupId: "logging",
+    level: "junior",
+    sortInGroup: 3,
+  },
+  "144-logging-redux-devtools": {
+    groupId: "logging",
+    level: "middle",
+    sortInGroup: 4,
+  },
+  "145-logging-chrome-application-sources": {
+    groupId: "logging",
+    level: "middle",
+    sortInGroup: 5,
+  },
+  "146-logging-sentry-prometheus": {
+    groupId: "logging",
+    level: "senior",
+    sortInGroup: 6,
+  },
+  "147-logging-server-debug-browser": {
+    groupId: "logging",
+    level: "senior",
+    sortInGroup: 7,
+  },
+  "06-logging-nodes": { groupId: "logging", level: "senior", sortInGroup: 8 },
 
   // Безопасность
-  "07-cors": { groupId: "security", level: "junior", sortInGroup: 1 },
-  "08-npm-audit": { groupId: "security", level: "junior", sortInGroup: 2 },
-  "09-jwt-security": { groupId: "security", level: "middle", sortInGroup: 3 },
-  "10-csp": { groupId: "security", level: "middle", sortInGroup: 4 },
-  "11-xss": { groupId: "security", level: "middle", sortInGroup: 5 },
-  "12-sql-injection": { groupId: "security", level: "middle", sortInGroup: 6 },
-  "13-csrf": { groupId: "security", level: "middle", sortInGroup: 7 },
+  "148-eval-dangerously-set-inner-html": {
+    groupId: "security",
+    level: "junior",
+    sortInGroup: 1,
+  },
+  "149-rel-noopener-noreferrer-nofollow": {
+    groupId: "security",
+    level: "junior",
+    sortInGroup: 2,
+  },
+  "150-authn-authz": {
+    groupId: "security",
+    level: "junior",
+    sortInGroup: 3,
+  },
+  "07-cors": { groupId: "security", level: "middle", sortInGroup: 4 },
+  "08-npm-audit": { groupId: "security", level: "middle", sortInGroup: 5 },
+  "09-jwt-security": { groupId: "security", level: "middle", sortInGroup: 6 },
+  "10-csp": { groupId: "security", level: "middle", sortInGroup: 7 },
+  "11-xss": { groupId: "security", level: "middle", sortInGroup: 8 },
+  "12-sql-injection": { groupId: "security", level: "middle", sortInGroup: 9 },
+  "13-csrf": { groupId: "security", level: "middle", sortInGroup: 10 },
+  "151-x-frame-options": {
+    groupId: "security",
+    level: "middle",
+    sortInGroup: 11,
+  },
 };
 
 export function resolveTopicMeta(topicId: string): {

@@ -1,19 +1,11 @@
 ---
-description: Вкладка «Код» в лабах — настоящий код с комментариями-выделениями
+description: Вкладка «Код» — см. skills/write-assessment-labs
 globs: app/src/topics/**/*Lab.tsx
 alwaysApply: false
 ---
 
 # Вкладка «Код»
 
-Сниппеты `InteractiveCodePanel` — **реальные файлы/фрагменты** (`package.json`, `webpack.config.js`, исходники), не псевдо-демо ради `console.log`.
+Следуй [`skills/write-assessment-labs/SKILL.md`](../../skills/write-assessment-labs/SKILL.md) (§ «Вкладка Код») и [`LAB_FORMAT.md`](../../LAB_FORMAT.md).
 
-Участки по теме помечай **комментариями в коде** (`// ← HMR`, блоки `/* LOADERS */`).
-
-Эталоны с `require` / Node — `executable: false`.
-
-**Не дублируй это правило в UI.** В `intro` / `lead` / `pain` / `note` не писать «настоящие файлы», «выделено комментариями `← …`» и т.п. — это инструкция агенту. `intro` — про содержание темы.
-
-**Эталон:** `app/src/topics/project-scripts-hmr-treeshake/ProjectScriptsHmrTreeshakeLab.tsx`.
-
-Источник истины: [`LAB_FORMAT.md`](../../LAB_FORMAT.md) (§ «Вкладка Код — настоящий код»).
+Кратко: реальные файлы + `// ← …` в коде; `executable: false` для Node; без мета-фраз в `intro`/`lead`/`pain`.

@@ -157,7 +157,16 @@ export function parseTopicMd(id: string, raw: string, order: number): TopicDetai
       id === '140-project-prod-dev-plugins' ||
       id === '03-build-hot-cold' ||
       id === '04-bundlers-gulp-rollup' ||
-      id === '05-module-federation-babel-postcss',
+      id === '05-module-federation-babel-postcss' ||
+      id === '144-logging-redux-devtools' ||
+      id === '145-logging-chrome-application-sources' ||
+      id === '146-logging-sentry-prometheus' ||
+      id === '147-logging-server-debug-browser' ||
+      id === '06-logging-nodes' ||
+      id === '151-x-frame-options' ||
+      id === '07-cors' ||
+      id === '08-npm-audit' ||
+      id === '09-jwt-security',
     groupId: meta.groupId,
     groupTitle,
     level: meta.level,

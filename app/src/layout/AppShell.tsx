@@ -54,23 +54,45 @@ export function AppShell() {
 
   /** Dock visible when: lab mode, theory hidden (full-bleed), or topics with sidebar open. */
   const dockExpanded = labOpen || theoryHidden || (sidebarOpen && theoryOpen)
+  const topicsOn = !labOpen && (sidebarOpen || theoryHidden)
+  const labOn = labOpen
+  const theoryOn = theoryOpen
 
-  const openTopics = () => {
-    if (onTopicPage) setDock('topics')
-    else setLabOpen(false)
+  const toggleTopics = () => {
+    if (labOpen) {
+      if (onTopicPage) setDock('topics')
+      else setLabOpen(false)
+      setSidebarOpen(true)
+      return
+    }
+    if (topicsOn) {
+      if (theoryHidden) {
+        if (onTopicPage) setTheory(true)
+        else setTheoryOpen(true)
+      }
+      setSidebarOpen(false)
+      return
+    }
+    setSidebarOpen(true)
   }
 
-  const openLab = () => {
+  const toggleLab = () => {
     if (!activeHasLab) return
-    if (onTopicPage) setDock('lab')
-    else {
-      setLabOpen(true)
-      setSidebarOpen(true)
+    if (labOpen) {
+      if (onTopicPage) setDock('topics')
+      else setLabOpen(false)
+      if (theoryOpen) setSidebarOpen(false)
+      return
     }
+    if (onTopicPage) setDock('lab')
+    else setLabOpen(true)
   }
 
   const toggleTheory = () => {
     const next = !theoryOpen
+    if (!next && !labOpen && !sidebarOpen) {
+      setSidebarOpen(true)
+    }
     if (onTopicPage) setTheory(next)
     else setTheoryOpen(next)
   }
@@ -108,6 +130,12 @@ export function AppShell() {
           : mobile
             ? '100%'
             : dockW
+
+      const theoryOpenWidth = mobile
+        ? workspaceW
+        : dockExpanded && !theoryHidden
+          ? Math.max(200, workspaceW - dockW - resizerW)
+          : workspaceW
 
       const dockMaxHeight = !dockExpanded
         ? 0
@@ -157,7 +185,7 @@ export function AppShell() {
         }
         gsap.set(topics, layer.topics)
         gsap.set(lab, layer.lab)
-        const w = theoryHidden ? theoryW : Math.max(200, workspaceW - dockW - resizerW)
+        const w = theoryHidden ? theoryW : theoryOpenWidth
         theoryWidthRef.current = w
         placeTheory(theoryHidden, w)
         if (resizer) {
@@ -213,10 +241,7 @@ export function AppShell() {
         })
         tl.to(main, { xPercent: 100 }, 0)
       } else if (showing) {
-        const openW = mobile
-          ? workspaceW
-          : Math.max(200, workspaceW - dockW - resizerW)
-        theoryWidthRef.current = openW
+        theoryWidthRef.current = theoryOpenWidth
         // Start off-screen, commit layout, then slide in (same motion as hide).
         gsap.set(main, {
           position: 'absolute',
@@ -224,7 +249,7 @@ export function AppShell() {
           bottom: 0,
           right: 0,
           left: 'auto',
-          width: openW,
+          width: theoryOpenWidth,
           height: 'auto',
           xPercent: 100,
           yPercent: 0,
@@ -234,11 +259,8 @@ export function AppShell() {
         tl.fromTo(main, { xPercent: 100 }, { xPercent: 0, ease }, 0)
       } else if (!theoryHidden) {
         // Dock/lab toggles while theory stays open — keep panel docked, update width without slide.
-        const openW = mobile
-          ? workspaceW
-          : Math.max(200, workspaceW - dockW - resizerW)
-        theoryWidthRef.current = openW
-        tl.to(main, { width: openW, xPercent: 0, yPercent: 0 }, 0)
+        theoryWidthRef.current = theoryOpenWidth
+        tl.to(main, { width: theoryOpenWidth, xPercent: 0, yPercent: 0 }, 0)
       } else {
         // Stays hidden — keep off-screen to the right.
         gsap.set(main, { xPercent: 100, yPercent: 0, autoAlpha: 1 })
@@ -274,12 +296,18 @@ export function AppShell() {
     if (theoryHiddenRef.current || draggingRef.current) return
     if (window.matchMedia('(max-width: 860px)').matches) return
     const workspaceW = workspace.getBoundingClientRect().width || window.innerWidth
+    if (!dockExpanded) {
+      gsap.set(dock, { width: 0 })
+      theoryWidthRef.current = workspaceW
+      gsap.set(main, { width: workspaceW })
+      return
+    }
     const dockW = dockWidthFromShare(workspaceW, labShare)
     gsap.set(dock, { width: dockW })
     const openW = Math.max(200, workspaceW - dockW - 6)
     theoryWidthRef.current = openW
     gsap.set(main, { width: openW })
-  }, [labShare])
+  }, [labShare, dockExpanded])
 
   const onResizePointerDown = useCallback(
     (event: ReactPointerEvent<HTMLDivElement>) => {
@@ -333,35 +361,38 @@ export function AppShell() {
       data-lab-open={labOpen ? 'true' : 'false'}
     >
       <header className={styles.chrome}>
-        <div className={styles.dockToggle} role="tablist" aria-label="Панель слева">
+        <div className={styles.dockToggle} role="toolbar" aria-label="Панели">
           <button
             type="button"
-            role="tab"
-            aria-selected={!labOpen}
-            className={`${styles.dockTab} ${!labOpen ? styles.dockTabActive : ''}`}
-            onClick={openTopics}
+            aria-pressed={topicsOn}
+            title={topicsOn ? 'Скрыть темы' : 'Показать темы'}
+            className={`${styles.dockTab} ${topicsOn ? styles.dockTabActive : ''}`}
+            onClick={toggleTopics}
           >
             Темы
           </button>
           <button
             type="button"
-            role="tab"
-            aria-selected={labOpen}
+            aria-pressed={labOn}
             aria-disabled={!activeHasLab}
             disabled={!activeHasLab}
-            title={activeHasLab ? undefined : 'У этой темы нет лаборатории'}
-            className={`${styles.dockTab} ${labOpen ? styles.dockTabActive : ''}`}
-            onClick={openLab}
+            title={
+              !activeHasLab
+                ? 'У этой темы нет лаборатории'
+                : labOn
+                  ? 'Скрыть лабораторию'
+                  : 'Показать лабораторию'
+            }
+            className={`${styles.dockTab} ${labOn ? styles.dockTabActive : ''}`}
+            onClick={toggleLab}
           >
             Лаборатория
           </button>
           <button
             type="button"
-            role="tab"
-            aria-selected={theoryOpen}
-            aria-pressed={theoryOpen}
-            title={theoryOpen ? 'Скрыть теорию' : 'Показать теорию'}
-            className={`${styles.dockTab} ${theoryOpen ? styles.dockTabActive : ''}`}
+            aria-pressed={theoryOn}
+            title={theoryOn ? 'Скрыть теорию' : 'Показать теорию'}
+            className={`${styles.dockTab} ${theoryOn ? styles.dockTabActive : ''}`}
             onClick={toggleTheory}
           >
             Теория
@@ -377,7 +408,7 @@ export function AppShell() {
           data-mode={labOpen ? 'lab' : 'topics'}
         >
           <div className={styles.dockStage}>
-            <div ref={topicsRef} className={styles.topicsLayer} aria-hidden={labOpen}>
+            <div ref={topicsRef} className={styles.topicsLayer} aria-hidden={!topicsOn}>
               <TopicSidebar
                 onCollapse={labOpen || theoryHidden ? undefined : () => setSidebarOpen(false)}
               />
@@ -386,7 +417,7 @@ export function AppShell() {
             <div
               ref={labRef}
               className={styles.labLayer}
-              aria-hidden={!labOpen}
+              aria-hidden={!labOn}
               aria-label="Лаборатория"
             >
               <div className={styles.labColumn}>
@@ -406,17 +437,15 @@ export function AppShell() {
           </div>
         </div>
 
-        {dockExpanded ? (
-          <div
-            ref={resizerRef}
-            className={styles.dockResizer}
-            role="separator"
-            aria-orientation="vertical"
-            aria-hidden={theoryHidden}
-            aria-label="Изменить ширину левой панели"
-            onPointerDown={onResizePointerDown}
-          />
-        ) : null}
+        <div
+          ref={resizerRef}
+          className={styles.dockResizer}
+          role="separator"
+          aria-orientation="vertical"
+          aria-hidden={!dockExpanded || theoryHidden}
+          aria-label="Изменить ширину левой панели"
+          onPointerDown={onResizePointerDown}
+        />
 
         <main ref={mainRef} className={styles.main} aria-hidden={theoryHidden}>
           {!dockExpanded && theoryOpen ? (

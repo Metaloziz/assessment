@@ -1,14 +1,16 @@
 ---
-description: Формат markdown-тем assessment — см. TOPIC_FORMAT.md
+description: Формат markdown-тем assessment — скилл + TOPIC_FORMAT.md
 globs: topics/**/*.md
 alwaysApply: false
 ---
 
 # Оформление тем
 
-**Источник истины:** [`TOPIC_FORMAT.md`](../../TOPIC_FORMAT.md) в корне репозитория.
+**Скилл (workflow):** [`skills/write-assessment-topics/SKILL.md`](../../skills/write-assessment-topics/SKILL.md) — читать при создании/правке тем.
+
+**Источник истины по тексту:** [`TOPIC_FORMAT.md`](../../TOPIC_FORMAT.md).
 
 - Эталон **целой темы**: [`topics/112-js-v8-pipeline.md`](../../topics/112-js-v8-pipeline.md).
-- Эталон плотности **«Сути»** (широкая тема, 4 абзаца что/зачем/как/ловушка): [`topics/140-project-prod-dev-plugins.md`](../../topics/140-project-prod-dev-plugins.md) — образец также встроен в `TOPIC_FORMAT.md` (§ «Хорошо (широкая тема)»).
+- Эталон плотности **«Сути»**: [`topics/140-project-prod-dev-plugins.md`](../../topics/140-project-prod-dev-plugins.md).
 
-Не дублируй правила здесь — читай и следуй `TOPIC_FORMAT.md`.
+Не дублируй длинные правила здесь — следуй скиллу и `TOPIC_FORMAT.md`.

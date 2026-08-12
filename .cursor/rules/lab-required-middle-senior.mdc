@@ -1,14 +1,12 @@
 ---
-description: Лаба обязательна для тем middle и senior
+description: Лаба обязательна для middle/senior — см. skills/write-assessment-labs
 globs: topics/**/*.md
 alwaysApply: false
 ---
 
 # Лабы и уровень темы
 
-При создании или правке темы смотри `level` в `app/src/content/groups.ts`:
+См. [`skills/write-assessment-labs/SKILL.md`](../../skills/write-assessment-labs/SKILL.md) и `level` в `app/src/content/groups.ts`:
 
-- **middle** / **senior** — лаборатория **обязательна** (`LAB_FORMAT.md`, wiring в `parseTopicMd` + `TopicPage`).
-- **junior** — лаба только по явной просьбе.
-
-Источник истины: [`LAB_FORMAT.md`](../../LAB_FORMAT.md) (§ «Когда лаба обязательна»), [`TOPIC_FORMAT.md`](../../TOPIC_FORMAT.md).
+- **middle** / **senior** — лаба обязательна
+- **junior** — только по явной просьбе

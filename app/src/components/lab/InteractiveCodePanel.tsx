@@ -11,8 +11,8 @@ export type InteractiveSnippet = {
   code: string
   note?: string
   /**
-   * false — эталон (часто React+TS), без автозапуска в песочнице `new Function`.
-   * Живой UI — во вкладке «Решение проблемы».
+   * false — эталон без песочницы `new Function` (консоль и «Выполнить» скрыты).
+   * Живой UI — во вкладке «Решение проблемы», если нужен.
    */
   executable?: boolean
 }
@@ -128,13 +128,6 @@ function formatLabRichText(text: string): ReactNode {
   })
 }
 
-const REFERENCE_CONSOLE: ConsoleLine[] = [
-  {
-    kind: 'system',
-    text: 'Эталон React + TypeScript — без запуска здесь. Живой UI во вкладке «Решение проблемы».',
-  },
-]
-
 export function InteractiveCodePanel({
   topicId,
   intro,
@@ -174,7 +167,7 @@ export function InteractiveCodePanel({
   useEffect(() => {
     if (!activeMeta) return
     if (activeMeta.executable === false) {
-      setConsoleLines(REFERENCE_CONSOLE)
+      setConsoleLines([])
       const id = window.setTimeout(() => {
         if (code === activeMeta.code) clearStored(topicId, activeMeta.id)
         else writeStored(topicId, activeMeta.id, code)
@@ -218,7 +211,7 @@ export function InteractiveCodePanel({
     const ro = new ResizeObserver(measure)
     ro.observe(root)
     return () => ro.disconnect()
-  }, [fillAvailable, intro, activeMeta?.note, consoleLines.length])
+  }, [fillAvailable, intro, activeMeta?.note, consoleLines.length, executable])
 
   if (!activeMeta) return null
 
@@ -254,11 +247,7 @@ export function InteractiveCodePanel({
           <LabButton variant="primary" onClick={() => run(code)}>
             Выполнить
           </LabButton>
-        ) : (
-          <LabButton variant="secondary" disabled>
-            Эталон (без запуска)
-          </LabButton>
-        )}
+        ) : null}
         <LabButton
           variant="secondary"
           disabled={!dirty && readStored(topicId, activeMeta.id) == null}
@@ -273,9 +262,7 @@ export function InteractiveCodePanel({
       </div>
 
       <div ref={editorShellRef} className={styles.editorShell}>
-        <div className={styles.editorMeta}>
-          {executable ? languageLabel : 'typescript'}
-        </div>
+        <div className={styles.editorMeta}>{languageLabel}</div>
         <CodeMirror
           className={styles.editor}
           value={code}
@@ -303,33 +290,35 @@ export function InteractiveCodePanel({
         />
       </div>
 
-      <div className={styles.console} aria-live="polite">
-        <div className={styles.consoleHead}>Консоль</div>
-        <pre className={styles.consoleBody}>
-          {consoleLines.length === 0 ? (
-            <span className={styles.lineSystem}>Запуск…</span>
-          ) : (
-            consoleLines.map((line, i) => (
-              <div
-                key={`${i}-${line.kind}-${line.text.slice(0, 24)}`}
-                className={
-                  line.kind === 'error'
-                    ? styles.lineError
-                    : line.kind === 'warn'
-                      ? styles.lineWarn
-                      : line.kind === 'result'
-                        ? styles.lineResult
-                        : line.kind === 'system'
-                          ? styles.lineSystem
-                          : styles.lineLog
-                }
-              >
-                {line.text}
-              </div>
-            ))
-          )}
-        </pre>
-      </div>
+      {executable ? (
+        <div className={styles.console} aria-live="polite">
+          <div className={styles.consoleHead}>Консоль</div>
+          <pre className={styles.consoleBody}>
+            {consoleLines.length === 0 ? (
+              <span className={styles.lineSystem}>Запуск…</span>
+            ) : (
+              consoleLines.map((line, i) => (
+                <div
+                  key={`${i}-${line.kind}-${line.text.slice(0, 24)}`}
+                  className={
+                    line.kind === 'error'
+                      ? styles.lineError
+                      : line.kind === 'warn'
+                        ? styles.lineWarn
+                        : line.kind === 'result'
+                          ? styles.lineResult
+                          : line.kind === 'system'
+                            ? styles.lineSystem
+                            : styles.lineLog
+                  }
+                >
+                  {line.text}
+                </div>
+              ))
+            )}
+          </pre>
+        </div>
+      ) : null}
     </div>
   )
 }

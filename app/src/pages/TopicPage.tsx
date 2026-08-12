@@ -61,6 +61,15 @@ import { ProjectProdDevPluginsLab } from '../topics/project-prod-dev-plugins/Pro
 import { ProjectHotColdLab } from '../topics/project-hot-cold/ProjectHotColdLab'
 import { ProjectBundlersLab } from '../topics/project-bundlers/ProjectBundlersLab'
 import { ProjectFederationLab } from '../topics/project-federation/ProjectFederationLab'
+import { LoggingReduxDevtoolsLab } from '../topics/logging-redux-devtools/LoggingReduxDevtoolsLab'
+import { LoggingChromeApplicationSourcesLab } from '../topics/logging-chrome-application-sources/LoggingChromeApplicationSourcesLab'
+import { LoggingSentryPrometheusLab } from '../topics/logging-sentry-prometheus/LoggingSentryPrometheusLab'
+import { LoggingServerDebugBrowserLab } from '../topics/logging-server-debug-browser/LoggingServerDebugBrowserLab'
+import { LoggingNodesLab } from '../topics/logging-nodes/LoggingNodesLab'
+import { XFrameOptionsLab } from '../topics/x-frame-options/XFrameOptionsLab'
+import { CorsLab } from '../topics/cors/CorsLab'
+import { NpmAuditLab } from '../topics/npm-audit/NpmAuditLab'
+import { JwtSecurityLab } from '../topics/jwt-security/JwtSecurityLab'
 import { useDevToolsDocked } from '../hooks/useDevToolsDocked'
 import { LAB_DOCK_ID, useLayoutStore } from '../store/layout'
 import styles from './TopicPage.module.css'
@@ -82,6 +91,16 @@ function TopicLab({ topicId, topic }: { topicId: string; topic: TopicDetail }) {
   if (topicId === '03-build-hot-cold') return <ProjectHotColdLab />
   if (topicId === '04-bundlers-gulp-rollup') return <ProjectBundlersLab />
   if (topicId === '05-module-federation-babel-postcss') return <ProjectFederationLab />
+  if (topicId === '144-logging-redux-devtools') return <LoggingReduxDevtoolsLab />
+  if (topicId === '145-logging-chrome-application-sources')
+    return <LoggingChromeApplicationSourcesLab />
+  if (topicId === '146-logging-sentry-prometheus') return <LoggingSentryPrometheusLab />
+  if (topicId === '147-logging-server-debug-browser') return <LoggingServerDebugBrowserLab />
+  if (topicId === '06-logging-nodes') return <LoggingNodesLab />
+  if (topicId === '151-x-frame-options') return <XFrameOptionsLab />
+  if (topicId === '07-cors') return <CorsLab />
+  if (topicId === '08-npm-audit') return <NpmAuditLab />
+  if (topicId === '09-jwt-security') return <JwtSecurityLab />
   if (topicId === '24-devtools-lighthouse') return <PerformanceLab />
   if (topicId === '31-git-switch') return <GitSwitchLab />
   if (topicId === '32-git-restore') return <GitRestoreLab />

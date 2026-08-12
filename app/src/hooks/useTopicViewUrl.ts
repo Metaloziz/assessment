@@ -51,7 +51,6 @@ export function useTopicViewUrlSync(enabled: boolean) {
   const activeHasLab = useLayoutStore((s) => s.activeHasLab)
   const setLabOpen = useLayoutStore((s) => s.setLabOpen)
   const setTheoryOpen = useLayoutStore((s) => s.setTheoryOpen)
-  const setSidebarOpen = useLayoutStore((s) => s.setSidebarOpen)
   const applyingUrl = useRef(false)
 
   const patchParams = useCallback(
@@ -70,12 +69,11 @@ export function useTopicViewUrlSync(enabled: boolean) {
 
     setLabOpen(wantLab)
     setTheoryOpen(theory)
-    if (wantLab) setSidebarOpen(true)
 
     queueMicrotask(() => {
       applyingUrl.current = false
     })
-  }, [enabled, params, activeHasLab, setLabOpen, setTheoryOpen, setSidebarOpen])
+  }, [enabled, params, activeHasLab, setLabOpen, setTheoryOpen])
 
   useEffect(() => {
     if (!enabled || applyingUrl.current) return
@@ -91,13 +89,12 @@ export function useTopicViewUrlSync(enabled: boolean) {
       if (dock === 'lab' && !activeHasLab) return
       applyingUrl.current = true
       setLabOpen(dock === 'lab')
-      if (dock === 'lab') setSidebarOpen(true)
       patchParams({ dock })
       queueMicrotask(() => {
         applyingUrl.current = false
       })
     },
-    [activeHasLab, setLabOpen, setSidebarOpen, patchParams],
+    [activeHasLab, setLabOpen, patchParams],
   )
 
   const setTheory = useCallback(

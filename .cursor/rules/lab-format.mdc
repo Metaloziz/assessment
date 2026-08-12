@@ -1,13 +1,13 @@
 ---
-description: Стандарт лабораторий — см. LAB_FORMAT.md
+description: Стандарт лабораторий — скилл + LAB_FORMAT.md
 globs: app/src/topics/**/*Lab*
 alwaysApply: true
 ---
 
 # Стандарт лабораторий
 
-**Источник истины:** [`LAB_FORMAT.md`](../../LAB_FORMAT.md) в корне репозитория.
+**Скилл (workflow):** [`skills/write-assessment-labs/SKILL.md`](../../skills/write-assessment-labs/SKILL.md).
 
-Эталон: пилоты `107+` в `app/src/topics/js-*/*Lab.tsx`.
+**Источник истины:** [`LAB_FORMAT.md`](../../LAB_FORMAT.md).
 
-Не дублируй правила здесь — читай и следуй `LAB_FORMAT.md`.
+Эталон кода: `project-scripts-hmr-treeshake`. Визуализации algorithms: [`skills/assessment-lab-visualizations/SKILL.md`](../../skills/assessment-lab-visualizations/SKILL.md).
