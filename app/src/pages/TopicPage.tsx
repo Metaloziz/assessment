@@ -77,6 +77,30 @@ import { IncrementalIterativeSpiralLab } from '../topics/software-incremental-it
 import { PatternsFactoryProxyAdapterLab } from '../topics/patterns-factory-prototype-proxy-singleton-adapter/PatternsFactoryProxyAdapterLab'
 import { PatternsChainStrategyDecoratorLab } from '../topics/patterns-chain-abstract-factory-strategy-decorator/PatternsChainStrategyDecoratorLab'
 import { PatternsMediatorCompositeMementoLab } from '../topics/patterns-mediator-composite-memento/PatternsMediatorCompositeMementoLab'
+import { PatternsDependencyInjectionLab } from '../topics/patterns-dependency-injection/PatternsDependencyInjectionLab'
+import { PatternsTemplateFlyweightBridgeLab } from '../topics/patterns-template-flyweight-bridge/PatternsTemplateFlyweightBridgeLab'
+import { LayoutBrowserslistLab } from '../topics/layout-browserslist/LayoutBrowserslistLab'
+import { LayoutToolsByBrowsersLab } from '../topics/layout-tools-by-browsers/LayoutToolsByBrowsersLab'
+import { LayoutStackingContextLab } from '../topics/layout-stacking-context/LayoutStackingContextLab'
+import { LayoutCssModulesCssInJsLab } from '../topics/layout-css-modules-css-in-js/LayoutCssModulesCssInJsLab'
+import { LayoutDesignSystemLab } from '../topics/layout-design-system/LayoutDesignSystemLab'
+import { LayoutA11yLab } from '../topics/layout-a11y/LayoutA11yLab'
+import { LayoutMicrodataLab } from '../topics/layout-microdata/LayoutMicrodataLab'
+import { ReactVirtualDomLab } from '../topics/react-virtual-dom/ReactVirtualDomLab'
+import { LayoutGridLab } from '../topics/layout-grid/LayoutGridLab'
+import { LayoutFlexboxLab } from '../topics/layout-flexbox/LayoutFlexboxLab'
+import { LayoutAnimationLab } from '../topics/layout-animation/LayoutAnimationLab'
+import { LayoutScssPostcssLab } from '../topics/layout-scss-postcss/LayoutScssPostcssLab'
+import { AsyncJsSingleThreadLab } from '../topics/async-js-single-thread/AsyncJsSingleThreadLab'
+import { AsyncXhrFetchLab } from '../topics/async-xhr-fetch/AsyncXhrFetchLab'
+import { AsyncEventLoopLab } from '../topics/async-event-loop/AsyncEventLoopLab'
+import { AsyncTasksMicrotasksLab } from '../topics/async-tasks-microtasks/AsyncTasksMicrotasksLab'
+import { AsyncCallbackPromisesLab } from '../topics/async-callback-promises/AsyncCallbackPromisesLab'
+import { AsyncCallbackHellLab } from '../topics/async-callback-hell/AsyncCallbackHellLab'
+import { AsyncAwaitLab } from '../topics/async-await/AsyncAwaitLab'
+import { AsyncPromiseAfterCatchLab } from '../topics/async-promise-after-catch/AsyncPromiseAfterCatchLab'
+import { AsyncGeneratorsLab } from '../topics/async-generators/AsyncGeneratorsLab'
+import { AsyncInfiniteGeneratorsLab } from '../topics/async-infinite-generators/AsyncInfiniteGeneratorsLab'
 import { useDevToolsDocked } from '../hooks/useDevToolsDocked'
 import { LAB_DOCK_ID, useLayoutStore } from '../store/layout'
 import styles from './TopicPage.module.css'
@@ -118,6 +142,32 @@ function TopicLab({ topicId }: { topicId: string; topic: TopicDetail }) {
     return <PatternsChainStrategyDecoratorLab />
   if (topicId === '161-patterns-mediator-composite-memento')
     return <PatternsMediatorCompositeMementoLab />
+  if (topicId === '162-patterns-dependency-injection')
+    return <PatternsDependencyInjectionLab />
+  if (topicId === '163-patterns-template-flyweight-bridge')
+    return <PatternsTemplateFlyweightBridgeLab />
+  if (topicId === '168-layout-scss-postcss') return <LayoutScssPostcssLab />
+  if (topicId === '169-layout-flexbox') return <LayoutFlexboxLab />
+  if (topicId === '170-layout-animation') return <LayoutAnimationLab />
+  if (topicId === '172-layout-css-modules-css-in-js') return <LayoutCssModulesCssInJsLab />
+  if (topicId === '173-layout-grid') return <LayoutGridLab />
+  if (topicId === '171-layout-stacking-context') return <LayoutStackingContextLab />
+  if (topicId === '174-layout-browserslist') return <LayoutBrowserslistLab />
+  if (topicId === '175-layout-tools-by-browsers') return <LayoutToolsByBrowsersLab />
+  if (topicId === '176-layout-design-system') return <LayoutDesignSystemLab />
+  if (topicId === '177-layout-a11y') return <LayoutA11yLab />
+  if (topicId === '178-layout-microdata') return <LayoutMicrodataLab />
+  if (topicId === '185-react-virtual-dom') return <ReactVirtualDomLab />
+  if (topicId === '213-async-js-single-thread') return <AsyncJsSingleThreadLab />
+  if (topicId === '214-async-xhr-fetch') return <AsyncXhrFetchLab />
+  if (topicId === '215-async-event-loop') return <AsyncEventLoopLab />
+  if (topicId === '216-async-tasks-microtasks') return <AsyncTasksMicrotasksLab />
+  if (topicId === '217-async-callback-promises') return <AsyncCallbackPromisesLab />
+  if (topicId === '218-async-callback-hell') return <AsyncCallbackHellLab />
+  if (topicId === '219-async-await') return <AsyncAwaitLab />
+  if (topicId === '220-async-promise-after-catch') return <AsyncPromiseAfterCatchLab />
+  if (topicId === '221-async-generators') return <AsyncGeneratorsLab />
+  if (topicId === '222-async-infinite-generators') return <AsyncInfiniteGeneratorsLab />
   if (topicId === '259-software-incremental-iterative-spiral')
     return <IncrementalIterativeSpiralLab />
   if (topicId === '31-git-switch') return <GitSwitchLab />

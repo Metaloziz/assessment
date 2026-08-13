@@ -1,0 +1,50 @@
+.nodeWarn {
+  border-color: color-mix(in srgb, var(--warn) 55%, var(--border));
+  color: var(--warn);
+}
+
+.nodeSkipped {
+  opacity: 0.4;
+}
+
+.layout {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  min-height: 8.2rem;
+}
+
+.rootRow {
+  display: flex;
+  justify-content: center;
+}
+
+.slots {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.45rem;
+}
+
+.consumer {
+  text-align: center;
+}
+
+.plug {
+  text-align: center;
+  min-width: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .consumer,
+  .plug {
+    transition: none;
+  }
+}
+
+.codePane {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+  gap: 0.55rem;
+}

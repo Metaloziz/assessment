@@ -1,0 +1,31 @@
+.nodeWarn {
+  border-color: color-mix(in srgb, var(--warn) 55%, var(--border));
+  color: var(--warn);
+}
+
+.layout {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  min-height: 8rem;
+}
+
+.lanes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.4rem;
+}
+
+.codePane {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-height: 0;
+  flex: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .layout :global(.node) {
+    transition: none;
+  }
+}

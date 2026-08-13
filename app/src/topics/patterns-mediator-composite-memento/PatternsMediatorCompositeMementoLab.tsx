@@ -425,6 +425,41 @@ const PAIN: Record<Pattern, ReactNode> = {
   ),
 }
 
+const CASE_BRIEF: Record<CaseId, ReactNode> = {
+  mesh: (
+    <>
+      Email и Password зовут Submit / Banner напрямую — полный граф связей между коллегами.
+    </>
+  ),
+  hub: (
+    <>
+      Поля шлют <code>change</code> в хаб; Submit читает <code>submitEnabled</code> из снимка, не зная Input.
+    </>
+  ),
+  leaf: (
+    <>
+      Один <code>file.size()</code> — leaf без детей, тот же контракт <code>size()</code>.
+    </>
+  ),
+  tree: (
+    <>
+      <code>folder.size()</code> суммирует детей recurse: <code>src</code> → <code>a.ts</code> +{' '}
+      <code>ui/</code>.
+    </>
+  ),
+  lost: (
+    <>
+      Правка без <code>save()</code> — откатить некуда, стека снимков нет.
+    </>
+  ),
+  undo: (
+    <>
+      <code>save</code> → правка → <code>undo</code>: caretaker держит снимок и зовёт{' '}
+      <code>restore</code>.
+    </>
+  ),
+}
+
 export function PatternsMediatorCompositeMementoLab() {
   const { lines, log, clear } = useLabLog()
   const [pattern, setPattern] = useState<Pattern>('mediator')
@@ -566,24 +601,6 @@ export function PatternsMediatorCompositeMementoLab() {
 
   const problem = (
     <div className={shell.panel}>
-      <p className={shell.pain}>{PAIN[pattern]}</p>
-      <ol className={shell.steps}>
-        <li>Выберите паттерн и кейс — схема ещё не играет.</li>
-        <li>
-          Нажмите <code>Запустить</code> и смотрите, что изменилось на картинке.
-        </li>
-      </ol>
-
-      {pattern === 'mediator' ? (
-        <MediatorViz phase={medPhase} caseId={caseId as MedCase} hubRef={hubRef} />
-      ) : null}
-      {pattern === 'composite' ? (
-        <CompositeViz phase={compPhase} caseId={caseId as CompCase} treeRef={treeRef} />
-      ) : null}
-      {pattern === 'memento' ? (
-        <MementoViz phase={memPhase} caseId={caseId as MemCase} slotRef={slotRef} />
-      ) : null}
-
       <PatternSwitch value={pattern} disabled={busy} onChange={selectPattern} />
 
       <div className={shell.row}>
@@ -610,13 +627,24 @@ export function PatternsMediatorCompositeMementoLab() {
         </LabButton>
       </div>
 
+      <p className={shell.pain}>{PAIN[pattern]}</p>
+      <p className={shell.hint}>{CASE_BRIEF[caseId]}</p>
+
+      {pattern === 'mediator' ? (
+        <MediatorViz phase={medPhase} caseId={caseId as MedCase} hubRef={hubRef} />
+      ) : null}
+      {pattern === 'composite' ? (
+        <CompositeViz phase={compPhase} caseId={caseId as CompCase} treeRef={treeRef} />
+      ) : null}
+      {pattern === 'memento' ? (
+        <MementoViz phase={memPhase} caseId={caseId as MemCase} slotRef={slotRef} />
+      ) : null}
+
       {hint ? (
         <p className={shell.hint}>
           Итог: <code>{hint}</code>
         </p>
-      ) : (
-        <p className={shell.hint}>Выберите паттерн и кейс, затем нажмите «Запустить».</p>
-      )}
+      ) : null}
       <LabLogView lines={lines} />
     </div>
   )

@@ -10,4 +10,6 @@ alwaysApply: true
 
 **Источник истины:** [`LAB_FORMAT.md`](../../LAB_FORMAT.md).
 
-Эталон кода: `project-scripts-hmr-treeshake`. Визуализации (общий стиль): [`skills/assessment-lab-visualizations/SKILL.md`](../../skills/assessment-lab-visualizations/SKILL.md).
+Эталон кода: `project-scripts-hmr-treeshake`.  
+Эталон UX «Решение проблемы»: `patterns-mediator-composite-memento` — кнопки сверху, brief выбранного кейса, без meta-шагов «выберите / нажмите».  
+Визуализации: [`skills/assessment-lab-visualizations/SKILL.md`](../../skills/assessment-lab-visualizations/SKILL.md).

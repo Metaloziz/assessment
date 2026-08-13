@@ -1,312 +1,97 @@
-import { useCallback, useMemo, useRef, useState } from 'react'
-import { Provider, useDispatch, useSelector } from 'react-redux'
-import {
-  configureStore,
-  createAsyncThunk,
-  createSlice,
-  type PayloadAction,
-} from '@reduxjs/toolkit'
+import { useRef, useState, type MutableRefObject, type ReactNode } from 'react'
+import gsap from 'gsap'
 import { JsLabShell } from '../../components/lab/JsLabShell'
 import { LabButton } from '../../components/lab/LabButton'
 import shell from '../../components/lab/JsLabShell.module.css'
-import { InteractiveCodePanel } from '../../components/lab/InteractiveCodePanel'
+import { InteractiveCodePanel, type InteractiveSnippet } from '../../components/lab/InteractiveCodePanel'
 import { LabLogView } from '../../components/lab/LabLogView'
-import { useLabLog, type LabLogKind } from '../../components/lab/useLabLog'
+import { useLabLog } from '../../components/lab/useLabLog'
+import { LabVizPanel, labVizStyles } from '../../components/lab/LabViz'
+import styles from './ReduxSagaThunkLab.module.css'
 
 const TOPIC_ID = '124-redux-saga-thunk'
+const STEP = 0.6
 
-type SearchMode = 'thunk-race' | 'take-latest'
+type Pattern = 'thunk' | 'saga'
+type CaseId = 'race' | 'latest'
+type ReqKey = 'a' | 'ap' | 'app'
+type ReqStatus = 'idle' | 'pending' | 'ok' | 'cancelled' | 'stale'
+type Phase = 'idle' | 'burst' | 'done'
 
-type SearchState = {
-  query: string
-  result: string | null
-  status: 'idle' | 'loading' | 'succeeded' | 'failed'
-  mode: SearchMode
+const PATTERNS: Array<{ id: Pattern; label: string }> = [
+  { id: 'thunk', label: 'thunk' },
+  { id: 'saga', label: 'saga' },
+]
+
+const CASES: Array<{ id: CaseId; label: string }> = [
+  { id: 'race', label: 'Гонка' },
+  { id: 'latest', label: 'takeLatest' },
+]
+
+const REQS: ReqKey[] = ['a', 'ap', 'app']
+
+const PAIN: Record<Pattern, ReactNode> = {
+  thunk: (
+    <>
+      Автокомплит на <code>createAsyncThunk</code>: три запроса <code>a</code> → <code>ap</code> →{' '}
+      <code>app</code>. Без отмены медленный ответ перезапишет UI.
+    </>
+  ),
+  saga: (
+    <>
+      Та же гонка ввода, но через эффекты saga: <code>takeEvery</code> оставляет все задачи,{' '}
+      <code>takeLatest</code> гасит предыдущие.
+    </>
+  ),
 }
 
-function sleep(ms: number, signal?: AbortSignal) {
-  return new Promise<void>((resolve, reject) => {
-    if (signal?.aborted) {
-      reject(new DOMException('Aborted', 'AbortError'))
-      return
-    }
-    const id = window.setTimeout(() => resolve(), ms)
-    signal?.addEventListener(
-      'abort',
-      () => {
-        window.clearTimeout(id)
-        reject(new DOMException('Aborted', 'AbortError'))
-      },
-      { once: true },
-    )
-  })
+const CASE_BRIEF: Record<CaseId, ReactNode> = {
+  race: (
+    <>
+      Все три запроса добегают; самый медленный (<code>a</code>) часто затирает свежий UI после{' '}
+      <code>app</code>.
+    </>
+  ),
+  latest: (
+    <>
+      Новый <code>SEARCH</code> отменяет предыдущий: в UI остаётся только результат для{' '}
+      <code>app</code>.
+    </>
+  ),
 }
 
-/** Чем короче запрос — тем дольше «сеть» (имитация гонки). */
-function latencyFor(query: string) {
-  return Math.max(200, 1000 - query.length * 250)
+const CODE_INTRO: Record<Pattern, string> = {
+  thunk: '`createAsyncThunk` + `AbortSignal`: отмена как у `takeLatest`, но вручную через `promise.abort()`.',
+  saga: '`takeLatest` / `takeEvery` + `call` / `put`: middleware сам отменяет предыдущую задачу.',
 }
 
-export const fetchSearch = createAsyncThunk(
-  'search/fetch',
-  async (query: string, { signal }) => {
-    await sleep(latencyFor(query), signal)
-    return `результаты для «${query}»`
-  },
-)
+const CODE_SNIPPETS: Record<Pattern, InteractiveSnippet[]> = {
+  thunk: [
+    {
+      id: 'search-slice',
+      label: 'src/search/searchSlice.ts',
+      note: '`signal` из thunkAPI прокидывают в `fetch` — иначе `.abort()` не остановит сеть.',
+      executable: false,
+      languageLabel: 'ts',
+      code: `import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 
-const searchSlice = createSlice({
-  name: 'search',
-  initialState: {
-    query: '',
-    result: null,
-    status: 'idle',
-    mode: 'thunk-race',
-  } satisfies SearchState as SearchState,
-  reducers: {
-    setMode(state, action: PayloadAction<SearchMode>) {
-      state.mode = action.payload
-    },
-    setQuery(state, action: PayloadAction<string>) {
-      state.query = action.payload
-    },
-    resetResult(state) {
-      state.result = null
-      state.status = 'idle'
-    },
-  },
-  extraReducers: (builder) => {
-    builder
-      .addCase(fetchSearch.pending, (state, action) => {
-        state.status = 'loading'
-        state.query = action.meta.arg
-      })
-      .addCase(fetchSearch.fulfilled, (state, action) => {
-        state.status = 'succeeded'
-        state.result = action.payload
-      })
-      .addCase(fetchSearch.rejected, (state, action) => {
-        if (action.meta.aborted) return
-        state.status = 'failed'
-        state.result = null
-      })
-  },
-})
-
-const { setMode, setQuery, resetResult } = searchSlice.actions
-
-function createLabStore() {
-  return configureStore({
-    reducer: { search: searchSlice.reducer },
-  })
-}
-
-type LabStore = ReturnType<typeof createLabStore>
-type RootState = ReturnType<LabStore['getState']>
-type AppDispatch = LabStore['dispatch']
-
-function useAppDispatch() {
-  return useDispatch<AppDispatch>()
-}
-
-function useAppSelector<T>(sel: (s: RootState) => T) {
-  return useSelector(sel)
-}
-
-function SearchProblem({
-  log,
-  clear,
-  lines,
-}: {
-  log: (kind: LabLogKind, text: string) => void
-  clear: () => void
-  lines: { kind: LabLogKind; text: string }[]
-}) {
-  const dispatch = useAppDispatch()
-  const { query, result, status, mode } = useAppSelector((s) => s.search)
-  const [busy, setBusy] = useState(false)
-  const inFlightRef = useRef<{ abort: () => void } | null>(null)
-  const seqRef = useRef(0)
-
-  const runSearch = useCallback(
-    async (q: string, opts?: { cancelPrevious?: boolean }) => {
-      const id = ++seqRef.current
-      if (opts?.cancelPrevious) {
-        inFlightRef.current?.abort()
-        log('ok', `#${id} takeLatest: отменили предыдущий, старт «${q}»`)
-      } else {
-        log('info', `#${id} thunk: старт «${q}» без отмены (~${latencyFor(q)}ms)`)
-      }
-
-      const promise = dispatch(fetchSearch(q))
-      if (opts?.cancelPrevious) {
-        inFlightRef.current = promise
-      }
-
-      try {
-        const action = await promise
-        if (fetchSearch.fulfilled.match(action)) {
-          log(
-            opts?.cancelPrevious ? 'ok' : 'err',
-            `#${id} fulfilled → ${action.payload}${
-              opts?.cancelPrevious ? '' : ' (может перезаписать свежий UI)'
-            }`,
-          )
-        } else if (action.meta.aborted) {
-          log('ok', `#${id} aborted «${q}»`)
-        }
-      } catch {
-        log('err', `#${id} ошибка`)
-      }
-    },
-    [dispatch, log],
-  )
-
-  const burst = async () => {
-    setBusy(true)
-    const queries = ['a', 'ap', 'app']
-    const cancelPrevious = mode === 'take-latest'
-    if (cancelPrevious) {
-      log('ok', 'режим saga/`takeLatest`: каждый новый SEARCH гасит предыдущий')
-      for (const q of queries) {
-        void runSearch(q, { cancelPrevious: true })
-        await sleep(70)
-      }
-      await sleep(1100)
-    } else {
-      log('ok', 'режим thunk без отмены: все три добегут')
-      await Promise.all(queries.map((q) => runSearch(q, { cancelPrevious: false })))
-      log('err', 'итог: медленный «a» часто перезаписывает UI после «app»')
-    }
-    setBusy(false)
-  }
-
-  return (
-    <div className={shell.panel}>
-      <p className={shell.pain}>
-        Автокомплит на <code>createAsyncThunk</code>: пользователь печатает{' '}
-        <code>a</code> → <code>ap</code> → <code>app</code>. Без отмены ответы приходят вразнобой.
-        Модель <code>takeLatest</code> (как в <code>redux-saga</code>) вызывает{' '}
-        <code>promise.abort()</code> у предыдущего thunk.
-      </p>
-      <ol className={shell.steps}>
-        <li>
-          Режим <code>thunk-race</code>: три запроса живут параллельно.
-        </li>
-        <li>
-          Режим <code>take-latest</code>: новый <code>dispatch</code> отменяет старый через{' '}
-          <code>AbortSignal</code>.
-        </li>
-        <li>
-          Для CRUD хватит одного <code>createAsyncThunk</code> без гонок ввода.
-        </li>
-      </ol>
-
-      <div className={shell.row}>
-        <LabButton
-          variant={mode === 'thunk-race' ? 'primary' : 'ghost'}
-          size="sm"
-          active={mode === 'thunk-race'}
-          disabled={busy}
-          onClick={() => dispatch(setMode('thunk-race'))}
-        >
-          thunk-race
-        </LabButton>
-        <LabButton
-          variant={mode === 'take-latest' ? 'primary' : 'ghost'}
-          size="sm"
-          active={mode === 'take-latest'}
-          disabled={busy}
-          onClick={() => dispatch(setMode('take-latest'))}
-        >
-          takeLatest
-        </LabButton>
-      </div>
-
-      <div className={shell.row}>
-        <label className={shell.field}>
-          <span>запрос</span>
-          <input
-            value={query}
-            disabled={busy}
-            onChange={(e) => dispatch(setQuery(e.target.value))}
-            placeholder="app"
-          />
-        </label>
-        <LabButton
-          variant="secondary"
-          disabled={busy || !query.trim()}
-          onClick={() =>
-            void runSearch(query.trim(), { cancelPrevious: mode === 'take-latest' })
-          }
-        >
-          dispatch(fetchSearch)
-        </LabButton>
-        <LabButton variant="primary" disabled={busy} onClick={() => void burst()}>
-          Burst a → ap → app
-        </LabButton>
-        <LabButton
-          variant="secondary"
-          onClick={() => {
-            inFlightRef.current?.abort()
-            dispatch(resetResult())
-            clear()
-          }}
-        >
-          Очистить
-        </LabButton>
-      </div>
-
-      <p className={shell.hint}>
-        status: <code>{status}</code>, UI result: <code>{result ?? '—'}</code>, mode:{' '}
-        <code>{mode}</code>
-      </p>
-
-      <LabLogView lines={lines} />
-    </div>
-  )
-}
-
-function SearchLabInner() {
-  const { lines, log, clear } = useLabLog()
-  return <SearchProblem log={log} clear={clear} lines={lines} />
-}
-
-export function ReduxSagaThunkLab() {
-  const store = useMemo(() => createLabStore(), [])
-
-  const code = (
-    <InteractiveCodePanel
-      topicId={TOPIC_ID}
-      languageLabel="typescript"
-      intro="Эталоны React + TypeScript + RTK. Живой store — во вкладке «Решение проблемы». `executable: false` — сниппеты не гоняются в `new Function`."
-      snippets={[
-        {
-          id: 'async-thunk',
-          label: 'createAsyncThunk',
-          executable: false,
-          note: '`signal` из thunkAPI — тот же `AbortSignal`, что у `promise.abort()` после `dispatch`.',
-          code: `import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-
+// ═══════════════════════════════════════════
+// THUNK ← async вне reducer
+// ═══════════════════════════════════════════
 export const fetchSearch = createAsyncThunk(
   'search/fetch',
   async (query: string, { signal }) => {
     const res = await fetch(\`/api/search?q=\${encodeURIComponent(query)}\`, {
-      signal,
+      signal, // ← AbortSignal от promise.abort()
     });
     if (!res.ok) throw new Error('search failed');
     return (await res.json()) as { items: string[] };
   },
 );
 
-type SearchState = {
-  result: string[] | null;
-  status: 'idle' | 'loading' | 'succeeded' | 'failed';
-};
-
 const searchSlice = createSlice({
   name: 'search',
-  initialState: { result: null, status: 'idle' } satisfies SearchState,
+  initialState: { result: null as string[] | null, status: 'idle' as const },
   reducers: {},
   extraReducers: (builder) => {
     builder
@@ -318,21 +103,22 @@ const searchSlice = createSlice({
         state.result = action.payload.items;
       })
       .addCase(fetchSearch.rejected, (state, action) => {
-        if (action.meta.aborted) return; // takeLatest: тихий cancel
+        if (action.meta.aborted) return; // ← тихий cancel
         state.status = 'failed';
       });
   },
 });
 
 export default searchSlice.reducer;`,
-        },
-        {
-          id: 'take-latest',
-          label: 'takeLatest через abort',
-          executable: false,
-          note: 'У saga это `takeLatest`. В RTK — храните promise от `dispatch` и зовите `.abort()` перед новым поиском.',
-          code: `import { useRef } from 'react';
-import { useAppDispatch } from './hooks';
+    },
+    {
+      id: 'search-box',
+      label: 'src/search/SearchBox.tsx',
+      note: 'Модель `takeLatest` в thunk: перед новым `dispatch` зовут `.abort()` у прошлого promise.',
+      executable: false,
+      languageLabel: 'tsx',
+      code: `import { useRef } from 'react';
+import { useAppDispatch } from '../hooks';
 import { fetchSearch } from './searchSlice';
 
 export function SearchBox() {
@@ -340,99 +126,419 @@ export function SearchBox() {
   const inFlight = useRef<ReturnType<typeof dispatch> | null>(null);
 
   const onChange = (query: string) => {
-    // модель redux-saga takeLatest
-    inFlight.current?.abort?.();
+    inFlight.current?.abort?.(); // ← отмена предыдущего
     const promise = dispatch(fetchSearch(query));
     inFlight.current = promise;
   };
 
-  return (
-    <input
-      onChange={(e) => onChange(e.target.value)}
-      placeholder="Поиск…"
-    />
-  );
+  return <input onChange={(e) => onChange(e.target.value)} placeholder="Поиск…" />;
 }`,
-        },
-        {
-          id: 'provider',
-          label: 'Store + Provider',
-          executable: false,
-          note: '`configureStore` уже кладёт thunk middleware. Saga подключают отдельно через `getDefaultMiddleware().concat(sagaMiddleware)`.',
-          code: `import { configureStore } from '@reduxjs/toolkit';
-import { Provider, useDispatch, useSelector } from 'react-redux';
-import searchReducer from './searchSlice';
+    },
+  ],
+  saga: [
+    {
+      id: 'search-saga',
+      label: 'src/search/searchSaga.ts',
+      note: '`takeLatest` сам отменяет предыдущий worker; `takeEvery` — нет.',
+      executable: false,
+      languageLabel: 'ts',
+      code: `import { call, put, takeLatest, delay } from 'redux-saga/effects';
 
-export const store = configureStore({
-  reducer: { search: searchReducer },
-});
-
-export type RootState = ReturnType<typeof store.getState>;
-export type AppDispatch = typeof store.dispatch;
-
-export const useAppDispatch = useDispatch.withTypes<AppDispatch>();
-export const useAppSelector = useSelector.withTypes<RootState>();
-
-export function App() {
-  return (
-    <Provider store={store}>
-      <SearchBox />
-    </Provider>
-  );
-}`,
-        },
-        {
-          id: 'when',
-          label: 'thunk vs saga',
-          executable: false,
-          note: 'CRUD → `createAsyncThunk`. Отмена, debounce, multi-step, polling → saga (`takeLatest`, `race`, `fork`).',
-          code: `type Case =
-  | 'list users'
-  | 'save form'
-  | 'autocomplete'
-  | 'checkout wizard'
-  | 'polling'
-  | 'race timeout';
-
-function choose(c: Case): 'thunk' | 'saga' {
-  switch (c) {
-    case 'list users':
-    case 'save form':
-      return 'thunk';
-    case 'autocomplete':
-    case 'checkout wizard':
-    case 'polling':
-    case 'race timeout':
-      return 'saga';
+function* searchWorker(action: { type: string; payload: string }) {
+  try {
+    yield delay(300); // ← debounce
+    const data: { items: string[] } = yield call(searchApi, action.payload);
+    yield put({ type: 'search/loaded', payload: data.items }); // ← put = dispatch
+  } catch {
+    yield put({ type: 'search/failed' });
   }
 }
 
-const cases: Case[] = [
-  'list users',
-  'save form',
-  'autocomplete',
-  'checkout wizard',
-  'polling',
-  'race timeout',
-];
+// ═══════════════════════════════════════════
+// SAGA ← takeLatest гасит прошлый SEARCH
+// ═══════════════════════════════════════════
+export function* watchSearch() {
+  yield takeLatest('SEARCH', searchWorker); // ← не takeEvery
+}`,
+    },
+    {
+      id: 'store-saga',
+      label: 'src/store.ts',
+      note: 'Saga подключают отдельно; thunk middleware в RTK уже есть по умолчанию.',
+      executable: false,
+      languageLabel: 'ts',
+      code: `import { configureStore } from '@reduxjs/toolkit';
+import createSagaMiddleware from 'redux-saga';
+import searchReducer from './search/searchSlice';
+import { watchSearch } from './search/searchSaga';
 
-cases.forEach((c) => {
-  console.log(c, '→', choose(c));
-});`,
+const sagaMiddleware = createSagaMiddleware();
+
+export const store = configureStore({
+  reducer: { search: searchReducer },
+  middleware: (getDefault) =>
+    getDefault({ thunk: false }).concat(sagaMiddleware), // ← saga вместо thunk
+});
+
+sagaMiddleware.run(watchSearch);`,
+    },
+  ],
+}
+
+function reducedMotion() {
+  return typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+}
+
+function nodeCls(...mods: Array<string | false | undefined>) {
+  return [labVizStyles.node, ...mods.filter(Boolean)].join(' ')
+}
+
+function playTimeline(
+  tlRef: MutableRefObject<gsap.core.Timeline | null>,
+  steps: Array<() => void>,
+  motion: ((tl: gsap.core.Timeline) => void) | null,
+  onDone: () => void,
+) {
+  tlRef.current?.kill()
+  if (reducedMotion()) {
+    for (const step of steps) step()
+    onDone()
+    return
+  }
+  const tl = gsap.timeline({
+    defaults: { duration: 0.55, ease: 'power2.inOut' },
+    onComplete: onDone,
+  })
+  tlRef.current = tl
+  steps.forEach((step, i) => {
+    tl.call(step, undefined, i * STEP)
+  })
+  motion?.(tl)
+}
+
+function reqSub(status: ReqStatus, key: ReqKey): string {
+  switch (status) {
+    case 'pending':
+      return 'in-flight…'
+    case 'ok':
+      return `ok «${key}»`
+    case 'cancelled':
+      return 'aborted'
+    case 'stale':
+      return 'stale overwrite'
+    default:
+      return 'idle'
+  }
+}
+
+function PatternSwitch({
+  value,
+  disabled,
+  onChange,
+}: {
+  value: Pattern
+  disabled?: boolean
+  onChange: (id: Pattern) => void
+}) {
+  return (
+    <div className={shell.row}>
+      {PATTERNS.map((p) => (
+        <LabButton
+          key={p.id}
+          variant="ghost"
+          size="sm"
+          active={value === p.id}
+          disabled={disabled}
+          onClick={() => onChange(p.id)}
+        >
+          {p.label}
+        </LabButton>
+      ))}
+    </div>
+  )
+}
+
+function RaceViz({
+  reqs,
+  uiResult,
+  phase,
+  caseId,
+  pattern,
+  resultRef,
+}: {
+  reqs: Record<ReqKey, ReqStatus>
+  uiResult: string | null
+  phase: Phase
+  caseId: CaseId
+  pattern: Pattern
+  resultRef: MutableRefObject<HTMLDivElement | null>
+}) {
+  const meta =
+    pattern === 'saga'
+      ? caseId === 'latest'
+        ? 'takeLatest'
+        : 'takeEvery'
+      : caseId === 'latest'
+        ? 'abort + signal'
+        : 'без отмены'
+
+  return (
+    <LabVizPanel title="Автокомплит · in-flight" meta={meta}>
+      <div className={styles.layout}>
+        <div
+          className={nodeCls(
+            phase !== 'idle' && labVizStyles.nodeActive,
+            phase === 'done' && labVizStyles.nodeOk,
+          )}
+        >
+          <span className={labVizStyles.nodeLabel}>Input</span>
+          <span className={labVizStyles.nodeSub}>
+            {phase === 'idle' ? 'печатает…' : 'a → ap → app'}
+          </span>
+        </div>
+
+        <div className={styles.lanes} aria-label="Запросы в полёте">
+          {REQS.map((key) => {
+            const st = reqs[key]
+            return (
+              <div
+                key={key}
+                className={nodeCls(
+                  st === 'pending' && labVizStyles.nodeActive,
+                  st === 'ok' && labVizStyles.nodeOk,
+                  (st === 'cancelled' || st === 'stale') && labVizStyles.nodeErr,
+                  st === 'stale' && styles.nodeWarn,
+                )}
+              >
+                <span className={labVizStyles.nodeLabel}>req «{key}»</span>
+                <span className={labVizStyles.nodeSub}>{reqSub(st, key)}</span>
+              </div>
+            )
+          })}
+        </div>
+
+        <div
+          ref={resultRef}
+          className={nodeCls(
+            phase === 'done' && (caseId === 'latest' ? labVizStyles.nodeOk : styles.nodeWarn),
+            phase === 'burst' && uiResult != null && labVizStyles.nodeActive,
+          )}
+        >
+          <span className={labVizStyles.nodeLabel}>UI result</span>
+          <span className={labVizStyles.nodeSub}>{uiResult ?? '—'}</span>
+        </div>
+      </div>
+    </LabVizPanel>
+  )
+}
+
+const idleReqs = (): Record<ReqKey, ReqStatus> => ({
+  a: 'idle',
+  ap: 'idle',
+  app: 'idle',
+})
+
+export function ReduxSagaThunkLab() {
+  const { lines, log, clear } = useLabLog()
+  const [pattern, setPattern] = useState<Pattern>('thunk')
+  const [caseId, setCaseId] = useState<CaseId>('race')
+  const [phase, setPhase] = useState<Phase>('idle')
+  const [reqs, setReqs] = useState<Record<ReqKey, ReqStatus>>(idleReqs)
+  const [uiResult, setUiResult] = useState<string | null>(null)
+  const [hint, setHint] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
+
+  const tlRef = useRef<gsap.core.Timeline | null>(null)
+  const resultRef = useRef<HTMLDivElement | null>(null)
+
+  const resetViz = () => {
+    setPhase('idle')
+    setReqs(idleReqs())
+    setUiResult(null)
+    setHint(null)
+    if (resultRef.current) gsap.set(resultRef.current, { clearProps: 'transform,opacity' })
+  }
+
+  const selectPattern = (next: Pattern) => {
+    tlRef.current?.kill()
+    setBusy(false)
+    setPattern(next)
+    clear()
+    resetViz()
+  }
+
+  const selectCase = (next: CaseId) => {
+    tlRef.current?.kill()
+    setBusy(false)
+    setCaseId(next)
+    clear()
+    resetViz()
+  }
+
+  const run = () => {
+    clear()
+    resetViz()
+    setBusy(true)
+    setPhase('burst')
+
+    const latest = caseId === 'latest'
+    const engine = pattern === 'saga' ? 'saga' : 'thunk'
+
+    if (latest) {
+      playTimeline(
+        tlRef,
+        [
+          () => {
+            setReqs({ a: 'pending', ap: 'idle', app: 'idle' })
+            log('info', `${engine}: SEARCH «a»`)
+          },
+          () => {
+            setReqs({ a: 'cancelled', ap: 'pending', app: 'idle' })
+            log('ok', `${engine}: cancel «a», SEARCH «ap»`)
+          },
+          () => {
+            setReqs({ a: 'cancelled', ap: 'cancelled', app: 'pending' })
+            log('ok', `${engine}: cancel «ap», SEARCH «app»`)
+          },
+          () => {
+            setReqs({ a: 'cancelled', ap: 'cancelled', app: 'ok' })
+            setUiResult('результаты для «app»')
+            setPhase('done')
+            log('ok', 'UI ← «app» · устаревшие aborted')
+            setHint(
+              pattern === 'saga'
+                ? 'takeLatest оставил только последний worker'
+                : 'promise.abort() + signal — модель takeLatest в thunk',
+            )
+          },
+        ],
+        (tl) => {
+          if (!resultRef.current) return
+          gsap.set(resultRef.current, { scale: 0.94, opacity: 0.55 })
+          tl.to(resultRef.current, { scale: 1, opacity: 1 }, STEP * 3)
         },
-      ]}
-    />
+        () => setBusy(false),
+      )
+      return
+    }
+
+    playTimeline(
+      tlRef,
+      [
+        () => {
+          setReqs({ a: 'pending', ap: 'idle', app: 'idle' })
+          log('info', `${engine}: старт «a» (медленный)`)
+        },
+        () => {
+          setReqs({ a: 'pending', ap: 'pending', app: 'idle' })
+          log('info', `${engine}: старт «ap»`)
+        },
+        () => {
+          setReqs({ a: 'pending', ap: 'pending', app: 'pending' })
+          log('info', `${engine}: старт «app» (быстрый)`)
+        },
+        () => {
+          setReqs({ a: 'pending', ap: 'pending', app: 'ok' })
+          setUiResult('результаты для «app»')
+        },
+        () => {
+          setReqs({ a: 'pending', ap: 'ok', app: 'ok' })
+          setUiResult('результаты для «ap»')
+        },
+        () => {
+          setReqs({ a: 'stale', ap: 'ok', app: 'ok' })
+          setUiResult('результаты для «a»')
+          setPhase('done')
+          log('err', 'медленный «a» перезаписал UI после «app»')
+          setHint(
+            pattern === 'saga'
+              ? 'takeEvery как гонка без отмены — stale response в UI'
+              : 'без abort все fulfilled добегают и могут затереть UI',
+          )
+        },
+      ],
+      (tl) => {
+        if (!resultRef.current) return
+        gsap.set(resultRef.current, { scale: 0.94, opacity: 0.55 })
+        tl.to(resultRef.current, { scale: 1, opacity: 1 }, STEP * 3)
+      },
+      () => setBusy(false),
+    )
+  }
+
+  const reset = () => {
+    tlRef.current?.kill()
+    setBusy(false)
+    clear()
+    resetViz()
+  }
+
+  const problem = (
+    <div className={shell.panel}>
+      <PatternSwitch value={pattern} disabled={busy} onChange={selectPattern} />
+
+      <div className={shell.row}>
+        {CASES.map((c) => (
+          <LabButton
+            key={c.id}
+            variant="ghost"
+            size="sm"
+            active={caseId === c.id}
+            disabled={busy}
+            onClick={() => selectCase(c.id)}
+          >
+            {c.label}
+          </LabButton>
+        ))}
+      </div>
+
+      <div className={shell.row}>
+        <LabButton variant="primary" disabled={busy} onClick={run}>
+          Запустить
+        </LabButton>
+        <LabButton variant="secondary" disabled={busy} onClick={reset}>
+          Сброс
+        </LabButton>
+      </div>
+
+      <p className={shell.pain}>{PAIN[pattern]}</p>
+      <p className={shell.hint}>{CASE_BRIEF[caseId]}</p>
+
+      <RaceViz
+        reqs={reqs}
+        uiResult={uiResult}
+        phase={phase}
+        caseId={caseId}
+        pattern={pattern}
+        resultRef={resultRef}
+      />
+
+      {hint ? (
+        <p className={shell.hint}>
+          Итог: <code>{hint}</code>
+        </p>
+      ) : null}
+      <LabLogView lines={lines} />
+    </div>
+  )
+
+  const code = (
+    <div className={styles.codePane}>
+      <PatternSwitch value={pattern} onChange={selectPattern} />
+      <InteractiveCodePanel
+        key={pattern}
+        topicId={TOPIC_ID}
+        intro={CODE_INTRO[pattern]}
+        snippets={CODE_SNIPPETS[pattern]}
+      />
+    </div>
   )
 
   return (
     <JsLabShell
-      title="Гонка поиска на createAsyncThunk"
-      lead="React + TypeScript + RTK: async уводим из reducer. Thunk проще; отмена как у saga — через AbortSignal / takeLatest."
-      problem={
-        <Provider store={store}>
-          <SearchLabInner />
-        </Provider>
-      }
+      title="Гонка поиска: thunk vs saga"
+      lead="Async вне reducer: thunk проще; saga даёт takeLatest / race из коробки. Контраст — устаревший ответ в UI."
+      problem={problem}
       code={code}
     />
   )

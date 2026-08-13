@@ -1,0 +1,72 @@
+.nodeWarn {
+  border-color: color-mix(in srgb, var(--warn) 55%, var(--border));
+  color: var(--warn);
+}
+
+/* Template: vertical pipeline of steps */
+.pipeLayout {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-height: 7.2rem;
+}
+
+.pipeMid {
+  align-self: stretch;
+}
+
+/* Flyweight: shared pool + extrinsic contexts */
+.flyLayout {
+  display: grid;
+  grid-template-columns: minmax(6rem, 8rem) 1fr;
+  gap: 0.55rem;
+  align-items: center;
+  min-height: 6.4rem;
+}
+
+.pool {
+  text-align: center;
+}
+
+.flyCtx {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+/* Bridge: abstraction → implementation */
+.brLayout {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 0.45rem;
+  align-items: center;
+  min-height: 6.4rem;
+}
+
+.brArrow {
+  color: var(--muted);
+  font-size: var(--text-sm);
+  user-select: none;
+}
+
+.remoteCard,
+.deviceCard {
+  min-width: 0;
+  text-align: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pipeMid,
+  .pool,
+  .deviceCard {
+    transition: none;
+  }
+}
+
+.codePane {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+  gap: 0.55rem;
+}

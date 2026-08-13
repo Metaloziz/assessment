@@ -1,0 +1,198 @@
+.stage {
+  position: relative;
+  min-height: 11.5rem;
+  margin: var(--space-1) 0;
+}
+
+.scene {
+  position: relative;
+  height: 10.5rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--stage-bg);
+  overflow: hidden;
+  opacity: 0.55;
+  transition:
+    opacity 0.4s ease,
+    border-color 0.4s ease,
+    box-shadow 0.4s ease;
+}
+
+.sceneOn {
+  opacity: 1;
+}
+
+.sceneOk {
+  border-color: color-mix(in srgb, var(--ok) 45%, var(--border));
+}
+
+.sceneWarn {
+  border-color: color-mix(in srgb, var(--warn) 55%, var(--border));
+}
+
+.layer {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 0.15rem;
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  box-sizing: border-box;
+  transition:
+    border-color 0.4s ease,
+    box-shadow 0.4s ease,
+    transform 0.4s ease,
+    opacity 0.4s ease;
+}
+
+.layerLabel {
+  font-size: var(--lab-font-ui);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-heading);
+  line-height: 1.2;
+}
+
+.layerMeta {
+  font-size: var(--lab-font-meta);
+  color: var(--text-muted);
+  font-family: var(--font-mono, ui-monospace, monospace);
+  line-height: 1.25;
+}
+
+.layerDim {
+  opacity: 0.45;
+}
+
+.layerActive {
+  border-color: var(--accent-bright);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 40%, transparent);
+  opacity: 1;
+}
+
+.layerWin {
+  border-color: color-mix(in srgb, var(--ok) 55%, var(--border));
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--ok) 35%, transparent);
+}
+
+.layerLose {
+  border-color: color-mix(in srgb, var(--warn) 50%, var(--border));
+  opacity: 0.7;
+}
+
+/* --- siblings --- */
+.sibBase {
+  left: 8%;
+  top: 18%;
+  width: 52%;
+  height: 58%;
+  background: color-mix(in srgb, var(--accent) 22%, var(--bg-elevated));
+  z-index: 1;
+}
+
+.sibTop {
+  left: 38%;
+  top: 32%;
+  width: 48%;
+  height: 52%;
+  background: color-mix(in srgb, var(--ok) 28%, var(--bg-elevated));
+  z-index: 2;
+}
+
+/* --- trap: card SC vs overlay --- */
+.trapCard {
+  left: 6%;
+  top: 14%;
+  width: 58%;
+  height: 70%;
+  background: color-mix(in srgb, var(--accent) 18%, var(--bg-elevated));
+  z-index: 1;
+  /* stacking context */
+  isolation: isolate;
+}
+
+.trapBadge {
+  left: 12%;
+  top: 12%;
+  width: 42%;
+  height: 36%;
+  background: color-mix(in srgb, var(--accent-bright) 35%, var(--bg-elevated));
+  z-index: 9999;
+}
+
+.trapOverlay {
+  left: 32%;
+  top: 28%;
+  width: 58%;
+  height: 58%;
+  background: color-mix(in srgb, var(--warn) 32%, var(--bg-elevated));
+  z-index: 10;
+}
+
+/* --- opacity creates SC --- */
+.opParent {
+  left: 8%;
+  top: 12%;
+  width: 55%;
+  height: 72%;
+  background: color-mix(in srgb, var(--accent) 16%, var(--bg-elevated));
+  z-index: auto;
+  opacity: 0.92;
+}
+
+.opChild {
+  left: 10%;
+  top: 14%;
+  width: 48%;
+  height: 40%;
+  background: color-mix(in srgb, var(--accent-bright) 30%, var(--bg-elevated));
+  z-index: 50;
+}
+
+.opSibling {
+  left: 40%;
+  top: 30%;
+  width: 50%;
+  height: 55%;
+  background: color-mix(in srgb, var(--ok) 26%, var(--bg-elevated));
+  z-index: 1;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+  font-size: var(--lab-font-meta);
+  color: var(--text-muted);
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.legendDot {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
+}
+
+.legendDotOk {
+  background: var(--ok);
+}
+
+.legendDotWarn {
+  background: var(--warn);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scene,
+  .layer {
+    transition: none;
+  }
+}

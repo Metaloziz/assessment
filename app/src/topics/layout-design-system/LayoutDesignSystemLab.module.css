@@ -1,0 +1,144 @@
+.stage {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-2);
+  min-height: 8.5rem;
+}
+
+.screen {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--node-idle-bg);
+  opacity: 0.55;
+  transition:
+    border-color 0.4s ease,
+    opacity 0.4s ease,
+    box-shadow 0.4s ease;
+}
+
+.screenOn {
+  opacity: 1;
+}
+
+.screenOk {
+  border-color: color-mix(in srgb, var(--ok) 45%, var(--border));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--ok) 20%, transparent);
+}
+
+.screenWarn {
+  border-color: color-mix(in srgb, var(--warn) 55%, var(--border));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--warn) 18%, transparent);
+}
+
+.screenHead {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-height: 2.4rem;
+}
+
+.screenTitle {
+  font-size: var(--lab-font-ui);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-heading);
+}
+
+.screenMeta {
+  font-size: var(--lab-font-meta);
+  color: var(--text-muted);
+  line-height: 1.3;
+}
+
+.screenBody {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.6rem;
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--stage-bg);
+}
+
+.btnGhostSlot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 1.85rem;
+  padding: 0.28rem 0.7rem;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-lg);
+  color: var(--text-faint);
+  font-size: var(--lab-font-meta);
+  font-weight: var(--font-weight-medium);
+  user-select: none;
+}
+
+.demoLabBtn {
+  pointer-events: none;
+}
+
+/* Anti-examples for the viz only — intentional look drift */
+.driftLight,
+.driftNavy,
+.driftPill {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  cursor: default;
+  font-family: var(--font-sans);
+  line-height: 1.3;
+}
+
+.driftLight {
+  min-height: 1.7rem;
+  padding: 0.2rem 0.55rem;
+  border: 1px solid color-mix(in srgb, var(--accent) 70%, var(--border));
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: var(--bg-deep);
+  font-size: var(--lab-font-meta);
+  font-weight: var(--font-weight-medium);
+}
+
+.driftNavy {
+  min-height: 1.85rem;
+  padding: 0.28rem 0.7rem;
+  border: 1px solid var(--btn-primary-border);
+  border-radius: var(--radius-lg);
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+  font-size: var(--lab-font-meta);
+  font-weight: var(--font-weight-semibold);
+  box-shadow: 0 1px 0 var(--btn-inset-shadow-primary) inset;
+}
+
+.driftPill {
+  min-height: 2rem;
+  padding: 0.35rem 1rem;
+  border: 1px solid var(--accent-bright);
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+  color: var(--accent-bright);
+  font-size: 0.72rem;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 720px) {
+  .stage {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .screen {
+    transition: none;
+  }
+}

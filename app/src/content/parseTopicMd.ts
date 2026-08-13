@@ -177,6 +177,30 @@ export function parseTopicMd(id: string, raw: string, order: number): TopicDetai
       id === '159-patterns-factory-prototype-proxy-singleton-adapter' ||
       id === '160-patterns-chain-abstract-factory-strategy-decorator' ||
       id === '161-patterns-mediator-composite-memento' ||
+      id === '162-patterns-dependency-injection' ||
+      id === '163-patterns-template-flyweight-bridge' ||
+      id === '168-layout-scss-postcss' ||
+      id === '169-layout-flexbox' ||
+      id === '170-layout-animation' ||
+      id === '172-layout-css-modules-css-in-js' ||
+      id === '173-layout-grid' ||
+      id === '171-layout-stacking-context' ||
+      id === '174-layout-browserslist' ||
+      id === '175-layout-tools-by-browsers' ||
+      id === '176-layout-design-system' ||
+      id === '177-layout-a11y' ||
+      id === '178-layout-microdata' ||
+      id === '185-react-virtual-dom' ||
+      id === '213-async-js-single-thread' ||
+      id === '214-async-xhr-fetch' ||
+      id === '215-async-event-loop' ||
+      id === '216-async-tasks-microtasks' ||
+      id === '217-async-callback-promises' ||
+      id === '218-async-callback-hell' ||
+      id === '219-async-await' ||
+      id === '220-async-promise-after-catch' ||
+      id === '221-async-generators' ||
+      id === '222-async-infinite-generators' ||
       id === '259-software-incremental-iterative-spiral',
     groupId: meta.groupId,
     groupTitle,

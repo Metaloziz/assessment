@@ -1,0 +1,180 @@
+.stage {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-height: 11rem;
+}
+
+.frame {
+  display: grid;
+  gap: var(--space-1);
+  min-height: 10rem;
+  padding: var(--space-1);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--stage-bg);
+  transition:
+    border-color 0.35s ease,
+    box-shadow 0.35s ease;
+}
+
+.frameOk {
+  border-color: color-mix(in srgb, var(--ok) 40%, var(--border));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--ok) 16%, transparent);
+}
+
+.frameWarn {
+  border-color: color-mix(in srgb, var(--warn) 50%, var(--border));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--warn) 16%, transparent);
+}
+
+/* ── cases ── */
+
+.areas {
+  grid-template-columns: 5.5rem 1fr;
+  grid-template-rows: auto 1fr auto;
+  grid-template-areas:
+    'a a'
+    'b c'
+    'd d';
+}
+
+.auto {
+  grid-template-columns: 5.5rem 1fr;
+  grid-template-rows: auto auto;
+  grid-auto-flow: row;
+}
+
+.span {
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto 1fr auto;
+}
+
+.span .cellA {
+  grid-column: 1 / -1;
+}
+
+.span .cellD {
+  grid-column: 1 / -1;
+}
+
+.fr {
+  grid-template-columns: 1fr 2fr;
+  grid-template-rows: auto 1fr;
+  grid-template-areas:
+    'a a'
+    'b c';
+}
+
+.fr .cellD {
+  display: none;
+}
+
+.stack {
+  grid-template-columns: 1fr;
+  grid-template-rows: auto;
+  grid-auto-rows: auto;
+}
+
+.dense {
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto auto;
+  grid-auto-flow: dense;
+}
+
+.dense .cellA {
+  grid-column: span 2;
+}
+
+.dense .cellC {
+  grid-row: span 2;
+}
+
+.cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.1rem;
+  min-height: 1.85rem;
+  padding: 0.25rem var(--space-2);
+  border-radius: var(--radius-sm);
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--border));
+  background: color-mix(in srgb, var(--accent) 10%, var(--node-idle-bg));
+  color: var(--accent-bright);
+  font-size: var(--lab-font-meta);
+  font-weight: var(--font-weight-semibold);
+  transition:
+    border-color 0.35s ease,
+    background 0.35s ease,
+    color 0.35s ease,
+    min-height 0.35s ease;
+}
+
+.cellWarn {
+  border-color: color-mix(in srgb, var(--warn) 55%, var(--border));
+  background: color-mix(in srgb, var(--warn) 12%, var(--node-idle-bg));
+  color: var(--warn);
+}
+
+.cellRole {
+  font-size: 0.65rem;
+  font-weight: var(--font-weight-medium);
+  color: var(--text-muted);
+  line-height: 1.2;
+}
+
+.cellWarn .cellRole {
+  color: color-mix(in srgb, var(--warn) 70%, var(--text-muted));
+}
+
+.areas .cellA,
+.fr .cellA {
+  grid-area: a;
+}
+
+.areas .cellB,
+.fr .cellB {
+  grid-area: b;
+  min-height: 3.5rem;
+}
+
+.areas .cellC,
+.fr .cellC {
+  grid-area: c;
+  min-height: 3.5rem;
+}
+
+.areas .cellD {
+  grid-area: d;
+}
+
+.span .cellB,
+.span .cellC,
+.dense .cellB,
+.dense .cellC,
+.dense .cellD {
+  min-height: 2.4rem;
+}
+
+.metaRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  font-size: var(--lab-font-meta);
+  color: var(--text-muted);
+  line-height: 1.35;
+}
+
+.metaCode {
+  color: var(--code-inline);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .frame,
+  .cell {
+    transition: none;
+  }
+}

@@ -1,0 +1,207 @@
+.stage {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-height: 11rem;
+}
+
+.frame {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 10rem;
+  padding: var(--space-3);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--stage-bg);
+  overflow: hidden;
+  transition:
+    border-color 0.35s ease,
+    box-shadow 0.35s ease;
+}
+
+.frameOk {
+  border-color: color-mix(in srgb, var(--ok) 40%, var(--border));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--ok) 16%, transparent);
+}
+
+.frameWarn {
+  border-color: color-mix(in srgb, var(--warn) 50%, var(--border));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--warn) 16%, transparent);
+}
+
+.box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+  width: 3.6rem;
+  height: 3.6rem;
+  border-radius: var(--radius);
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--border));
+  background: color-mix(in srgb, var(--accent) 14%, var(--node-idle-bg));
+  color: var(--accent-bright);
+  font-size: var(--lab-font-meta);
+  font-weight: var(--font-weight-semibold);
+  will-change: transform, opacity;
+}
+
+.boxWarn {
+  border-color: color-mix(in srgb, var(--warn) 55%, var(--border));
+  background: color-mix(in srgb, var(--warn) 14%, var(--node-idle-bg));
+  color: var(--warn);
+  will-change: width;
+}
+
+.boxLabel {
+  line-height: 1.1;
+}
+
+.boxRole {
+  font-size: 0.62rem;
+  font-weight: var(--font-weight-medium);
+  color: var(--text-muted);
+  line-height: 1.2;
+  text-align: center;
+}
+
+.boxWarn .boxRole {
+  color: color-mix(in srgb, var(--warn) 70%, var(--text-muted));
+}
+
+/* ── cases ── */
+
+.fade .box {
+  animation: labFade 1.1s ease-in-out infinite alternate;
+}
+
+.slide .box {
+  animation: labSlide 1.1s ease-in-out infinite alternate;
+}
+
+.scale .box {
+  animation: labScale 1.1s ease-in-out infinite alternate;
+}
+
+.ease .box {
+  animation: labSlide 1.4s cubic-bezier(0.22, 1, 0.36, 1) infinite alternate;
+}
+
+.transition .box {
+  transition:
+    transform 450ms ease,
+    opacity 450ms ease;
+  opacity: 0.35;
+  transform: translateX(-1.6rem);
+}
+
+.transitionIsOn .box {
+  opacity: 1;
+  transform: translateX(1.6rem);
+}
+
+.width .box {
+  width: 3.2rem;
+  animation: labWidth 1.2s ease-in-out infinite alternate;
+}
+
+.reduced .box {
+  opacity: 1;
+  transform: none;
+  animation: none;
+  transition: none;
+}
+
+.stagger {
+  justify-content: center;
+}
+
+.stagger .box {
+  animation: labFade 0.9s ease-in-out infinite alternate;
+}
+
+.stagger .box:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.stagger .box:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes labFade {
+  from {
+    opacity: 0.25;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes labSlide {
+  from {
+    transform: translateX(-1.75rem);
+  }
+  to {
+    transform: translateX(1.75rem);
+  }
+}
+
+@keyframes labScale {
+  from {
+    transform: scale(0.82);
+  }
+  to {
+    transform: scale(1.08);
+  }
+}
+
+@keyframes labWidth {
+  from {
+    width: 2.6rem;
+  }
+  to {
+    width: 6.5rem;
+  }
+}
+
+.metaRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  font-size: var(--lab-font-meta);
+  color: var(--text-muted);
+  line-height: 1.35;
+}
+
+.metaCode {
+  color: var(--code-inline);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  white-space: pre-wrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fade .box,
+  .slide .box,
+  .scale .box,
+  .ease .box,
+  .width .box,
+  .stagger .box {
+    animation: none;
+  }
+
+  .transition .box,
+  .transitionIsOn .box {
+    transition: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  .frame,
+  .box {
+    transition: none;
+  }
+}

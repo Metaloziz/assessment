@@ -1,0 +1,43 @@
+.flow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 0.45rem 0.35rem;
+  min-height: 6.5rem;
+}
+
+.arrow {
+  align-self: center;
+  color: var(--muted);
+  font-size: 0.85rem;
+  user-select: none;
+}
+
+.listNode {
+  flex: 1 1 8rem;
+  min-width: 7rem;
+}
+
+.consumers {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  flex: 1 1 8rem;
+  min-width: 7.5rem;
+}
+
+.nodeWarn {
+  border-color: color-mix(in srgb, var(--warn) 55%, var(--border));
+  color: var(--warn);
+}
+
+.nodeSkipped {
+  opacity: 0.4;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .listNode,
+  .consumers :global(.node) {
+    transition: none;
+  }
+}
