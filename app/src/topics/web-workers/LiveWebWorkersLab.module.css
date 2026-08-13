@@ -41,7 +41,7 @@
   padding: 0.55rem 0.6rem;
   border-radius: var(--radius);
   border: 1px solid var(--border);
-  background: #121212;
+  background: var(--bg-deep);
 }
 
 .pulseLabel {
@@ -55,7 +55,7 @@
 .pulseTrack {
   position: relative;
   height: 0.55rem;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--bg-panel);
   border: 1px solid var(--border);
   overflow: hidden;
@@ -74,7 +74,7 @@
 }
 
 .pulseFrozen {
-  background: #ce9178;
+  background: var(--code-inline);
   box-shadow: none;
 }
 
@@ -116,7 +116,7 @@
 }
 
 .resultValue {
-  color: #b5cea8;
+  color: var(--log-ok);
   font-family: var(--font-mono);
   font-size: var(--lab-font-ui);
 }
@@ -153,7 +153,7 @@
 
 .warn {
   margin: 0;
-  color: #ce9178;
+  color: var(--warn);
   font-size: var(--lab-font-body);
 }
 
@@ -162,7 +162,7 @@
   padding: 0.55rem 0.65rem;
   border-radius: var(--radius);
   border: 1px solid var(--border);
-  background: #121212;
+  background: var(--bg-deep);
   font-family: var(--font-mono);
   font-size: var(--lab-font-mono);
   line-height: var(--lab-line);
@@ -173,11 +173,11 @@
 }
 
 .ok {
-  color: #b5cea8;
+  color: var(--log-ok);
 }
 
 .err {
-  color: #ce9178;
+  color: var(--code-inline);
 }
 
 .info {

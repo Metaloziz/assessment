@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { JsLabShell } from '../../components/lab/JsLabShell'
 import shell from '../../components/lab/JsLabShell.module.css'
+import { LabButton } from '../../components/lab/LabButton'
 import { LabCodePanel } from '../../components/lab/LabCodePanel'
 import { LabLogView } from '../../components/lab/LabLogView'
 import { useLabLog } from '../../components/lab/useLabLog'
@@ -37,15 +38,14 @@ export function LexicalEnvironmentLab() {
         <li>Проверьте: первый счётчик на 3, второй всё ещё на 0.</li>
       </ol>
       <div className={shell.row}>
-        <button type="button" className={shell.btn} onClick={() => log('info', `shared A → ${brokenShared.bumpA()}`)}>
+        <LabButton onClick={() => log('info', `shared A → ${brokenShared.bumpA()}`)}>
           Сломанный: bump A
-        </button>
-        <button type="button" className={shell.btn} onClick={() => log('info', `shared B → ${brokenShared.bumpB()}`)}>
+        </LabButton>
+        <LabButton onClick={() => log('info', `shared B → ${brokenShared.bumpB()}`)}>
           Сломанный: bump B
-        </button>
-        <button
-          type="button"
-          className={shell.btnPrimary}
+        </LabButton>
+        <LabButton
+          variant="primary"
           onClick={() => {
             const a = first()
             const b = first()
@@ -54,7 +54,7 @@ export function LexicalEnvironmentLab() {
           }}
         >
           Правильные счётчики ×2 / ×1
-        </button>
+        </LabButton>
       </div>
       <LabLogView lines={lines} />
     </div>
@@ -64,25 +64,17 @@ export function LexicalEnvironmentLab() {
     <div className={shell.panel}>
       <p className={shell.hint}>Крутите два независимых счётчика и один «общий» — сравните лог.</p>
       <div className={shell.row}>
-        <button type="button" className={shell.btn} onClick={() => log('ok', `first → ${first()}`)}>
-          first++
-        </button>
-        <button type="button" className={shell.btn} onClick={() => log('ok', `second → ${second()}`)}>
-          second++
-        </button>
-        <button
-          type="button"
-          className={shell.btn}
+        <LabButton onClick={() => log('ok', `first → ${first()}`)}>first++</LabButton>
+        <LabButton onClick={() => log('ok', `second → ${second()}`)}>second++</LabButton>
+        <LabButton
           onClick={() => {
             setSharedTick((n) => n + 1)
             log('info', `shared.peek после bumpA → ${brokenShared.bumpA()} (tick ${sharedTick + 1})`)
           }}
         >
           shared bump
-        </button>
-        <button type="button" className={shell.btn} onClick={clear}>
-          Очистить лог
-        </button>
+        </LabButton>
+        <LabButton onClick={clear}>Очистить лог</LabButton>
       </div>
       <LabLogView lines={lines} />
     </div>

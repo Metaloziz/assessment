@@ -1,5 +1,5 @@
 import type { LabLogLine } from './useLabLog'
-import styles from './JsLabShell.module.css'
+import styles from './LabLogView.module.css'
 
 type Props = {
   lines: LabLogLine[]

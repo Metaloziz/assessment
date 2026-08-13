@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { JsLabShell } from '../../components/lab/JsLabShell'
 import shell from '../../components/lab/JsLabShell.module.css'
+import { LabButton } from '../../components/lab/LabButton'
 import { LabCodePanel } from '../../components/lab/LabCodePanel'
 import { LabLogView } from '../../components/lab/LabLogView'
 import { useLabLog } from '../../components/lab/useLabLog'
@@ -21,9 +22,7 @@ export function NullPrototypeLab() {
         <li>Сравните <code>key in map</code> / чтение.</li>
       </ol>
       <div className={shell.row}>
-        <button
-          type="button"
-          className={shell.btn}
+        <LabButton
           onClick={() => {
             const plain: Record<string, unknown> = {}
             log(
@@ -33,10 +32,9 @@ export function NullPrototypeLab() {
           }}
         >
           Обычный объект
-        </button>
-        <button
-          type="button"
-          className={shell.btnPrimary}
+        </LabButton>
+        <LabButton
+          variant="primary"
           onClick={() => {
             const dict = Object.create(null) as Record<string, unknown>
             log(
@@ -46,7 +44,7 @@ export function NullPrototypeLab() {
           }}
         >
           Object.create(null)
-        </button>
+        </LabButton>
       </div>
       <LabLogView lines={lines} />
     </div>
@@ -59,9 +57,7 @@ export function NullPrototypeLab() {
         <input value={key} onChange={(e) => setKey(e.target.value)} />
       </div>
       <div className={shell.row}>
-        <button
-          type="button"
-          className={shell.btn}
+        <LabButton
           onClick={() => {
             const dict = Object.create(null) as Record<string, string>
             dict[key] = 'user-value'
@@ -69,20 +65,16 @@ export function NullPrototypeLab() {
           }}
         >
           Записать в null-proto
-        </button>
-        <button
-          type="button"
-          className={shell.btn}
+        </LabButton>
+        <LabButton
           onClick={() => {
             const dict = Object.create(null)
             log('info', `getPrototypeOf → ${Object.getPrototypeOf(dict)}`)
           }}
         >
           getPrototypeOf
-        </button>
-        <button type="button" className={shell.btn} onClick={clear}>
-          Очистить
-        </button>
+        </LabButton>
+        <LabButton onClick={clear}>Очистить</LabButton>
       </div>
       <LabLogView lines={lines} />
     </div>

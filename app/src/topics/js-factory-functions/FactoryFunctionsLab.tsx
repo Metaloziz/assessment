@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { JsLabShell } from '../../components/lab/JsLabShell'
 import shell from '../../components/lab/JsLabShell.module.css'
+import { LabButton } from '../../components/lab/LabButton'
 import { LabCodePanel } from '../../components/lab/LabCodePanel'
 import { LabLogView } from '../../components/lab/LabLogView'
 import { useLabLog } from '../../components/lab/useLabLog'
@@ -29,26 +30,23 @@ export function FactoryFunctionsLab() {
         <li>Проверьте: bump у Alice не трогает Bob.</li>
       </ol>
       <div className={shell.row}>
-        <button
-          type="button"
-          className={shell.btnPrimary}
+        <LabButton
+          variant="primary"
           onClick={() => {
             const a = users[0].bump()
             log('ok', `${users[0].name}=${a}, ${users[1].name}=${users[1].getScore()}`)
           }}
         >
           Alice bump
-        </button>
-        <button
-          type="button"
-          className={shell.btn}
+        </LabButton>
+        <LabButton
           onClick={() => {
             const b = users[1].bump()
             log('ok', `${users[1].name}=${b}, ${users[0].name}=${users[0].getScore()}`)
           }}
         >
           Bob bump
-        </button>
+        </LabButton>
       </div>
       <LabLogView lines={lines} />
     </div>
@@ -57,9 +55,7 @@ export function FactoryFunctionsLab() {
   const sandbox = (
     <div className={shell.panel}>
       <div className={shell.row}>
-        <button
-          type="button"
-          className={shell.btn}
+        <LabButton
           onClick={() => {
             const u = createUser(`User${users.length + 1}`)
             setUsers((prev) => [...prev, u])
@@ -67,10 +63,8 @@ export function FactoryFunctionsLab() {
           }}
         >
           Новая фабрика
-        </button>
-        <button
-          type="button"
-          className={shell.btn}
+        </LabButton>
+        <LabButton
           onClick={() =>
             log(
               'info',
@@ -79,10 +73,8 @@ export function FactoryFunctionsLab() {
           }
         >
           Все scores
-        </button>
-        <button type="button" className={shell.btn} onClick={clear}>
-          Очистить
-        </button>
+        </LabButton>
+        <LabButton onClick={clear}>Очистить</LabButton>
       </div>
       <LabLogView lines={lines} />
     </div>

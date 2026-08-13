@@ -1,7 +1,7 @@
-import type { ButtonHTMLAttributes, ReactNode } from 'react'
+import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from 'react'
 import styles from './LabButton.module.css'
 
-export type LabButtonVariant = 'primary' | 'secondary' | 'ghost'
+export type LabButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger'
 
 type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: LabButtonVariant
@@ -11,15 +11,18 @@ type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
   children: ReactNode
 }
 
-export function LabButton({
-  variant = 'secondary',
-  active = false,
-  size = 'md',
-  className,
-  type = 'button',
-  children,
-  ...rest
-}: Props) {
+export const LabButton = forwardRef<HTMLButtonElement, Props>(function LabButton(
+  {
+    variant = 'secondary',
+    active = false,
+    size = 'md',
+    className,
+    type = 'button',
+    children,
+    ...rest
+  },
+  ref,
+) {
   const classes = [
     styles.button,
     styles[variant],
@@ -31,8 +34,8 @@ export function LabButton({
     .join(' ')
 
   return (
-    <button type={type} className={classes} {...rest}>
+    <button ref={ref} type={type} className={classes} {...rest}>
       {children}
     </button>
   )
-}
+})

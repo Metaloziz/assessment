@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { LabButton } from '../../components/lab/LabButton'
 import styles from './LiveWebApisLab.module.css'
 
 type LogLine = { kind: 'ok' | 'err' | 'info'; text: string }
@@ -343,30 +344,23 @@ export function WebApisProblemPanel({ lab }: { lab: WebApisLabApi }) {
       <EventCard lastShare={lastShare} remindOn={remindOn} />
 
       <div className={styles.actions}>
-        <button
-          type="button"
-          className="uiBtn uiBtnPrimary"
-          disabled={busy}
-          onClick={() => void shareNativeOrFallback()}
-        >
+        <LabButton variant="primary" disabled={busy} onClick={() => void shareNativeOrFallback()}>
           Поделиться
-        </button>
-        <button
-          type="button"
-          className="uiBtn uiBtnGhost"
+        </LabButton>
+        <LabButton
+          variant="secondary"
           disabled={busy || permission === 'granted' || permission === 'unsupported'}
           onClick={() => void requestNotifyPermission()}
         >
           Разрешить уведомления
-        </button>
-        <button
-          type="button"
-          className="uiBtn uiBtnPrimary"
+        </LabButton>
+        <LabButton
+          variant="primary"
           disabled={busy || permission !== 'granted'}
           onClick={() => void showLocalNotification()}
         >
           Напомнить
-        </button>
+        </LabButton>
       </div>
 
       <p className={styles.tip}>
@@ -414,49 +408,40 @@ export function WebApisSandboxPanel({ lab }: { lab: WebApisLabApi }) {
       </p>
 
       <div className={styles.actions}>
-        <button type="button" className="uiBtn uiBtnGhost" disabled={busy} onClick={refresh}>
+        <LabButton variant="secondary" disabled={busy} onClick={refresh}>
           Refresh detect
-        </button>
-        <button
-          type="button"
-          className="uiBtn uiBtnPrimary"
-          disabled={busy}
-          onClick={() => void shareNativeOrFallback()}
-        >
+        </LabButton>
+        <LabButton variant="primary" disabled={busy} onClick={() => void shareNativeOrFallback()}>
           Share / fallback
-        </button>
-        <button
-          type="button"
-          className="uiBtn uiBtnGhost"
+        </LabButton>
+        <LabButton
+          variant="secondary"
           disabled={busy || !support.clipboard}
           onClick={() => void copyOnly()}
         >
           Clipboard only
-        </button>
-        <button
-          type="button"
-          className="uiBtn uiBtnGhost"
+        </LabButton>
+        <LabButton
+          variant="secondary"
           disabled={busy || !support.notification}
           onClick={() => void requestNotifyPermission()}
         >
           requestPermission
-        </button>
-        <button
-          type="button"
-          className="uiBtn uiBtnPrimary"
+        </LabButton>
+        <LabButton
+          variant="primary"
           disabled={busy || permission !== 'granted'}
           onClick={() => void showLocalNotification()}
         >
           new Notification
-        </button>
-        <button
-          type="button"
-          className="uiBtn uiBtnGhost"
+        </LabButton>
+        <LabButton
+          variant="secondary"
           disabled={busy || !support.payment}
           onClick={() => void tryPaymentRequest()}
         >
           PaymentRequest
-        </button>
+        </LabButton>
       </div>
 
       <LabLog log={log} />

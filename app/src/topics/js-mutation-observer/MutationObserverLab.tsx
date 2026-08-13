@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { JsLabShell } from '../../components/lab/JsLabShell'
 import shell from '../../components/lab/JsLabShell.module.css'
+import { LabButton } from '../../components/lab/LabButton'
 import { LabCodePanel } from '../../components/lab/LabCodePanel'
 import { LabLogView } from '../../components/lab/LabLogView'
 import { useLabLog } from '../../components/lab/useLabLog'
@@ -52,12 +53,10 @@ export function MutationObserverLab() {
         <em>контейнер</em>
       </div>
       <div className={shell.row}>
-        <button type="button" className={shell.btnPrimary} onClick={start} disabled={watching}>
+        <LabButton variant="primary" onClick={start} disabled={watching}>
           Смотреть DOM
-        </button>
-        <button
-          type="button"
-          className={shell.btn}
+        </LabButton>
+        <LabButton
           onClick={() => {
             const el = document.createElement('div')
             el.textContent = `item ${boxRef.current?.children.length ?? 0}`
@@ -65,17 +64,11 @@ export function MutationObserverLab() {
           }}
         >
           Добавить узел
-        </button>
-        <button
-          type="button"
-          className={shell.btn}
-          onClick={() => boxRef.current?.lastElementChild?.remove()}
-        >
+        </LabButton>
+        <LabButton onClick={() => boxRef.current?.lastElementChild?.remove()}>
           Удалить последний
-        </button>
-        <button type="button" className={shell.btn} onClick={stop}>
-          Стоп
-        </button>
+        </LabButton>
+        <LabButton onClick={stop}>Стоп</LabButton>
       </div>
       <LabLogView lines={lines} />
     </div>
@@ -87,22 +80,16 @@ export function MutationObserverLab() {
         {watching ? 'Наблюдение активно' : 'Сначала включите observe на вкладке «Решение» или здесь'}
       </p>
       <div className={shell.row}>
-        <button type="button" className={shell.btn} onClick={start}>
-          observe
-        </button>
-        <button
-          type="button"
-          className={shell.btn}
+        <LabButton onClick={start}>observe</LabButton>
+        <LabButton
           onClick={() => {
             boxRef.current?.setAttribute('data-v', String(Date.now()))
             log('info', 'атрибут изменён — увидите только если observe({ attributes: true })')
           }}
         >
           Сменить атрибут
-        </button>
-        <button type="button" className={shell.btn} onClick={clear}>
-          Очистить лог
-        </button>
+        </LabButton>
+        <LabButton onClick={clear}>Очистить лог</LabButton>
       </div>
       <LabLogView lines={lines} />
     </div>

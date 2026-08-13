@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from 'react'
 import { JsLabShell } from '../../components/lab/JsLabShell'
 import shell from '../../components/lab/JsLabShell.module.css'
+import { LabButton } from '../../components/lab/LabButton'
 import { LabCodePanel } from '../../components/lab/LabCodePanel'
 import { LabLogView } from '../../components/lab/LabLogView'
 import { useLabLog } from '../../components/lab/useLabLog'
@@ -57,9 +58,7 @@ export function BindCallApplyLab() {
       </div>
 
       <div className={shell.row}>
-        <button
-          type="button"
-          className={shell.btn}
+        <LabButton
           onClick={() => {
             const fn = introduce as (greeting: string, punctuation: string) => string
             try {
@@ -72,23 +71,21 @@ export function BindCallApplyLab() {
           }}
         >
           1. Сломать (оторвать метод)
-        </button>
+        </LabButton>
       </div>
 
       <div className={shell.row}>
-        <button
-          type="button"
-          className={shell.btnPrimary}
+        <LabButton
+          variant="primary"
           onClick={() => {
             const viaCall = introduce.call(person, greeting, '!')
             log('ok', `call(person, '${greeting}', '!') → ${viaCall}`)
           }}
         >
           2a. call(person, a, b)
-        </button>
-        <button
-          type="button"
-          className={shell.btnPrimary}
+        </LabButton>
+        <LabButton
+          variant="primary"
           onClick={() => {
             const args: [string, string] = [greeting, '.']
             const viaApply = introduce.apply(person, args)
@@ -96,13 +93,12 @@ export function BindCallApplyLab() {
           }}
         >
           2b. apply(person, [a, b])
-        </button>
+        </LabButton>
       </div>
 
       <div className={shell.row}>
-        <button
-          type="button"
-          className={shell.btnPrimary}
+        <LabButton
+          variant="primary"
           onClick={() => {
             stopInterval()
             const bound = introduce.bind(person, greeting)
@@ -117,10 +113,8 @@ export function BindCallApplyLab() {
           }}
         >
           3. bind + setInterval
-        </button>
-        <button type="button" className={shell.btn} onClick={stopInterval}>
-          Стоп interval
-        </button>
+        </LabButton>
+        <LabButton onClick={stopInterval}>Стоп interval</LabButton>
       </div>
 
       <LabLogView lines={lines} />
@@ -150,42 +144,34 @@ export function BindCallApplyLab() {
       </div>
 
       <div className={shell.row}>
-        <button
-          type="button"
-          className={shell.btn}
+        <LabButton
           onClick={() => {
             const result = introduce.call(person, greeting, punctuation)
             log('ok', `call → ${result}`)
           }}
         >
           call(person, …)
-        </button>
-        <button
-          type="button"
-          className={shell.btn}
+        </LabButton>
+        <LabButton
           onClick={() => {
             const result = introduce.apply(person, [greeting, punctuation])
             log('ok', `apply → ${result}`)
           }}
         >
           apply(person, […])
-        </button>
-        <button
-          type="button"
-          className={shell.btn}
+        </LabButton>
+        <LabButton
           onClick={() => {
             const result = introduce.call(other, greeting, punctuation)
             log('ok', `call(other={name:'Игорь'}) → ${result}`)
           }}
         >
           call(другой this)
-        </button>
+        </LabButton>
       </div>
 
       <div className={shell.row}>
-        <button
-          type="button"
-          className={shell.btn}
+        <LabButton
           onClick={() => {
             boundRef.current = introduce.bind(person, greeting)
             setBoundReady(true)
@@ -193,10 +179,8 @@ export function BindCallApplyLab() {
           }}
         >
           bind(person, greeting)
-        </button>
-        <button
-          type="button"
-          className={shell.btn}
+        </LabButton>
+        <LabButton
           disabled={!boundReady || !boundRef.current}
           onClick={() => {
             const fn = boundRef.current
@@ -205,10 +189,8 @@ export function BindCallApplyLab() {
           }}
         >
           Вызвать bound(punctuation)
-        </button>
-        <button
-          type="button"
-          className={shell.btn}
+        </LabButton>
+        <LabButton
           onClick={() => {
             // Частичное применение: greeting уже в bind, punctuation позже
             const greet = introduce.bind(person, greeting)
@@ -216,13 +198,11 @@ export function BindCallApplyLab() {
           }}
         >
           Частичный bind
-        </button>
+        </LabButton>
       </div>
 
       <div className={shell.row}>
-        <button
-          type="button"
-          className={shell.btn}
+        <LabButton
           onClick={() => {
             const bad = {
               name: 'Объект',
@@ -237,10 +217,8 @@ export function BindCallApplyLab() {
           }}
         >
           Ловушка: стрелка
-        </button>
-        <button
-          type="button"
-          className={shell.btn}
+        </LabButton>
+        <LabButton
           onClick={() => {
             const args = [greeting, punctuation] as [string, string]
             log('info', `массив args = ${JSON.stringify(args)}`)
@@ -249,10 +227,8 @@ export function BindCallApplyLab() {
           }}
         >
           apply vs call+…args
-        </button>
-        <button type="button" className={shell.btn} onClick={clear}>
-          Очистить лог
-        </button>
+        </LabButton>
+        <LabButton onClick={clear}>Очистить лог</LabButton>
       </div>
 
       <LabLogView lines={lines} />

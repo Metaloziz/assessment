@@ -22,7 +22,7 @@
   margin: 0 0 0.25rem;
   font-family: var(--font-sans);
   font-size: var(--lab-font-title);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
 }
 
 .lead {
@@ -53,7 +53,7 @@
 .tip code {
   font-family: var(--font-mono);
   font-size: 0.85em;
-  color: #ce9178;
+  color: var(--code-inline);
 }
 
 .problemLabel {
@@ -84,13 +84,13 @@
   font-size: var(--lab-font-mono);
   letter-spacing: 0.04em;
   padding: 0.15rem 0.45rem;
-  border-radius: 2px;
+  border-radius: var(--radius-sm);
   border: 1px solid var(--border);
   text-transform: uppercase;
 }
 
 .badgeOn {
-  color: #b5cea8;
+  color: var(--log-ok);
   border-color: rgba(181, 206, 168, 0.4);
   background: rgba(181, 206, 168, 0.1);
 }
@@ -130,7 +130,7 @@
 .field strong {
   text-align: right;
   color: var(--text);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
 }
 
 .cluster {
@@ -146,7 +146,7 @@
   padding: 0.55rem 0.6rem;
   border-radius: var(--radius);
   border: 1px solid var(--border);
-  background: #121212;
+  background: var(--bg-deep);
   min-height: 7.5rem;
 }
 
@@ -185,11 +185,11 @@
 .replica {
   border: 1px solid rgba(181, 206, 168, 0.35);
   background: rgba(181, 206, 168, 0.12);
-  color: #b5cea8;
+  color: var(--log-ok);
   font-family: var(--font-mono);
   font-size: var(--lab-font-meta);
   padding: 0.15rem 0.35rem;
-  border-radius: 2px;
+  border-radius: var(--radius-sm);
 }
 
 .nodeActions {
@@ -209,7 +209,7 @@
   padding: 0.55rem 0.65rem;
   border-radius: var(--radius);
   border: 1px solid var(--border);
-  background: #0e0e0e;
+  background: var(--log-bg);
   font-family: var(--font-mono);
   font-size: var(--lab-font-mono);
   line-height: var(--lab-line);
@@ -220,11 +220,11 @@
 }
 
 .ok {
-  color: #b5cea8;
+  color: var(--log-ok);
 }
 
 .err {
-  color: #f48771;
+  color: var(--danger);
 }
 
 .info {

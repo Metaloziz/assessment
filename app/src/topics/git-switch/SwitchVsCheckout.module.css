@@ -22,7 +22,7 @@
   padding: 0.45rem 0.5rem;
   font-family: var(--font-mono);
   font-size: var(--lab-font-body);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   cursor: pointer;
   transition: background 0.12s ease, color 0.12s ease;
 }

@@ -1,19 +1,19 @@
 .square {
   display: inline-block;
-  border-radius: 2px;
+  border-radius: var(--radius-sm);
   flex-shrink: 0;
 }
 
 .sm {
   width: 0.9rem;
   height: 0.9rem;
-  border-radius: 3px;
+  border-radius: var(--radius-sm);
 }
 
 .md {
   width: 1.05rem;
   height: 1.05rem;
-  border-radius: 3px;
+  border-radius: var(--radius-sm);
 }
 
 .junior {

@@ -1,0 +1,33 @@
+.log {
+  margin: 0;
+  padding: var(--space-2) 0.6rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--log-bg);
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-mono);
+  line-height: var(--lab-line);
+  max-height: 10rem;
+  overflow: auto;
+  white-space: pre-wrap;
+}
+
+.logEmpty {
+  color: var(--text-muted);
+}
+
+.logOk {
+  color: var(--log-ok);
+}
+
+.logErr {
+  color: var(--log-err);
+}
+
+.logWarn {
+  color: var(--log-warn);
+}
+
+.logInfo {
+  color: var(--log-info);
+}

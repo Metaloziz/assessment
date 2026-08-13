@@ -26,26 +26,26 @@
 .brandMark {
   width: 1.65rem;
   height: 1.65rem;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   display: grid;
   place-items: center;
   background: var(--bg-elevated);
   color: var(--text);
   font-family: var(--font-sans);
-  font-size: 0.68rem;
-  font-weight: 650;
+  font-size: var(--font-size-ui-xs);
+  font-weight: var(--font-weight-semibold);
   flex-shrink: 0;
 }
 
 .brandTitle {
-  font-size: 0.88rem;
-  font-weight: 600;
+  font-size: var(--lab-font-meta);
+  font-weight: var(--font-weight-semibold);
   color: var(--text);
   letter-spacing: -0.01em;
 }
 
 .brandSub {
-  font-size: 0.7rem;
+  font-size: var(--font-size-ui-xs);
   color: var(--text-faint);
   margin-top: 0.05rem;
 }
@@ -61,7 +61,7 @@
   background: transparent;
   color: var(--text-faint);
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: var(--lab-font-meta);
   line-height: 1;
 }
 
@@ -78,21 +78,21 @@
 .progressRow {
   display: flex;
   justify-content: space-between;
-  font-size: 0.68rem;
+  font-size: var(--font-size-ui-xs);
   color: var(--text-faint);
   margin-bottom: 0.3rem;
 }
 
 .bar {
   height: 3px;
-  border-radius: 99px;
+  border-radius: var(--radius-pill);
   background: rgba(255, 255, 255, 0.06);
   overflow: hidden;
 }
 
 .barFill {
   height: 100%;
-  border-radius: 99px;
+  border-radius: var(--radius-pill);
   background: var(--accent);
   transition: width 0.2s ease;
 }
@@ -105,10 +105,10 @@
   width: 100%;
   border: none;
   background: rgba(255, 255, 255, 0.055);
-  border-radius: 6px;
+  border-radius: var(--radius);
   padding: 0.45rem 0.65rem;
   outline: none;
-  font-size: 0.82rem;
+  font-size: var(--font-size-ui-sm);
   color: var(--text-muted);
 }
 
@@ -146,7 +146,7 @@
   color: var(--text-muted);
   padding: 0.4rem 0.45rem;
   cursor: pointer;
-  border-radius: 6px;
+  border-radius: var(--radius);
   text-align: left;
 }
 
@@ -156,14 +156,14 @@
 }
 
 .groupTitle {
-  font-size: 0.8rem;
-  font-weight: 600;
+  font-size: var(--font-size-ui-sm);
+  font-weight: var(--font-weight-semibold);
   color: var(--text);
   letter-spacing: -0.01em;
 }
 
 .groupCount {
-  font-size: 0.68rem;
+  font-size: var(--font-size-ui-xs);
   color: var(--text-faint);
   font-variant-numeric: tabular-nums;
 }
@@ -181,7 +181,7 @@
   gap: 0.35rem;
   align-items: center;
   padding: 0 0.2rem 0 0.35rem;
-  border-radius: 6px;
+  border-radius: var(--radius);
   min-height: 2rem;
 }
 
@@ -198,7 +198,7 @@
   color: var(--text-muted);
   padding: 0.35rem 0.4rem 0.35rem 0.15rem;
   min-width: 0;
-  border-radius: 5px;
+  border-radius: var(--radius);
 }
 
 .page:hover {
@@ -207,8 +207,8 @@
 }
 
 .title {
-  font-size: 0.84rem;
-  font-weight: 450;
+  font-size: var(--font-size-ui-sm);
+  font-weight: var(--font-weight-medium);
   line-height: 1.35;
   color: inherit;
   white-space: nowrap;
@@ -224,20 +224,20 @@
 }
 
 .lab {
-  font-size: 0.62rem;
+  font-size: var(--font-size-ui-xs);
   letter-spacing: 0.02em;
   color: var(--accent-bright);
-  border-radius: 3px;
+  border-radius: var(--radius-sm);
   padding: 0.08rem 0.3rem;
   background: var(--accent-glow);
   flex-shrink: 0;
 }
 
 .api {
-  font-size: 0.62rem;
+  font-size: var(--font-size-ui-xs);
   letter-spacing: 0.02em;
   color: var(--ok);
-  border-radius: 3px;
+  border-radius: var(--radius-sm);
   padding: 0.08rem 0.3rem;
   background: color-mix(in srgb, var(--ok) 16%, transparent);
   flex-shrink: 0;
@@ -250,7 +250,7 @@
 
 .active .title {
   color: var(--text);
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
 }
 
 .done .title {

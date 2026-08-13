@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { JsLabShell } from '../../components/lab/JsLabShell'
 import shell from '../../components/lab/JsLabShell.module.css'
+import { LabButton } from '../../components/lab/LabButton'
 import { LabCodePanel } from '../../components/lab/LabCodePanel'
 import { LabLogView } from '../../components/lab/LabLogView'
 import { useLabLog } from '../../components/lab/useLabLog'
@@ -40,9 +41,8 @@ export function LiveCollectionsLab() {
       </ol>
       <div className={shell.stage} ref={problemHost} />
       <div className={shell.row}>
-        <button
-          type="button"
-          className={shell.btnPrimary}
+        <LabButton
+          variant="primary"
           onClick={() => {
             const host = problemHost.current
             if (!host) return
@@ -54,10 +54,8 @@ export function LiveCollectionsLab() {
           }}
         >
           Удалить и сравнить
-        </button>
-        <button type="button" className={shell.btn} onClick={() => setVersion((v) => v + 1)}>
-          Сбросить DOM
-        </button>
+        </LabButton>
+        <LabButton onClick={() => setVersion((v) => v + 1)}>Сбросить DOM</LabButton>
       </div>
       <LabLogView lines={lines} />
     </div>
@@ -68,9 +66,7 @@ export function LiveCollectionsLab() {
       <p className={shell.hint}>Добавляйте узлы и смотрите живую коллекцию.</p>
       <div className={shell.stage} ref={sandboxHost} />
       <div className={shell.row}>
-        <button
-          type="button"
-          className={shell.btn}
+        <LabButton
           onClick={() => {
             const host = sandboxHost.current
             if (!host) return
@@ -82,10 +78,8 @@ export function LiveCollectionsLab() {
           }}
         >
           Добавить
-        </button>
-        <button
-          type="button"
-          className={shell.btn}
+        </LabButton>
+        <LabButton
           onClick={() => {
             const host = sandboxHost.current
             if (!host) return
@@ -96,10 +90,8 @@ export function LiveCollectionsLab() {
           }}
         >
           Длина
-        </button>
-        <button type="button" className={shell.btn} onClick={clear}>
-          Очистить лог
-        </button>
+        </LabButton>
+        <LabButton onClick={clear}>Очистить лог</LabButton>
       </div>
       <LabLogView lines={lines} />
     </div>

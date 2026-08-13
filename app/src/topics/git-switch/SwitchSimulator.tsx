@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import gsap from 'gsap'
 import { useGSAP } from '@gsap/react'
+import { LabButton } from '../../components/lab/LabButton'
 import styles from './SwitchSimulator.module.css'
 
 gsap.registerPlugin(useGSAP)
@@ -168,9 +169,9 @@ export function SwitchSimulator() {
       </ul>
 
       <div className={styles.actions}>
-        <button type="button" className="uiBtn uiBtnPrimary" onClick={switchBack}>
+        <LabButton variant="primary" onClick={switchBack}>
           git switch -
-        </button>
+        </LabButton>
         <div className={styles.createRow}>
           <input
             className={styles.input}
@@ -179,13 +180,13 @@ export function SwitchSimulator() {
             aria-label="Имя новой ветки"
             spellCheck={false}
           />
-          <button type="button" className="uiBtn uiBtnPrimary" onClick={createAndSwitch}>
+          <LabButton variant="primary" onClick={createAndSwitch}>
             git switch -c
-          </button>
+          </LabButton>
         </div>
-        <button type="button" className="uiBtn uiBtnGhost" onClick={reset}>
+        <LabButton variant="secondary" onClick={reset}>
           Сброс
-        </button>
+        </LabButton>
       </div>
 
       <pre className={styles.terminal} aria-live="polite">

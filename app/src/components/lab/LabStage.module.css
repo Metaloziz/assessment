@@ -1,0 +1,7 @@
+.stage {
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-lg);
+  padding: 0.65rem;
+  background: var(--stage-bg);
+  min-height: 2.5rem;
+}

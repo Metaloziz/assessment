@@ -1,6 +1,7 @@
 import { useRef } from 'react'
 import { JsLabShell } from '../../components/lab/JsLabShell'
 import shell from '../../components/lab/JsLabShell.module.css'
+import { LabButton } from '../../components/lab/LabButton'
 import { LabCodePanel } from '../../components/lab/LabCodePanel'
 import { LabLogView } from '../../components/lab/LabLogView'
 import { useLabLog } from '../../components/lab/useLabLog'
@@ -37,23 +38,17 @@ export function SelectionRangeLab() {
         Платёж подтверждён. Сумма списана со счёта. Сохраните чек.
       </p>
       <div className={shell.row}>
-        <button
-          type="button"
-          className={shell.btnPrimary}
-          onClick={() => selectSentence(problemText.current, log)}
-        >
+        <LabButton variant="primary" onClick={() => selectSentence(problemText.current, log)}>
           Выделить первое предложение
-        </button>
-        <button
-          type="button"
-          className={shell.btn}
+        </LabButton>
+        <LabButton
           onClick={() => {
             const sel = window.getSelection()
             log('info', `сейчас: «${sel?.toString() || '(пусто)'}», ranges=${sel?.rangeCount ?? 0}`)
           }}
         >
           Что выделено
-        </button>
+        </LabButton>
       </div>
       <LabLogView lines={lines} />
     </div>
@@ -66,16 +61,10 @@ export function SelectionRangeLab() {
         Платёж подтверждён. Сумма списана со счёта. Сохраните чек.
       </p>
       <div className={shell.row}>
-        <button
-          type="button"
-          className={shell.btn}
-          onClick={() => selectSentence(sandboxText.current, log)}
-        >
+        <LabButton onClick={() => selectSentence(sandboxText.current, log)}>
           Выделить предложение
-        </button>
-        <button
-          type="button"
-          className={shell.btn}
+        </LabButton>
+        <LabButton
           onClick={() => {
             const sel = window.getSelection()
             if (!sel || sel.rangeCount === 0) {
@@ -95,20 +84,16 @@ export function SelectionRangeLab() {
           }}
         >
           Расширить +5
-        </button>
-        <button
-          type="button"
-          className={shell.btn}
+        </LabButton>
+        <LabButton
           onClick={() => {
             window.getSelection()?.removeAllRanges()
             log('info', 'selection очищен')
           }}
         >
           Снять выделение
-        </button>
-        <button type="button" className={shell.btn} onClick={clear}>
-          Очистить лог
-        </button>
+        </LabButton>
+        <LabButton onClick={clear}>Очистить лог</LabButton>
       </div>
       <LabLogView lines={lines} />
     </div>

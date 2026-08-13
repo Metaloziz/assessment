@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { JsLabShell } from '../../components/lab/JsLabShell'
 import shell from '../../components/lab/JsLabShell.module.css'
+import { LabButton } from '../../components/lab/LabButton'
 import { LabCodePanel } from '../../components/lab/LabCodePanel'
 import { LabLogView } from '../../components/lab/LabLogView'
 import { useLabLog } from '../../components/lab/useLabLog'
@@ -21,9 +22,7 @@ export function ArrowSyntaxLab() {
         <li>Сравните с блоком и явным <code>return</code>.</li>
       </ol>
       <div className={shell.row}>
-        <button
-          type="button"
-          className={shell.btn}
+        <LabButton
           onClick={() => {
             const broken = () => {
               // выглядит как объект, но это блок
@@ -33,17 +32,16 @@ export function ArrowSyntaxLab() {
           }}
         >
           Сломанный return объекта
-        </button>
-        <button
-          type="button"
-          className={shell.btnPrimary}
+        </LabButton>
+        <LabButton
+          variant="primary"
           onClick={() => {
             const ok = () => ({ name })
             log('ok', `() => ({ name }) → ${JSON.stringify(ok())}`)
           }}
         >
           Правильно со скобками
-        </button>
+        </LabButton>
       </div>
       <LabLogView lines={lines} />
     </div>
@@ -56,16 +54,10 @@ export function ArrowSyntaxLab() {
         <input value={name} onChange={(e) => setName(e.target.value)} />
       </div>
       <div className={shell.row}>
-        <button
-          type="button"
-          className={shell.btn}
-          onClick={() => log('info', `x => x*2 → ${(x => x * 2)(21)}`)}
-        >
+        <LabButton onClick={() => log('info', `x => x*2 → ${(x => x * 2)(21)}`)}>
           Короткий return
-        </button>
-        <button
-          type="button"
-          className={shell.btn}
+        </LabButton>
+        <LabButton
           onClick={() => {
             const f = (n: string) => {
               return n.toUpperCase()
@@ -74,10 +66,8 @@ export function ArrowSyntaxLab() {
           }}
         >
           Блок + return
-        </button>
-        <button type="button" className={shell.btn} onClick={clear}>
-          Очистить
-        </button>
+        </LabButton>
+        <LabButton onClick={clear}>Очистить</LabButton>
       </div>
       <LabLogView lines={lines} />
     </div>

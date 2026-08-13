@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { LabButton } from '../../components/lab/LabButton'
 import { LabCodePanel } from '../../components/lab/LabCodePanel'
 import styles from './LiveIndexedDbLab.module.css'
 
@@ -347,14 +348,9 @@ function DraftList({
             <p className={styles.itemText}>{d.body || '—'}</p>
             <code className={styles.id}>{d.id}</code>
           </div>
-          <button
-            type="button"
-            className="uiBtn uiBtnGhost"
-            disabled={busy}
-            onClick={() => onDelete(d.id)}
-          >
+          <LabButton variant="secondary" disabled={busy} onClick={() => onDelete(d.id)}>
             Delete
-          </button>
+          </LabButton>
         </li>
       ))}
     </ul>
@@ -411,17 +407,12 @@ export function IndexedDbProblemPanel({ lab }: { lab: IndexedDbLabApi }) {
       </label>
 
       <div className={styles.actions}>
-        <button type="button" className="uiBtn uiBtnPrimary" disabled={busy} onClick={() => void saveDraft()}>
+        <LabButton variant="primary" disabled={busy} onClick={() => void saveDraft()}>
           Сохранить черновик
-        </button>
-        <button
-          type="button"
-          className="uiBtn uiBtnGhost"
-          disabled={busy}
-          onClick={() => void refreshFromDb()}
-        >
+        </LabButton>
+        <LabButton variant="secondary" disabled={busy} onClick={() => void refreshFromDb()}>
           Показать сохранённые
-        </button>
+        </LabButton>
       </div>
 
       <DraftList drafts={drafts} busy={busy} onDelete={(id) => void removeDraft(id)} />
@@ -504,29 +495,24 @@ export function IndexedDbSandboxPanel({ lab }: { lab: IndexedDbLabApi }) {
       </div>
 
       <div className={styles.actions}>
-        <button type="button" className="uiBtn uiBtnPrimary" disabled={busy} onClick={() => void saveDraft()}>
+        <LabButton variant="primary" disabled={busy} onClick={() => void saveDraft()}>
           put
-        </button>
-        <button type="button" className="uiBtn uiBtnGhost" disabled={busy} onClick={() => void lookup()}>
+        </LabButton>
+        <LabButton variant="secondary" disabled={busy} onClick={() => void lookup()}>
           get
-        </button>
-        <button
-          type="button"
-          className="uiBtn uiBtnGhost"
-          disabled={busy}
-          onClick={() => void refreshFromDb()}
-        >
+        </LabButton>
+        <LabButton variant="secondary" disabled={busy} onClick={() => void refreshFromDb()}>
           list / index
-        </button>
-        <button type="button" className="uiBtn uiBtnGhost" disabled={busy} onClick={() => void seedSamples()}>
+        </LabButton>
+        <LabButton variant="secondary" disabled={busy} onClick={() => void seedSamples()}>
           seed
-        </button>
-        <button type="button" className="uiBtn uiBtnGhost" disabled={busy} onClick={() => void clearAll()}>
+        </LabButton>
+        <LabButton variant="secondary" disabled={busy} onClick={() => void clearAll()}>
           clear
-        </button>
-        <button type="button" className="uiBtn uiBtnDanger" disabled={busy} onClick={() => void dropDb()}>
+        </LabButton>
+        <LabButton variant="danger" disabled={busy} onClick={() => void dropDb()}>
           delete DB
-        </button>
+        </LabButton>
       </div>
 
       <DraftList drafts={drafts} busy={busy} onDelete={(id) => void removeDraft(id)} />

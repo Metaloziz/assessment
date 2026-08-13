@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from 'react'
+import { LabButton } from '../../components/lab/LabButton'
 import { LabCodePanel } from '../../components/lab/LabCodePanel'
 import styles from './ServerClustersLab.module.css'
 
@@ -326,21 +327,13 @@ function ClusterBoard({ lab }: { lab: LiveServerClustersApi }) {
             </div>
             <div className={styles.nodeActions}>
               {node.alive ? (
-                <button
-                  type="button"
-                  className="uiBtn uiBtnDanger"
-                  onClick={() => lab.killNode(node.id)}
-                >
+                <LabButton variant="danger" onClick={() => lab.killNode(node.id)}>
                   Kill node
-                </button>
+                </LabButton>
               ) : (
-                <button
-                  type="button"
-                  className="uiBtn uiBtnGhost"
-                  onClick={() => lab.restoreNode(node.id)}
-                >
+                <LabButton variant="secondary" onClick={() => lab.restoreNode(node.id)}>
                   Restore
-                </button>
+                </LabButton>
               )}
             </div>
           </article>
@@ -369,30 +362,30 @@ export function ClustersProblemPanel({ lab }: { lab: LiveServerClustersApi }) {
       <StatusRow lab={lab} />
 
       <div className={styles.actions}>
-        <button type="button" className="uiBtn uiBtnGhost" onClick={lab.demoSingleServer}>
+        <LabButton variant="secondary" onClick={lab.demoSingleServer}>
           1. Один сервер
-        </button>
-        <button type="button" className="uiBtn uiBtnDanger" onClick={() => lab.killNode('n1')}>
+        </LabButton>
+        <LabButton variant="danger" onClick={() => lab.killNode('n1')}>
           2. Убить сервер
-        </button>
-        <button type="button" className="uiBtn uiBtnPrimary" onClick={lab.sendTraffic}>
+        </LabButton>
+        <LabButton variant="primary" onClick={lab.sendTraffic}>
           Проверить трафик
-        </button>
+        </LabButton>
       </div>
 
       <div className={styles.actions}>
-        <button type="button" className="uiBtn uiBtnPrimary" onClick={lab.demoManagedCluster}>
+        <LabButton variant="primary" onClick={lab.demoManagedCluster}>
           3. Кластер + менеджер ×3
-        </button>
-        <button type="button" className="uiBtn uiBtnDanger" onClick={() => lab.killNode('n1')}>
+        </LabButton>
+        <LabButton variant="danger" onClick={() => lab.killNode('n1')}>
           4. Убить node-1
-        </button>
-        <button type="button" className="uiBtn uiBtnPrimary" onClick={lab.sendTraffic}>
+        </LabButton>
+        <LabButton variant="primary" onClick={lab.sendTraffic}>
           5. Снова трафик
-        </button>
-        <button type="button" className="uiBtn uiBtnGhost" onClick={lab.reset}>
+        </LabButton>
+        <LabButton variant="secondary" onClick={lab.reset}>
           Сброс
-        </button>
+        </LabButton>
       </div>
 
       <ClusterBoard lab={lab} />
@@ -446,40 +439,38 @@ export function ClustersSandboxPanel({ lab }: { lab: LiveServerClustersApi }) {
 
       <div className={styles.actions}>
         {lab.managerOn ? (
-          <button type="button" className="uiBtn uiBtnGhost" onClick={lab.disableManager}>
+          <LabButton variant="secondary" onClick={lab.disableManager}>
             Manager OFF
-          </button>
+          </LabButton>
         ) : (
-          <button type="button" className="uiBtn uiBtnPrimary" onClick={lab.enableManager}>
+          <LabButton variant="primary" onClick={lab.enableManager}>
             Manager ON
-          </button>
+          </LabButton>
         )}
-        <button
-          type="button"
-          className={`uiBtn ${lab.spread ? 'uiBtnPrimary' : 'uiBtnGhost'}`}
+        <LabButton
+          variant={lab.spread ? 'primary' : 'secondary'}
           onClick={() => lab.setSpread(true)}
         >
           Spread
-        </button>
-        <button
-          type="button"
-          className={`uiBtn ${!lab.spread ? 'uiBtnDanger' : 'uiBtnGhost'}`}
+        </LabButton>
+        <LabButton
+          variant={!lab.spread ? 'danger' : 'secondary'}
           onClick={() => lab.setSpread(false)}
         >
           Pack (антипаттерн)
-        </button>
-        <button type="button" className="uiBtn uiBtnPrimary" onClick={lab.applyDesired}>
+        </LabButton>
+        <LabButton variant="primary" onClick={lab.applyDesired}>
           Apply desired
-        </button>
-        <button type="button" className="uiBtn uiBtnPrimary" onClick={lab.sendTraffic}>
+        </LabButton>
+        <LabButton variant="primary" onClick={lab.sendTraffic}>
           Send traffic
-        </button>
-        <button type="button" className="uiBtn uiBtnGhost" onClick={lab.clearLog}>
+        </LabButton>
+        <LabButton variant="secondary" onClick={lab.clearLog}>
           Очистить лог
-        </button>
-        <button type="button" className="uiBtn uiBtnGhost" onClick={lab.reset}>
+        </LabButton>
+        <LabButton variant="secondary" onClick={lab.reset}>
           Reset
-        </button>
+        </LabButton>
       </div>
 
       <ClusterBoard lab={lab} />

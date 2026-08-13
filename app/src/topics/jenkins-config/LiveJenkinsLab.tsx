@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from 'react'
+import { LabButton } from '../../components/lab/LabButton'
 import { LabCodePanel } from '../../components/lab/LabCodePanel'
 import styles from './JenkinsConfigLab.module.css'
 
@@ -410,28 +411,18 @@ export function JenkinsProblemPanel({ lab }: { lab: LiveJenkinsLabApi }) {
       <StatusRow lab={lab} />
 
       <div className={styles.actions}>
-        <button type="button" className="uiBtn uiBtnGhost" onClick={lab.demoFeatureNoDeploy}>
+        <LabButton variant="secondary" onClick={lab.demoFeatureNoDeploy}>
           1. Feature + when
-        </button>
-        <button
-          type="button"
-          className="uiBtn uiBtnPrimary"
-          disabled={lab.running}
-          onClick={lab.runPipeline}
-        >
+        </LabButton>
+        <LabButton variant="primary" disabled={lab.running} onClick={lab.runPipeline}>
           2. Run pipeline
-        </button>
-        <button type="button" className="uiBtn uiBtnGhost" onClick={lab.demoSafeMain}>
+        </LabButton>
+        <LabButton variant="secondary" onClick={lab.demoSafeMain}>
           3. Пресет main
-        </button>
-        <button
-          type="button"
-          className="uiBtn uiBtnPrimary"
-          disabled={lab.running}
-          onClick={lab.runPipeline}
-        >
+        </LabButton>
+        <LabButton variant="primary" disabled={lab.running} onClick={lab.runPipeline}>
           4. Run снова
-        </button>
+        </LabButton>
       </div>
 
       <p className={styles.tip}>
@@ -457,17 +448,12 @@ export function JenkinsSandboxPanel({ lab }: { lab: LiveJenkinsLabApi }) {
       <ConfigControls lab={lab} />
 
       <div className={styles.actions}>
-        <button
-          type="button"
-          className="uiBtn uiBtnPrimary"
-          disabled={lab.running}
-          onClick={lab.runPipeline}
-        >
+        <LabButton variant="primary" disabled={lab.running} onClick={lab.runPipeline}>
           Run pipeline
-        </button>
-        <button type="button" className="uiBtn uiBtnGhost" onClick={lab.reset}>
+        </LabButton>
+        <LabButton variant="secondary" onClick={lab.reset}>
           Reset
-        </button>
+        </LabButton>
       </div>
 
       <LabLog log={lab.log} />

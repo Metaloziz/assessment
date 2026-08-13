@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState, type CSSProperties } from 'react'
+import { LabButton } from '../../components/lab/LabButton'
 import { LabCodePanel } from '../../components/lab/LabCodePanel'
 import styles from './LiveWorkletsLab.module.css'
 
@@ -157,22 +158,16 @@ export function WorkletsProblemPanel({ lab }: { lab: WorkletsLabApi }) {
       />
 
       <div className={styles.actions}>
-        <button
-          type="button"
-          className="uiBtn uiBtnPrimary"
+        <LabButton
+          variant="primary"
           disabled={busy || !ready}
           onClick={() => setEnabled((v) => !v)}
         >
           {enabled ? 'Выключить фон' : 'Включить фон'}
-        </button>
-        <button
-          type="button"
-          className="uiBtn uiBtnGhost"
-          disabled={busy}
-          onClick={() => void loadWorklet()}
-        >
+        </LabButton>
+        <LabButton variant="secondary" disabled={busy} onClick={() => void loadWorklet()}>
           Перезагрузить worklet
-        </button>
+        </LabButton>
       </div>
 
       <p className={styles.tip}>
@@ -258,22 +253,12 @@ export function WorkletsSandboxPanel({ lab }: { lab: WorkletsLabApi }) {
       </div>
 
       <div className={styles.actions}>
-        <button
-          type="button"
-          className="uiBtn uiBtnPrimary"
-          disabled={!ready}
-          onClick={() => setEnabled((v) => !v)}
-        >
+        <LabButton variant="primary" disabled={!ready} onClick={() => setEnabled((v) => !v)}>
           {enabled ? 'Disable paint' : 'Enable paint'}
-        </button>
-        <button
-          type="button"
-          className="uiBtn uiBtnGhost"
-          disabled={busy}
-          onClick={() => void loadWorklet()}
-        >
+        </LabButton>
+        <LabButton variant="secondary" disabled={busy} onClick={() => void loadWorklet()}>
           addModule again
-        </button>
+        </LabButton>
       </div>
 
       <LabLog log={log} />

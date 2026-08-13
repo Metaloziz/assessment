@@ -1,6 +1,6 @@
 .wrap {
   border: none;
-  border-radius: 6px;
+  border-radius: var(--radius);
   background: var(--code-bg);
   overflow: hidden;
   margin: 0.85rem 0 1.15rem;
@@ -21,7 +21,7 @@
 .meta {
   padding: 0.45rem 1rem 0;
   color: var(--text-faint);
-  font-size: 0.7rem;
+  font-size: var(--font-size-ui-xs);
   text-transform: capitalize;
   letter-spacing: 0.02em;
   font-family: var(--font-sans);

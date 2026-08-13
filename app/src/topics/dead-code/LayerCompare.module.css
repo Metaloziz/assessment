@@ -22,7 +22,7 @@
   padding: 0.45rem 0.5rem;
   font-family: var(--font-mono);
   font-size: var(--lab-font-body);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   cursor: pointer;
 }
 
@@ -73,11 +73,11 @@
 }
 
 .dead .mark {
-  color: #ce9178;
+  color: var(--code-inline);
 }
 
 .alive .mark {
-  color: #b5cea8;
+  color: var(--log-ok);
 }
 
 .body {
@@ -108,9 +108,9 @@
 }
 
 .dead .badge {
-  color: #ce9178;
+  color: var(--code-inline);
 }
 
 .alive .badge {
-  color: #b5cea8;
+  color: var(--log-ok);
 }

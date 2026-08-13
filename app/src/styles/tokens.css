@@ -9,6 +9,7 @@
   --border: #2f2f2f;
   --border-soft: #2a2a2a;
   --text: #ffffffd9;
+  --text-heading: #ffffff;
   --text-muted: #9b9b9b;
   --text-faint: #6f6f6f;
   --accent: #69b1ff;
@@ -32,23 +33,66 @@
   --level-senior-text: #d4bfff;
   --level-senior-border: rgba(183, 148, 246, 0.45);
   --level-senior-bg: rgba(183, 148, 246, 0.12);
-  --btn-primary-bg: #69b1ff;
-  --btn-primary-text: #0f0f0f;
-  --btn-primary-hover: #8bc2ff;
+
+  /* LabButton (canonical chrome button) */
+  --btn-primary-bg: #2f5f8f;
+  --btn-primary-border: #5b9bd5;
+  --btn-primary-text: #ffffff;
+  --btn-primary-hover: #3a74ad;
+  --btn-primary-hover-border: #7eb6e8;
+  --btn-primary-active: #275480;
+  --btn-secondary-bg: #323232;
+  --btn-secondary-border: #5a5a5a;
+  --btn-secondary-text: #ffffff;
+  --btn-secondary-hover: #3d3d3d;
+  --btn-secondary-hover-border: #7a7a7a;
+  --btn-secondary-active: #2c2c2c;
+  --btn-ghost-border: #5a5a5a;
+  --btn-ghost-text: var(--text-muted);
+  --btn-ghost-hover-bg: var(--bg-hover);
+  --btn-ghost-hover-border: #6a6a6a;
+  --btn-ghost-hover-text: var(--text-heading);
   --btn-danger-bg: rgba(255, 115, 138, 0.18);
-  --btn-danger-border: #ff738a;
+  --btn-danger-border: var(--danger);
   --btn-danger-text: #ffc2b5;
-  --btn-ghost-border: #4a4a4a;
-  --btn-ghost-text: #d0d0d0;
-  --font-sans: 'Geist', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --btn-danger-hover-bg: rgba(244, 135, 113, 0.28);
+  --btn-danger-hover-text: #ffe0d8;
+  --btn-inset-shadow: rgba(255, 255, 255, 0.06);
+  --btn-inset-shadow-primary: rgba(255, 255, 255, 0.1);
+
+  /* Inline code in theory / lab chrome (not CodeMirror) */
+  --code-inline: #ce9178;
+  --code-inline-bg: rgba(255, 255, 255, 0.06);
+
+  /* Log / node semantics */
+  --log-ok: var(--ok);
+  --log-err: var(--danger);
+  --log-warn: var(--warn);
+  --log-info: var(--accent-bright);
+  --log-bg: #0d0d0d;
+  --node-idle-bg: rgba(20, 24, 30, 0.55);
+  --stage-bg: rgba(0, 0, 0, 0.2);
+  --field-input-bg: #111111;
+  --scrollbar-thumb: #3a3a3a;
+  --scrollbar-thumb-hover: #505050;
+
+  /* Type */
+  --font-sans: 'Geist Variable', 'Geist', 'Segoe UI', system-ui, -apple-system, sans-serif;
   --font-serif: var(--font-sans);
   --font-mono: 'JetBrains Mono', 'Cascadia Code', 'Consolas', ui-monospace, monospace;
-  --font-size-body: 16px;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-size-ui-xs: 0.7rem;
+  --font-size-ui-sm: 0.8rem;
   --font-size-ui: 13px;
+  --font-size-body: 16px;
   --font-size-h1: 2rem;
   --font-size-h2: 1.35rem;
   --font-size-h3: 1.15rem;
   --line-height-body: 1.65;
+
   /* Lab reading scale — aligned with theory pane */
   --lab-font-title: var(--font-size-h3);
   --lab-font-lead: 1.05rem;
@@ -57,7 +101,23 @@
   --lab-font-meta: 0.85rem;
   --lab-font-mono: 0.875rem;
   --lab-line: var(--line-height-body);
+
+  /* Space */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2.5rem;
+  --lab-section-pad-y: 0.85rem;
+  --lab-section-pad-x: 0.9rem;
+
+  /* Radius */
+  --radius-sm: 4px;
   --radius: 6px;
+  --radius-lg: 8px;
+  --radius-pill: 999px;
+
   --sidebar-width: 300px;
   /* Max content width when «Темы»/«Лаборатория» alone (theory hidden, full-bleed dock) */
   --focus-pane-max-width: 52rem;
@@ -82,6 +142,7 @@ body,
 body {
   font-family: var(--font-sans);
   font-size: var(--font-size-body);
+  font-weight: var(--font-weight-regular);
   line-height: var(--line-height-body);
   color: var(--text);
   background: var(--bg-deep);
@@ -104,66 +165,9 @@ a:hover {
   text-decoration: underline;
 }
 
-/* Interactive controls — high contrast on dark chrome */
-.uiBtn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.4rem;
-  border-radius: 4px;
-  border: 1px solid transparent;
-  padding: 0.5rem 0.95rem;
-  cursor: pointer;
-  font-size: 1rem;
-  font-weight: 500;
-  line-height: 1.2;
-  transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease, filter 0.12s ease;
-}
-
-.uiBtnPrimary {
-  background: var(--btn-primary-bg);
-  color: var(--btn-primary-text);
-  border-color: var(--btn-primary-bg);
-}
-
-.uiBtn:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-  filter: none;
-}
-
-.uiBtnPrimary:hover:not(:disabled) {
-  background: var(--btn-primary-hover);
-  border-color: var(--btn-primary-hover);
-  filter: brightness(1.05);
-}
-
-.uiBtnDanger {
-  background: var(--btn-danger-bg);
-  color: var(--btn-danger-text);
-  border-color: var(--btn-danger-border);
-}
-
-.uiBtnDanger:hover {
-  background: rgba(244, 135, 113, 0.28);
-  color: #ffe0d8;
-}
-
-.uiBtnGhost {
-  background: var(--bg-elevated);
-  color: var(--btn-ghost-text);
-  border-color: var(--btn-ghost-border);
-}
-
-.uiBtnGhost:hover {
-  background: var(--bg-hover);
-  border-color: #6a6a6a;
-  color: #fff;
-}
-
 ::selection {
   background: var(--selection);
-  color: #fff;
+  color: var(--text-heading);
 }
 
 ::-webkit-scrollbar {
@@ -176,14 +180,14 @@ a:hover {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #3a3a3a;
-  border-radius: 6px;
+  background: var(--scrollbar-thumb);
+  border-radius: var(--radius);
   border: 2px solid transparent;
   background-clip: content-box;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #505050;
+  background: var(--scrollbar-thumb-hover);
   background-clip: content-box;
   border: 2px solid transparent;
 }

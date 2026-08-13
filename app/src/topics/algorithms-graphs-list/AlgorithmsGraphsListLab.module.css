@@ -1,30 +1,14 @@
-.viz {
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background:
-    radial-gradient(120% 80% at 10% 0%, rgba(105, 177, 255, 0.08), transparent 55%),
-    radial-gradient(90% 70% at 90% 100%, rgba(77, 183, 132, 0.06), transparent 50%),
-    var(--bg-elevated);
-  padding: 0.85rem 0.9rem 1rem;
-  overflow: hidden;
-}
-
-.vizCompact {
-  padding: 0.65rem 0.75rem 0.75rem;
-  margin-bottom: 0.75rem;
-}
-
-.vizCompact .graphWrap {
+.compactScene .graphWrap {
   max-width: 280px;
   aspect-ratio: 1 / 0.88;
 }
 
-.vizCompact .nodeValue {
+.compactScene .nodeValue {
   padding: 0.4rem 0.5rem;
   font-size: 0.9rem;
 }
 
-.vizCompact .listRow {
+.compactScene .listRow {
   min-height: 3.25rem;
 }
 
@@ -41,29 +25,6 @@
   flex-wrap: wrap;
   gap: 0.4rem;
   margin-bottom: 0.55rem;
-}
-
-.vizHead {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 0.75rem;
-  margin-bottom: 0.75rem;
-}
-
-.vizTitle {
-  margin: 0;
-  font-size: var(--lab-font-ui);
-  font-weight: 650;
-  color: var(--text);
-  letter-spacing: 0.01em;
-}
-
-.vizMeta {
-  margin: 0;
-  font-family: var(--font-mono);
-  font-size: var(--lab-font-meta);
-  color: var(--text-faint);
 }
 
 /* —— Linked list —— */
@@ -259,7 +220,7 @@
   color: var(--accent-bright);
   font-family: var(--font-mono);
   font-size: 0.8rem;
-  font-weight: 650;
+  font-weight: var(--font-weight-semibold);
   animation: chipIn 0.35s ease both;
 }
 

@@ -5,6 +5,7 @@ import shell from '../../components/lab/JsLabShell.module.css'
 import { InteractiveCodePanel } from '../../components/lab/InteractiveCodePanel'
 import { LabLogView } from '../../components/lab/LabLogView'
 import { useLabLog } from '../../components/lab/useLabLog'
+import { LabVizPanel } from '../../components/lab/LabViz'
 import viz from './AlgorithmsStackHashmapLab.module.css'
 
 const TOPIC_ID = '133-algorithms-stack-hashmap'
@@ -478,13 +479,13 @@ console.log([...frequencies(['a', 'b', 'a', 'c', 'b', 'a'])]);`,
         </LabButton>
       </div>
 
-      <div className={viz.viz} aria-live="polite">
-        <div className={viz.vizHead}>
-          <p className={viz.vizTitle}>{mode === 'stack' ? 'Стек (LIFO)' : 'Hash-map'}</p>
-          <p className={viz.vizMeta}>
-            {mode === 'stack' ? 'верхняя тарелка = peek' : `демо [${DEMO_NUMS.join(', ')}] → ${DEMO_TARGET}`}
-          </p>
-        </div>
+      <LabVizPanel
+        aria-live="polite"
+        title={mode === 'stack' ? 'Стек (LIFO)' : 'Hash-map'}
+        meta={
+          mode === 'stack' ? 'верхняя тарелка = peek' : `демо [${DEMO_NUMS.join(', ')}] → ${DEMO_TARGET}`
+        }
+      >
         {mode === 'stack' ? (
           <StackViz
             stack={stackFrame.stack}
@@ -495,7 +496,7 @@ console.log([...frequencies(['a', 'b', 'a', 'c', 'b', 'a'])]);`,
         ) : (
           <HashViz nums={DEMO_NUMS} frame={hashFrame} />
         )}
-      </div>
+      </LabVizPanel>
 
       {hint ? (
         <p className={shell.hint}>
@@ -530,15 +531,11 @@ console.log([...frequencies(['a', 'b', 'a', 'c', 'b', 'a'])]);`,
         </LabButton>
       </div>
 
-      <div className={`${viz.viz} ${viz.vizCompact}`}>
-        <div className={viz.vizHead}>
-          <p className={viz.vizTitle}>
-            {codeMode === 'stack' ? 'Стопка LIFO' : 'Ключ → значение'}
-          </p>
-          <p className={viz.vizMeta}>
-            {codeMode === 'stack' ? 'push / pop с вершины' : 'корзины Map ≈ O(1)'}
-          </p>
-        </div>
+      <LabVizPanel
+        compact
+        title={codeMode === 'stack' ? 'Стопка LIFO' : 'Ключ → значение'}
+        meta={codeMode === 'stack' ? 'push / pop с вершины' : 'корзины Map ≈ O(1)'}
+      >
         {codeMode === 'stack' ? (
           <StackViz stack={['{', '[', '(']} cursor=")" action="пример: сейчас pop ↔ )" status="run" />
         ) : (
@@ -554,7 +551,7 @@ console.log([...frequencies(['a', 'b', 'a', 'c', 'b', 'a'])]);`,
             }}
           />
         )}
-      </div>
+      </LabVizPanel>
 
       <InteractiveCodePanel
         key={codeMode}

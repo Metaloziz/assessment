@@ -6,6 +6,7 @@ import shell from '../../components/lab/JsLabShell.module.css'
 import { InteractiveCodePanel, type InteractiveSnippet } from '../../components/lab/InteractiveCodePanel'
 import { LabLogView } from '../../components/lab/LabLogView'
 import { useLabLog } from '../../components/lab/useLabLog'
+import { LabVizPanel, labVizStyles } from '../../components/lab/LabViz'
 import styles from './PatternsFactoryProxyAdapterLab.module.css'
 
 const TOPIC_ID = '159-patterns-factory-prototype-proxy-singleton-adapter'
@@ -280,7 +281,7 @@ function reducedMotion() {
 }
 
 function nodeCls(...mods: Array<string | false | undefined>) {
-  return [styles.node, ...mods.filter(Boolean)].join(' ')
+  return [labVizStyles.node, ...mods.filter(Boolean)].join(' ')
 }
 
 function playTimeline(
@@ -320,39 +321,35 @@ function FactoryViz({ phase, caseId, productRef }: FactoryVizProps) {
   const productLabel = viaFactory ? 'SmsToast' : 'EmailToast'
 
   return (
-    <div className={styles.viz}>
-      <div className={styles.vizHead}>
-        <p className={styles.vizTitle}>Каталог toast</p>
-        <p className={styles.vizMeta}>{viaFactory ? 'createToast(channel)' : 'хардкод JSX'}</p>
-      </div>
+    <LabVizPanel title="Каталог toast" meta={viaFactory ? 'createToast(channel)' : 'хардкод JSX'}>
       <div className={styles.catalog}>
-        <div className={nodeCls(clientOn && styles.nodeActive, productOn && styles.nodeOk)}>
-          <span className={styles.nodeLabel}>Checkout</span>
-          <span className={styles.nodeSub}>{viaFactory ? 'channel' : '<EmailToast />'}</span>
+        <div className={nodeCls(clientOn && labVizStyles.nodeActive, productOn && labVizStyles.nodeOk)}>
+          <span className={labVizStyles.nodeLabel}>Checkout</span>
+          <span className={labVizStyles.nodeSub}>{viaFactory ? 'channel' : '<EmailToast />'}</span>
         </div>
         <div className={styles.slots}>
-          <div className={`${styles.node} ${styles.slot}${viaFactory ? '' : ` ${styles.nodeSkipped}`}`}>
-            <span className={styles.nodeLabel}>email</span>
-            <span className={styles.nodeSub}>слот</span>
+          <div className={`${labVizStyles.node} ${styles.slot}${viaFactory ? '' : ` ${styles.nodeSkipped}`}`}>
+            <span className={labVizStyles.nodeLabel}>email</span>
+            <span className={labVizStyles.nodeSub}>слот</span>
           </div>
           <div
-            className={`${styles.node} ${styles.slot}${viaFactory ? '' : ` ${styles.nodeSkipped}`}${
-              slotOn && viaFactory ? ` ${styles.nodeActive}` : ''
-            }${productOn && viaFactory ? ` ${styles.nodeOk}` : ''}`}
+            className={`${labVizStyles.node} ${styles.slot}${viaFactory ? '' : ` ${styles.nodeSkipped}`}${
+              slotOn && viaFactory ? ` ${labVizStyles.nodeActive}` : ''
+            }${productOn && viaFactory ? ` ${labVizStyles.nodeOk}` : ''}`}
           >
-            <span className={styles.nodeLabel}>sms</span>
-            <span className={styles.nodeSub}>{slotOn && viaFactory ? 'штамп' : 'слот'}</span>
+            <span className={labVizStyles.nodeLabel}>sms</span>
+            <span className={labVizStyles.nodeSub}>{slotOn && viaFactory ? 'штамп' : 'слот'}</span>
           </div>
         </div>
         <div
           ref={productRef}
-          className={`${styles.node} ${styles.stamp}${productOn ? ` ${styles.nodeOk}` : ''}`}
+          className={`${labVizStyles.node} ${styles.stamp}${productOn ? ` ${labVizStyles.nodeOk}` : ''}`}
         >
-          <span className={styles.nodeLabel}>{productOn ? productLabel : '—'}</span>
-          <span className={styles.nodeSub}>{productOn ? 'в дереве' : 'ждёт штамп'}</span>
+          <span className={labVizStyles.nodeLabel}>{productOn ? productLabel : '—'}</span>
+          <span className={labVizStyles.nodeSub}>{productOn ? 'в дереве' : 'ждёт штамп'}</span>
         </div>
       </div>
-    </div>
+    </LabVizPanel>
   )
 }
 
@@ -370,15 +367,14 @@ function PrototypeViz({ phase, caseId, cloneRef }: ProtoVizProps) {
   const protoNewsletter = shared ? 'true' : 'false'
 
   return (
-    <div className={styles.viz}>
-      <div className={styles.vizHead}>
-        <p className={styles.vizTitle}>Черновик формы</p>
-        <p className={styles.vizMeta}>{caseId === 'shallow' ? '{ ...proto }' : 'structuredClone'}</p>
-      </div>
+    <LabVizPanel
+      title="Черновик формы"
+      meta={caseId === 'shallow' ? '{ ...proto }' : 'structuredClone'}
+    >
       <div className={styles.protoRow}>
-        <div className={nodeCls(cloned && styles.nodeActive, shared && styles.nodeWarn, styles.objCard)}>
-          <span className={styles.nodeLabel}>formProto</span>
-          <span className={styles.nodeSub}>образец</span>
+        <div className={nodeCls(cloned && labVizStyles.nodeActive, shared && styles.nodeWarn, styles.objCard)}>
+          <span className={labVizStyles.nodeLabel}>formProto</span>
+          <span className={labVizStyles.nodeSub}>образец</span>
           <ul className={styles.objFields}>
             <li className={styles.fieldRow}>
               <span>locale</span>
@@ -396,13 +392,13 @@ function PrototypeViz({ phase, caseId, cloneRef }: ProtoVizProps) {
         <div
           ref={cloneRef}
           className={nodeCls(
-            cloned && styles.nodeActive,
-            mutated && (shared ? styles.nodeWarn : styles.nodeOk),
+            cloned && labVizStyles.nodeActive,
+            mutated && (shared ? styles.nodeWarn : labVizStyles.nodeOk),
             styles.objCard,
           )}
         >
-          <span className={styles.nodeLabel}>draft</span>
-          <span className={styles.nodeSub}>{cloned ? 'clone' : 'ещё нет'}</span>
+          <span className={labVizStyles.nodeLabel}>draft</span>
+          <span className={labVizStyles.nodeSub}>{cloned ? 'clone' : 'ещё нет'}</span>
           {cloned ? (
             <ul className={styles.objFields}>
               <li className={styles.fieldRow}>
@@ -417,7 +413,7 @@ function PrototypeViz({ phase, caseId, cloneRef }: ProtoVizProps) {
           ) : null}
         </div>
       </div>
-    </div>
+    </LabVizPanel>
   )
 }
 
@@ -437,23 +433,19 @@ function ProxyViz({ phase, caseId, cacheRef }: ProxyVizProps) {
   const cacheMiss = !hit && (phase === 'real' || phase === 'done')
 
   return (
-    <div className={styles.viz}>
-      <div className={styles.vizHead}>
-        <p className={styles.vizTitle}>get(id)</p>
-        <p className={styles.vizMeta}>{hit ? 'повторный вызов' : 'первый вызов'}</p>
-      </div>
+    <LabVizPanel title="get(id)" meta={hit ? 'повторный вызов' : 'первый вызов'}>
       <div className={styles.proxyRow}>
-        <div className={nodeCls(clientOn && styles.nodeActive, phase === 'done' && styles.nodeOk)}>
-          <span className={styles.nodeLabel}>Client</span>
-          <span className={styles.nodeSub}>useUserApi</span>
+        <div className={nodeCls(clientOn && labVizStyles.nodeActive, phase === 'done' && labVizStyles.nodeOk)}>
+          <span className={labVizStyles.nodeLabel}>Client</span>
+          <span className={labVizStyles.nodeSub}>useUserApi</span>
         </div>
         <div
-          className={`${styles.node} ${styles.proxyBox}${proxyOn ? ` ${styles.nodeActive}` : ''}${
-            phase === 'done' ? ` ${styles.nodeOk}` : ''
+          className={`${labVizStyles.node} ${styles.proxyBox}${proxyOn ? ` ${labVizStyles.nodeActive}` : ''}${
+            phase === 'done' ? ` ${labVizStyles.nodeOk}` : ''
           }`}
         >
-          <span className={styles.nodeLabel}>Proxy</span>
-          <span className={styles.nodeSub}>тот же get(id)</span>
+          <span className={labVizStyles.nodeLabel}>Proxy</span>
+          <span className={labVizStyles.nodeSub}>тот же get(id)</span>
           <span
             ref={cacheRef}
             className={`${styles.cacheBadge}${cacheHit ? ` ${styles.cacheHit}` : ''}${
@@ -465,16 +457,16 @@ function ProxyViz({ phase, caseId, cacheRef }: ProxyVizProps) {
         </div>
         <div
           className={nodeCls(
-            realOn && !hit && styles.nodeActive,
-            phase === 'done' && !hit && styles.nodeOk,
+            realOn && !hit && labVizStyles.nodeActive,
+            phase === 'done' && !hit && labVizStyles.nodeOk,
             realSkip && styles.nodeSkipped,
           )}
         >
-          <span className={styles.nodeLabel}>Real API</span>
-          <span className={styles.nodeSub}>{realSkip ? 'не трогаем' : 'get(id)'}</span>
+          <span className={labVizStyles.nodeLabel}>Real API</span>
+          <span className={labVizStyles.nodeSub}>{realSkip ? 'не трогаем' : 'get(id)'}</span>
         </div>
       </div>
-    </div>
+    </LabVizPanel>
   )
 }
 
@@ -490,38 +482,34 @@ function SingletonViz({ phase, caseId, chipRef }: SingleVizProps) {
   const done = phase === 'done'
 
   return (
-    <div className={styles.viz}>
-      <div className={styles.vizHead}>
-        <p className={styles.vizTitle}>Конфиг приложения</p>
-        <p className={styles.vizMeta}>{shared ? 'один экземпляр' : 'два new'}</p>
-      </div>
+    <LabVizPanel title="Конфиг приложения" meta={shared ? 'один экземпляр' : 'два new'}>
       <div className={styles.singleRow}>
         <div className={styles.callCol}>
-          <div className={nodeCls(calling && styles.nodeActive, done && styles.nodeOk)}>
-            <span className={styles.nodeLabel}>Checkout</span>
-            <span className={styles.nodeSub}>{shared ? 'getConfig()' : 'new Config()'}</span>
+          <div className={nodeCls(calling && labVizStyles.nodeActive, done && labVizStyles.nodeOk)}>
+            <span className={labVizStyles.nodeLabel}>Checkout</span>
+            <span className={labVizStyles.nodeSub}>{shared ? 'getConfig()' : 'new Config()'}</span>
           </div>
-          <div className={nodeCls(calling && styles.nodeActive, done && styles.nodeOk)}>
-            <span className={styles.nodeLabel}>Settings</span>
-            <span className={styles.nodeSub}>{shared ? 'getConfig()' : 'new Config()'}</span>
+          <div className={nodeCls(calling && labVizStyles.nodeActive, done && labVizStyles.nodeOk)}>
+            <span className={labVizStyles.nodeLabel}>Settings</span>
+            <span className={labVizStyles.nodeSub}>{shared ? 'getConfig()' : 'new Config()'}</span>
           </div>
         </div>
         <div className={styles.chipCol} ref={chipRef}>
           <div
-            className={`${styles.node} ${styles.chip}${done ? ` ${styles.nodeOk}` : calling ? ` ${styles.nodeActive}` : ''}`}
+            className={`${labVizStyles.node} ${styles.chip}${done ? ` ${labVizStyles.nodeOk}` : calling ? ` ${labVizStyles.nodeActive}` : ''}`}
           >
-            <span className={styles.nodeLabel}>{shared ? '#1' : '#1'}</span>
-            <span className={styles.nodeSub}>{shared ? 'тот же объект' : 'экземпляр A'}</span>
+            <span className={labVizStyles.nodeLabel}>{shared ? '#1' : '#1'}</span>
+            <span className={labVizStyles.nodeSub}>{shared ? 'тот же объект' : 'экземпляр A'}</span>
           </div>
           {shared ? null : (
-            <div className={`${styles.node} ${styles.chip}${done ? ` ${styles.nodeWarn}` : calling ? ` ${styles.nodeActive}` : ''}`}>
-              <span className={styles.nodeLabel}>#2</span>
-              <span className={styles.nodeSub}>экземпляр B</span>
+            <div className={`${labVizStyles.node} ${styles.chip}${done ? ` ${styles.nodeWarn}` : calling ? ` ${labVizStyles.nodeActive}` : ''}`}>
+              <span className={labVizStyles.nodeLabel}>#2</span>
+              <span className={labVizStyles.nodeSub}>экземпляр B</span>
             </div>
           )}
         </div>
       </div>
-    </div>
+    </LabVizPanel>
   )
 }
 
@@ -539,39 +527,35 @@ function AdapterViz({ phase, caseId, adapterRef }: AdaptVizProps) {
   const mismatch = !withAdapter && done
 
   return (
-    <div className={styles.viz}>
-      <div className={styles.vizHead}>
-        <p className={styles.vizTitle}>Оплата</p>
-        <p className={styles.vizMeta}>{withAdapter ? 'рубли → центы' : 'контракты не сходятся'}</p>
-      </div>
+    <LabVizPanel title="Оплата" meta={withAdapter ? 'рубли → центы' : 'контракты не сходятся'}>
       <div className={styles.adaptRow}>
         <div
-          className={`${styles.node} ${styles.plug}${clientOn ? ` ${styles.nodeActive}` : ''}${
-            done && withAdapter ? ` ${styles.nodeOk}` : ''
-          }${mismatch ? ` ${styles.nodeErr}` : ''}`}
+          className={`${labVizStyles.node} ${styles.plug}${clientOn ? ` ${labVizStyles.nodeActive}` : ''}${
+            done && withAdapter ? ` ${labVizStyles.nodeOk}` : ''
+          }${mismatch ? ` ${labVizStyles.nodeErr}` : ''}`}
         >
-          <span className={styles.nodeLabel}>UI</span>
-          <span className={styles.nodeSub}>charge(100 ₽)</span>
+          <span className={labVizStyles.nodeLabel}>UI</span>
+          <span className={labVizStyles.nodeSub}>charge(100 ₽)</span>
         </div>
         <div
           ref={adapterRef}
-          className={`${styles.node} ${styles.translator}${withAdapter ? '' : ` ${styles.nodeSkipped}`}${
-            withAdapter && midOn ? ` ${styles.nodeActive}` : ''
-          }${withAdapter && done ? ` ${styles.nodeOk}` : ''}`}
+          className={`${labVizStyles.node} ${styles.translator}${withAdapter ? '' : ` ${styles.nodeSkipped}`}${
+            withAdapter && midOn ? ` ${labVizStyles.nodeActive}` : ''
+          }${withAdapter && done ? ` ${labVizStyles.nodeOk}` : ''}`}
         >
-          <span className={styles.nodeLabel}>{withAdapter ? 'Adapter' : '—'}</span>
-          <span className={styles.nodeSub}>{withAdapter && midOn ? '×100' : 'переводчик'}</span>
+          <span className={labVizStyles.nodeLabel}>{withAdapter ? 'Adapter' : '—'}</span>
+          <span className={labVizStyles.nodeSub}>{withAdapter && midOn ? '×100' : 'переводчик'}</span>
         </div>
         <div
-          className={`${styles.node} ${styles.plug}${midOn && withAdapter ? ` ${styles.nodeActive}` : ''}${
-            done && withAdapter ? ` ${styles.nodeOk}` : ''
-          }${mismatch ? ` ${styles.nodeErr}` : ''}`}
+          className={`${labVizStyles.node} ${styles.plug}${midOn && withAdapter ? ` ${labVizStyles.nodeActive}` : ''}${
+            done && withAdapter ? ` ${labVizStyles.nodeOk}` : ''
+          }${mismatch ? ` ${labVizStyles.nodeErr}` : ''}`}
         >
-          <span className={styles.nodeLabel}>legacy SDK</span>
-          <span className={styles.nodeSub}>makePayment({'{ cents }'})</span>
+          <span className={labVizStyles.nodeLabel}>legacy SDK</span>
+          <span className={labVizStyles.nodeSub}>makePayment({'{ cents }'})</span>
         </div>
       </div>
-    </div>
+    </LabVizPanel>
   )
 }
 

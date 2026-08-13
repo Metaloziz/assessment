@@ -6,6 +6,7 @@ import shell from '../../components/lab/JsLabShell.module.css'
 import { InteractiveCodePanel, type InteractiveSnippet } from '../../components/lab/InteractiveCodePanel'
 import { LabLogView } from '../../components/lab/LabLogView'
 import { useLabLog } from '../../components/lab/useLabLog'
+import { LabVizPanel, labVizStyles } from '../../components/lab/LabViz'
 import styles from './PatternsChainStrategyDecoratorLab.module.css'
 
 const TOPIC_ID = '160-patterns-chain-abstract-factory-strategy-decorator'
@@ -231,7 +232,7 @@ function reducedMotion() {
 }
 
 function nodeCls(...mods: Array<string | false | undefined>) {
-  return [styles.node, ...mods.filter(Boolean)].join(' ')
+  return [labVizStyles.node, ...mods.filter(Boolean)].join(' ')
 }
 
 function playTimeline(
@@ -270,14 +271,14 @@ function layerState(
 ): string {
   const order: ChainLayer[] = ['idle', 'auth', 'rate', 'handler', 'done']
   if (fail && name !== 'auth' && (current === 'err' || current === 'auth')) {
-    return `${styles.node} ${styles.layer} ${styles.nodeSkipped}`
+    return `${labVizStyles.node} ${styles.layer} ${styles.nodeSkipped}`
   }
-  if (fail && name === 'auth' && current === 'err') return `${styles.node} ${styles.layer} ${styles.nodeErr}`
-  if (current === name) return `${styles.node} ${styles.layer} ${styles.nodeActive}`
+  if (fail && name === 'auth' && current === 'err') return `${labVizStyles.node} ${styles.layer} ${labVizStyles.nodeErr}`
+  if (current === name) return `${labVizStyles.node} ${styles.layer} ${labVizStyles.nodeActive}`
   if (current === 'done' || order.indexOf(current) > order.indexOf(name)) {
-    return `${styles.node} ${styles.layer} ${styles.nodeOk}`
+    return `${labVizStyles.node} ${styles.layer} ${labVizStyles.nodeOk}`
   }
-  return `${styles.node} ${styles.layer}`
+  return `${labVizStyles.node} ${styles.layer}`
 }
 
 function ChainViz({ layer, caseId, packetRef }: ChainVizProps) {
@@ -285,29 +286,25 @@ function ChainViz({ layer, caseId, packetRef }: ChainVizProps) {
   const moving = layer !== 'idle'
 
   return (
-    <div className={styles.viz}>
-      <div className={styles.vizHead}>
-        <p className={styles.vizTitle}>POST /api/order</p>
-        <p className={styles.vizMeta}>{fail ? 'stop на auth' : 'пакет падает вниз'}</p>
-      </div>
+    <LabVizPanel title="POST /api/order" meta={fail ? 'stop на auth' : 'пакет падает вниз'}>
       <div className={styles.stackWrap}>
         <div ref={packetRef} className={styles.packet} style={{ opacity: moving ? 1 : 0.55 }}>
           {layer === 'err' ? '403' : 'request'}
         </div>
         <div className={layerState(layer, 'auth', fail)}>
-          <span className={styles.nodeLabel}>auth</span>
-          <span className={styles.nodeSub}>{layer === 'err' ? 'stop' : 'next()'}</span>
+          <span className={labVizStyles.nodeLabel}>auth</span>
+          <span className={labVizStyles.nodeSub}>{layer === 'err' ? 'stop' : 'next()'}</span>
         </div>
         <div className={layerState(layer, 'rate', fail)}>
-          <span className={styles.nodeLabel}>rate</span>
-          <span className={styles.nodeSub}>{fail && (layer === 'err' || layer === 'auth') ? 'не дошли' : 'next()'}</span>
+          <span className={labVizStyles.nodeLabel}>rate</span>
+          <span className={labVizStyles.nodeSub}>{fail && (layer === 'err' || layer === 'auth') ? 'не дошли' : 'next()'}</span>
         </div>
         <div className={layerState(layer, 'handler', fail)}>
-          <span className={styles.nodeLabel}>handler</span>
-          <span className={styles.nodeSub}>order</span>
+          <span className={labVizStyles.nodeLabel}>handler</span>
+          <span className={labVizStyles.nodeSub}>order</span>
         </div>
       </div>
-    </div>
+    </LabVizPanel>
   )
 }
 
@@ -324,34 +321,30 @@ function FamilyViz({ phase, caseId, kitRef }: FamilyVizProps) {
   const warn = mix && shown
 
   return (
-    <div className={styles.viz}>
-      <div className={styles.vizHead}>
-        <p className={styles.vizTitle}>Семейство UI</p>
-        <p className={styles.vizMeta}>{mix ? 'разные линейки' : 'createDarkTheme()'}</p>
-      </div>
+    <LabVizPanel title="Семейство UI" meta={mix ? 'разные линейки' : 'createDarkTheme()'}>
       <div className={styles.family}>
-        <div className={nodeCls(factoryOn && styles.nodeActive, shown && !mix && styles.nodeOk, warn && styles.nodeWarn)}>
-          <span className={styles.nodeLabel}>{mix ? 'вручную' : 'Dark factory'}</span>
-          <span className={styles.nodeSub}>{mix ? 'Button + Input' : 'семейство'}</span>
+        <div className={nodeCls(factoryOn && labVizStyles.nodeActive, shown && !mix && labVizStyles.nodeOk, warn && styles.nodeWarn)}>
+          <span className={labVizStyles.nodeLabel}>{mix ? 'вручную' : 'Dark factory'}</span>
+          <span className={labVizStyles.nodeSub}>{mix ? 'Button + Input' : 'семейство'}</span>
         </div>
         <div className={styles.kit} ref={kitRef}>
           <div
-            className={`${styles.node} ${styles.product} ${styles.productDark}${shown ? ` ${mix ? styles.nodeWarn : styles.nodeOk}` : ''}`}
+            className={`${labVizStyles.node} ${styles.product} ${styles.productDark}${shown ? ` ${mix ? styles.nodeWarn : labVizStyles.nodeOk}` : ''}`}
           >
-            <span className={styles.nodeLabel}>Button</span>
-            <span className={styles.nodeSub}>dark</span>
+            <span className={labVizStyles.nodeLabel}>Button</span>
+            <span className={labVizStyles.nodeSub}>dark</span>
           </div>
           <div
-            className={`${styles.node} ${styles.product} ${mix ? styles.productLight : styles.productDark}${
-              shown ? ` ${mix ? styles.nodeWarn : styles.nodeOk}` : ''
+            className={`${labVizStyles.node} ${styles.product} ${mix ? styles.productLight : styles.productDark}${
+              shown ? ` ${mix ? styles.nodeWarn : labVizStyles.nodeOk}` : ''
             }`}
           >
-            <span className={styles.nodeLabel}>Input</span>
-            <span className={styles.nodeSub}>{mix ? 'light' : 'dark'}</span>
+            <span className={labVizStyles.nodeLabel}>Input</span>
+            <span className={labVizStyles.nodeSub}>{mix ? 'light' : 'dark'}</span>
           </div>
         </div>
       </div>
-    </div>
+    </LabVizPanel>
   )
 }
 
@@ -368,39 +361,35 @@ function StrategyViz({ phase, caseId, slotRef }: StratVizProps) {
   const total = slotted ? (fixed ? '9 500' : '9 000') : '—'
 
   return (
-    <div className={styles.viz}>
-      <div className={styles.vizHead}>
-        <p className={styles.vizTitle}>Checkout total</p>
-        <p className={styles.vizMeta}>base 10 000</p>
-      </div>
+    <LabVizPanel title="Checkout total" meta="base 10 000">
       <div className={styles.strategy}>
-        <div className={`${styles.node} ${styles.context}${picking ? ` ${styles.nodeActive}` : ''}${slotted ? ` ${styles.nodeOk}` : ''}`}>
+        <div className={`${labVizStyles.node} ${styles.context}${picking ? ` ${labVizStyles.nodeActive}` : ''}${slotted ? ` ${labVizStyles.nodeOk}` : ''}`}>
           <div>
-            <span className={styles.nodeLabel}>Context</span>
-            <span className={styles.nodeSub}>total = {total}</span>
+            <span className={labVizStyles.nodeLabel}>Context</span>
+            <span className={labVizStyles.nodeSub}>total = {total}</span>
           </div>
           <div
             ref={slotRef}
             className={`${styles.slot}${slotted ? ` ${styles.slotFilled}` : ''}`}
           >
-            <span className={styles.nodeLabel}>{slotted ? (fixed ? 'fixed' : 'percent') : 'слот стратегии'}</span>
-            <span className={styles.nodeSub}>
+            <span className={labVizStyles.nodeLabel}>{slotted ? (fixed ? 'fixed' : 'percent') : 'слот стратегии'}</span>
+            <span className={labVizStyles.nodeSub}>
               {slotted ? (fixed ? 'base − 500' : 'base × 0.9') : 'пока пусто'}
             </span>
           </div>
         </div>
         <div className={styles.cards}>
-          <div className={`${styles.node} ${styles.card}${fixed && picking ? ` ${styles.nodeActive}` : ''}${fixed && slotted ? ` ${styles.nodeOk}` : ''}`}>
-            <span className={styles.nodeLabel}>fixed</span>
-            <span className={styles.nodeSub}>−500</span>
+          <div className={`${labVizStyles.node} ${styles.card}${fixed && picking ? ` ${labVizStyles.nodeActive}` : ''}${fixed && slotted ? ` ${labVizStyles.nodeOk}` : ''}`}>
+            <span className={labVizStyles.nodeLabel}>fixed</span>
+            <span className={labVizStyles.nodeSub}>−500</span>
           </div>
-          <div className={`${styles.node} ${styles.card}${!fixed && picking ? ` ${styles.nodeActive}` : ''}${!fixed && slotted ? ` ${styles.nodeOk}` : ''}`}>
-            <span className={styles.nodeLabel}>percent</span>
-            <span className={styles.nodeSub}>10%</span>
+          <div className={`${labVizStyles.node} ${styles.card}${!fixed && picking ? ` ${labVizStyles.nodeActive}` : ''}${!fixed && slotted ? ` ${labVizStyles.nodeOk}` : ''}`}>
+            <span className={labVizStyles.nodeLabel}>percent</span>
+            <span className={labVizStyles.nodeSub}>10%</span>
           </div>
         </div>
       </div>
-    </div>
+    </LabVizPanel>
   )
 }
 
@@ -417,11 +406,7 @@ function DecoratorViz({ phase, caseId, ringRef }: DecoVizProps) {
   const done = phase === 'done'
 
   return (
-    <div className={styles.viz}>
-      <div className={styles.vizHead}>
-        <p className={styles.vizTitle}>fetchUser</p>
-        <p className={styles.vizMeta}>{wrapped ? 'тот же API + слой' : 'только core'}</p>
-      </div>
+    <LabVizPanel title="fetchUser" meta={wrapped ? 'тот же API + слой' : 'только core'}>
       <div className={styles.onion}>
         <div
           ref={ringRef}
@@ -430,13 +415,13 @@ function DecoratorViz({ phase, caseId, ringRef }: DecoVizProps) {
           }${wrapped ? '' : ` ${styles.nodeSkipped}`}`}
         >
           <span className={styles.ringCaption}>{wrapped ? 'withMetrics' : 'без обёртки'}</span>
-          <div className={`${styles.node} ${styles.core}${coreOn ? ` ${styles.nodeActive}` : ''}${done ? ` ${styles.nodeOk}` : ''}`}>
-            <span className={styles.nodeLabel}>fetch</span>
-            <span className={styles.nodeSub}>core</span>
+          <div className={`${labVizStyles.node} ${styles.core}${coreOn ? ` ${labVizStyles.nodeActive}` : ''}${done ? ` ${labVizStyles.nodeOk}` : ''}`}>
+            <span className={labVizStyles.nodeLabel}>fetch</span>
+            <span className={labVizStyles.nodeSub}>core</span>
           </div>
         </div>
       </div>
-    </div>
+    </LabVizPanel>
   )
 }
 

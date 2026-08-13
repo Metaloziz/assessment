@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { LabButton } from '../../components/lab/LabButton'
 import styles from './LiveSwLab.module.css'
 
 type WeatherPayload = {
@@ -352,27 +353,26 @@ export function SwProblemPanel({ lab }: { lab: LiveSwLabApi }) {
 
       <div className={styles.actions}>
         {!active ? (
-          <button type="button" className="uiBtn uiBtnPrimary" disabled={busy} onClick={() => void register()}>
+          <LabButton variant="primary" disabled={busy} onClick={() => void register()}>
             Включить SW
-          </button>
+          </LabButton>
         ) : (
-          <button type="button" className="uiBtn uiBtnGhost" disabled={busy} onClick={() => void unregister()}>
+          <LabButton variant="secondary" disabled={busy} onClick={() => void unregister()}>
             Выключить SW
-          </button>
+          </LabButton>
         )}
-        <button
-          type="button"
-          className={`uiBtn ${offline ? 'uiBtnDanger' : 'uiBtnGhost'}`}
+        <LabButton
+          variant={offline ? 'danger' : 'secondary'}
           disabled={busy || !active}
           onClick={() => void toggleOffline()}
         >
           {offline ? 'Offline ON' : 'Симулировать offline'}
-        </button>
+        </LabButton>
       </div>
 
-      <button type="button" className="uiBtn uiBtnPrimary" disabled={busy} onClick={() => void loadWeather()}>
+      <LabButton variant="primary" disabled={busy} onClick={() => void loadWeather()}>
         Загрузить погоду
-      </button>
+      </LabButton>
 
       <WeatherWidget weather={weather} />
 
@@ -418,26 +418,25 @@ export function SwSandboxPanel({ lab }: { lab: LiveSwLabApi }) {
       <StatusBadges active={active} via={via} />
 
       <div className={styles.actions}>
-        <button type="button" className="uiBtn uiBtnPrimary" disabled={busy || active} onClick={() => void register()}>
+        <LabButton variant="primary" disabled={busy || active} onClick={() => void register()}>
           Register
-        </button>
-        <button type="button" className="uiBtn uiBtnGhost" disabled={busy || !active} onClick={() => void unregister()}>
+        </LabButton>
+        <LabButton variant="secondary" disabled={busy || !active} onClick={() => void unregister()}>
           Unregister
-        </button>
-        <button type="button" className="uiBtn uiBtnGhost" disabled={busy} onClick={() => void clearCache()}>
+        </LabButton>
+        <LabButton variant="secondary" disabled={busy} onClick={() => void clearCache()}>
           Clear cache
-        </button>
-        <button
-          type="button"
-          className={`uiBtn ${offline ? 'uiBtnDanger' : 'uiBtnGhost'}`}
+        </LabButton>
+        <LabButton
+          variant={offline ? 'danger' : 'secondary'}
           disabled={busy || !active}
           onClick={() => void toggleOffline()}
         >
           {offline ? 'Offline ON' : 'Offline OFF'}
-        </button>
-        <button type="button" className="uiBtn uiBtnPrimary" disabled={busy} onClick={() => void loadWeather()}>
+        </LabButton>
+        <LabButton variant="primary" disabled={busy} onClick={() => void loadWeather()}>
           Fetch погода
-        </button>
+        </LabButton>
       </div>
 
       <WeatherWidget weather={weather} />

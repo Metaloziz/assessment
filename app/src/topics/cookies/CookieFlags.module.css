@@ -56,12 +56,12 @@
   margin: 0;
   padding: 0.65rem 0.75rem;
   border-radius: var(--radius);
-  background: #121212;
+  background: var(--bg-deep);
   border: 1px solid var(--border);
   font-family: var(--font-mono);
   font-size: var(--lab-font-mono);
   line-height: var(--lab-line);
-  color: #ce9178;
+  color: var(--code-inline);
   white-space: pre-wrap;
   word-break: break-word;
 }
@@ -85,13 +85,13 @@
 }
 
 .ok {
-  color: #b5cea8;
-  border-color: rgba(181, 206, 168, 0.3);
+  color: var(--log-ok);
+  border-color: color-mix(in srgb, var(--log-ok) 30%, transparent);
 }
 
 .warn {
-  color: #ce9178;
-  border-color: rgba(206, 145, 120, 0.35);
+  color: var(--warn);
+  border-color: color-mix(in srgb, var(--warn) 35%, transparent);
 }
 
 .info {

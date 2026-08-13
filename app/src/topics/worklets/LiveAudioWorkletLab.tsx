@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { LabButton } from '../../components/lab/LabButton'
 import { LabCodePanel } from '../../components/lab/LabCodePanel'
 import styles from './LiveWorkletsLab.module.css'
 
@@ -356,13 +357,13 @@ export function AudioWorkletProblemPanel({ lab }: { lab: AudioWorkletLabApi }) {
 
       <div className={styles.actions}>
         {!playing ? (
-          <button type="button" className="uiBtn uiBtnPrimary" disabled={busy} onClick={() => void start()}>
+          <LabButton variant="primary" disabled={busy} onClick={() => void start()}>
             Старт
-          </button>
+          </LabButton>
         ) : (
-          <button type="button" className="uiBtn uiBtnDanger" disabled={busy} onClick={() => void stop()}>
+          <LabButton variant="danger" disabled={busy} onClick={() => void stop()}>
             Стоп
-          </button>
+          </LabButton>
         )}
       </div>
 
@@ -429,13 +430,13 @@ export function AudioWorkletSandboxPanel({ lab }: { lab: AudioWorkletLabApi }) {
 
       <div className={styles.actions}>
         {!playing ? (
-          <button type="button" className="uiBtn uiBtnPrimary" disabled={busy} onClick={() => void start()}>
+          <LabButton variant="primary" disabled={busy} onClick={() => void start()}>
             Start
-          </button>
+          </LabButton>
         ) : (
-          <button type="button" className="uiBtn uiBtnDanger" disabled={busy} onClick={() => void stop()}>
+          <LabButton variant="danger" disabled={busy} onClick={() => void stop()}>
             Stop
-          </button>
+          </LabButton>
         )}
       </div>
 

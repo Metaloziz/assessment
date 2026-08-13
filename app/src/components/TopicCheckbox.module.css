@@ -15,11 +15,11 @@
   width: 0.95rem;
   height: 0.95rem;
   border: 1.5px solid rgba(255, 255, 255, 0.22);
-  border-radius: 3px;
+  border-radius: var(--radius-sm);
   background: transparent;
-  font-size: 0.65rem;
+  font-size: var(--font-size-ui-xs);
   line-height: 1;
-  color: #141414;
+  color: var(--bg-deep);
   transition: border-color 0.12s ease, background 0.12s ease;
 }
 
@@ -31,7 +31,7 @@
 .sm .box {
   width: 0.9rem;
   height: 0.9rem;
-  font-size: 0.6rem;
+  font-size: var(--font-size-ui-xs);
 }
 
 .md .box {
@@ -42,11 +42,11 @@
 .checked .box {
   background: var(--accent);
   border-color: var(--accent);
-  color: #141414;
+  color: var(--bg-deep);
 }
 
 .label {
-  font-size: 0.95rem;
+  font-size: var(--lab-font-ui);
   color: var(--text-muted);
 }
 

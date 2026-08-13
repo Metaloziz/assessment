@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { LabButton } from '../../components/lab/LabButton'
 import { LabCodePanel } from '../../components/lab/LabCodePanel'
 import styles from './LiveWebWorkersLab.module.css'
 import type { HeavyRequest, HeavyResponse } from './heavy.types'
@@ -230,22 +231,12 @@ export function WebWorkersProblemPanel({ lab }: { lab: WebWorkersLabApi }) {
       <p className={styles.hint}>Сумма простых чисел до {limit.toLocaleString('ru-RU')}</p>
 
       <div className={styles.actions}>
-        <button
-          type="button"
-          className="uiBtn uiBtnDanger"
-          disabled={busy != null}
-          onClick={runOnMain}
-        >
+        <LabButton variant="danger" disabled={busy != null} onClick={runOnMain}>
           Считать на странице
-        </button>
-        <button
-          type="button"
-          className="uiBtn uiBtnPrimary"
-          disabled={busy != null}
-          onClick={runOnWorker}
-        >
+        </LabButton>
+        <LabButton variant="primary" disabled={busy != null} onClick={runOnWorker}>
           Считать в Worker
-        </button>
+        </LabButton>
       </div>
 
       <ResultRow label="Страница" value={lastMain} />
@@ -304,25 +295,15 @@ export function WebWorkersSandboxPanel({ lab }: { lab: WebWorkersLabApi }) {
       </label>
 
       <div className={styles.actions}>
-        <button
-          type="button"
-          className="uiBtn uiBtnDanger"
-          disabled={busy != null}
-          onClick={runOnMain}
-        >
+        <LabButton variant="danger" disabled={busy != null} onClick={runOnMain}>
           Main thread
-        </button>
-        <button
-          type="button"
-          className="uiBtn uiBtnPrimary"
-          disabled={busy != null}
-          onClick={runOnWorker}
-        >
+        </LabButton>
+        <LabButton variant="primary" disabled={busy != null} onClick={runOnWorker}>
           Worker
-        </button>
-        <button type="button" className="uiBtn uiBtnGhost" disabled={busy === 'main'} onClick={terminateWorker}>
+        </LabButton>
+        <LabButton variant="secondary" disabled={busy === 'main'} onClick={terminateWorker}>
           terminate()
-        </button>
+        </LabButton>
       </div>
 
       <ResultRow label="Main" value={lastMain} />

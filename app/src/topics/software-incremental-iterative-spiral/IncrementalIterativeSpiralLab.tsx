@@ -7,6 +7,7 @@ import shell from '../../components/lab/JsLabShell.module.css'
 import { InteractiveCodePanel } from '../../components/lab/InteractiveCodePanel'
 import { LabLogView } from '../../components/lab/LabLogView'
 import { useLabLog } from '../../components/lab/useLabLog'
+import { LabNode, LabVizPanel, type LabNodeState } from '../../components/lab/LabViz'
 import styles from './IncrementalIterativeSpiralLab.module.css'
 
 gsap.registerPlugin(useGSAP)
@@ -61,12 +62,13 @@ function kindLabel(kind: FeatureKind, model: Model): string {
   return 'прототип'
 }
 
-function nodeClass(kind: FeatureKind): string {
-  if (kind === 'done') return `${styles.node} ${styles.nodeOk}`
-  if (kind === 'risk') return `${styles.node} ${styles.nodeActive}`
-  if (kind === 'mid') return `${styles.node} ${styles.nodeMid}`
-  if (kind === 'sketch') return `${styles.node} ${styles.nodeSketch}`
-  return styles.node
+function nodeProps(kind: FeatureKind): { state: LabNodeState; className: string } {
+  const base = styles.feature
+  if (kind === 'done') return { state: 'ok', className: base }
+  if (kind === 'risk') return { state: 'active', className: base }
+  if (kind === 'mid') return { state: 'idle', className: `${base} ${styles.nodeMid}` }
+  if (kind === 'sketch') return { state: 'idle', className: `${base} ${styles.nodeSketch}` }
+  return { state: 'idle', className: base }
 }
 
 function metaFor(model: Model, step: Step): string {
@@ -121,23 +123,24 @@ function DeliveryViz({ model, step }: VizProps) {
     model === 'incremental' ? 'Инкремент' : model === 'iterative' ? 'Итерация' : 'Спираль'
 
   return (
-    <div ref={rootRef} className={styles.viz}>
-      <div className={styles.vizHead}>
-        <p className={styles.vizTitle}>{title}</p>
-        <p className={styles.vizMeta}>{metaFor(model, step)}</p>
-      </div>
+    <LabVizPanel ref={rootRef} title={title} meta={metaFor(model, step)}>
       <div className={styles.flow}>
         {FEATURES.map((f) => {
           const kind = featureKind(model, step, f.id)
+          const { state, className } = nodeProps(kind)
           return (
-            <div key={f.id} data-node className={nodeClass(kind)}>
-              <span className={styles.nodeLabel}>{f.label}</span>
-              <span className={styles.nodeSub}>{kindLabel(kind, model)}</span>
-            </div>
+            <LabNode
+              key={f.id}
+              data-node
+              label={f.label}
+              sub={kindLabel(kind, model)}
+              state={state}
+              className={className}
+            />
           )
         })}
       </div>
-    </div>
+    </LabVizPanel>
   )
 }
 

@@ -1,0 +1,90 @@
+.viz {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background:
+    radial-gradient(120% 80% at 10% 0%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 55%),
+    radial-gradient(90% 70% at 90% 100%, color-mix(in srgb, var(--ok) 10%, transparent), transparent 50%),
+    var(--bg-elevated);
+  padding: var(--lab-section-pad-y) var(--lab-section-pad-x) var(--space-4);
+  margin-bottom: var(--lab-section-pad-y);
+  overflow: hidden;
+}
+
+.vizCompact {
+  padding: var(--space-3) var(--lab-section-pad-x) var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.vizHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.vizTitle {
+  margin: 0;
+  font-size: var(--lab-font-ui);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text);
+}
+
+.vizMeta {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-meta);
+  color: var(--text-faint);
+}
+
+.node {
+  flex: 0 0 auto;
+  min-width: 5.5rem;
+  padding: 0.45rem 0.55rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--node-idle-bg);
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-meta);
+  color: var(--text-muted);
+  transition:
+    border-color 0.25s ease,
+    color 0.25s ease,
+    box-shadow 0.25s ease,
+    background 0.25s ease;
+}
+
+.nodeActive {
+  border-color: var(--accent-bright);
+  color: var(--text);
+  background: color-mix(in srgb, var(--accent) 16%, var(--node-idle-bg));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+.nodeOk {
+  border-color: color-mix(in srgb, var(--ok) 55%, var(--border));
+  color: var(--log-ok);
+}
+
+.nodeErr {
+  border-color: color-mix(in srgb, var(--danger) 55%, var(--border));
+  color: var(--log-err);
+}
+
+.nodeLabel {
+  display: block;
+  font-weight: var(--font-weight-semibold);
+  margin-bottom: 0.15rem;
+}
+
+.nodeSub {
+  display: block;
+  color: inherit;
+  opacity: 0.85;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .node {
+    transition: none;
+  }
+}

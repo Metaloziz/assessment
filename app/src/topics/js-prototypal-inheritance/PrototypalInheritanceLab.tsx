@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { JsLabShell } from '../../components/lab/JsLabShell'
 import shell from '../../components/lab/JsLabShell.module.css'
+import { LabButton } from '../../components/lab/LabButton'
 import { LabCodePanel } from '../../components/lab/LabCodePanel'
 import { LabLogView } from '../../components/lab/LabLogView'
 import { useLabLog } from '../../components/lab/useLabLog'
@@ -30,9 +31,8 @@ export function PrototypalInheritanceLab() {
         <li>Вызовите унаследованный метод.</li>
       </ol>
       <div className={shell.row}>
-        <button
-          type="button"
-          className={shell.btnPrimary}
+        <LabButton
+          variant="primary"
           onClick={() => {
             const dog = Object.create(animal) as { kind: string; name?: string; speak: () => string }
             dog.kind = 'dog'
@@ -41,7 +41,7 @@ export function PrototypalInheritanceLab() {
           }}
         >
           Object.create(animal)
-        </button>
+        </LabButton>
       </div>
       <LabLogView lines={lines} />
     </div>
@@ -54,19 +54,15 @@ export function PrototypalInheritanceLab() {
         <input value={dogName} onChange={(e) => setDogName(e.target.value)} />
       </div>
       <div className={shell.row}>
-        <button
-          type="button"
-          className={shell.btn}
+        <LabButton
           onClick={() => {
             const dog = Object.create(animal)
             log('info', `getPrototypeOf(dog)===animal → ${Object.getPrototypeOf(dog) === animal}`)
           }}
         >
           Проверить прототип
-        </button>
-        <button
-          type="button"
-          className={shell.btn}
+        </LabButton>
+        <LabButton
           onClick={() => {
             const dog = Object.create(animal) as { speak: () => string; speakLoud?: () => string }
             dog.speakLoud = function () {
@@ -76,10 +72,8 @@ export function PrototypalInheritanceLab() {
           }}
         >
           Добавить свой метод
-        </button>
-        <button type="button" className={shell.btn} onClick={clear}>
-          Очистить
-        </button>
+        </LabButton>
+        <LabButton onClick={clear}>Очистить</LabButton>
       </div>
       <LabLogView lines={lines} />
     </div>

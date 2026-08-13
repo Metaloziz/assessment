@@ -35,7 +35,7 @@
   padding: 0.4rem 0.5rem;
   font-family: var(--font-sans);
   font-size: var(--lab-font-ui);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   cursor: pointer;
   white-space: nowrap;
   transition:
@@ -63,7 +63,7 @@
 
 .dockTabActive {
   background: var(--bg-active);
-  color: #fff;
+  color: var(--text-heading);
   border-color: var(--border);
 }
 

@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import gsap from 'gsap'
 import { useGSAP } from '@gsap/react'
+import { LabButton } from '../../components/lab/LabButton'
 import styles from './RestoreSimulator.module.css'
 
 gsap.registerPlugin(useGSAP)
@@ -197,27 +198,27 @@ export function RestoreSimulator() {
       </div>
 
       <div className={styles.actions}>
-        <button type="button" className="uiBtn uiBtnGhost" onClick={editWorktree}>
+        <LabButton variant="secondary" onClick={editWorktree}>
           Править файл
-        </button>
-        <button type="button" className="uiBtn uiBtnGhost" onClick={stage}>
+        </LabButton>
+        <LabButton variant="secondary" onClick={stage}>
           git add
-        </button>
-        <button type="button" className="uiBtn uiBtnPrimary" onClick={restoreWorktree}>
+        </LabButton>
+        <LabButton variant="primary" onClick={restoreWorktree}>
           git restore
-        </button>
-        <button type="button" className="uiBtn uiBtnPrimary" onClick={restoreStaged}>
+        </LabButton>
+        <LabButton variant="primary" onClick={restoreStaged}>
           --staged
-        </button>
-        <button type="button" className="uiBtn uiBtnPrimary" onClick={restoreSource}>
+        </LabButton>
+        <LabButton variant="primary" onClick={restoreSource}>
           --source=HEAD~1
-        </button>
-        <button type="button" className="uiBtn uiBtnPrimary" onClick={restoreBoth}>
+        </LabButton>
+        <LabButton variant="primary" onClick={restoreBoth}>
           --staged --worktree
-        </button>
-        <button type="button" className="uiBtn uiBtnGhost" onClick={reset}>
+        </LabButton>
+        <LabButton variant="secondary" onClick={reset}>
           Сброс
-        </button>
+        </LabButton>
       </div>
 
       <pre className={styles.terminal} aria-live="polite">

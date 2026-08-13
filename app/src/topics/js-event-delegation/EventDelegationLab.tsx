@@ -1,6 +1,7 @@
 import { useState, type MouseEvent } from 'react'
 import { JsLabShell } from '../../components/lab/JsLabShell'
 import shell from '../../components/lab/JsLabShell.module.css'
+import { LabButton } from '../../components/lab/LabButton'
 import { LabCodePanel } from '../../components/lab/LabCodePanel'
 import { LabLogView } from '../../components/lab/LabLogView'
 import { useLabLog } from '../../components/lab/useLabLog'
@@ -71,9 +72,7 @@ export function EventDelegationLab() {
       {tasks.map((task) => (
         <li key={`${variant}-${task.id}`} className={shell.listItem} data-task-id={String(task.id)}>
           <span>{task.text}</span>
-          <button
-            type="button"
-            className={shell.btn}
+          <LabButton
             data-action="remove"
             onClick={
               mode === 'each'
@@ -88,7 +87,7 @@ export function EventDelegationLab() {
               ✕
             </span>
             <span> Удалить</span>
-          </button>
+          </LabButton>
         </li>
       ))}
     </ul>
@@ -112,12 +111,10 @@ export function EventDelegationLab() {
       {taskList('problem')}
 
       <div className={shell.row}>
-        <button type="button" className={shell.btnPrimary} onClick={addTask}>
+        <LabButton variant="primary" onClick={addTask}>
           Добавить задачу
-        </button>
-        <button
-          type="button"
-          className={shell.btn}
+        </LabButton>
+        <LabButton
           onClick={() => {
             setTasks(INITIAL)
             setNextId(4)
@@ -125,7 +122,7 @@ export function EventDelegationLab() {
           }}
         >
           Сбросить список
-        </button>
+        </LabButton>
       </div>
       <LabLogView lines={lines} />
     </div>
@@ -139,26 +136,26 @@ export function EventDelegationLab() {
       </p>
 
       <div className={shell.row}>
-        <button
-          type="button"
-          className={mode === 'delegate' ? shell.btnPrimary : shell.btn}
+        <LabButton
+          variant="ghost"
+          active={mode === 'delegate'}
           onClick={() => {
             setMode('delegate')
             log('info', 'режим: один слушатель на ul')
           }}
         >
           Режим: делегирование
-        </button>
-        <button
-          type="button"
-          className={mode === 'each' ? shell.btnPrimary : shell.btn}
+        </LabButton>
+        <LabButton
+          variant="ghost"
+          active={mode === 'each'}
           onClick={() => {
             setMode('each')
             log('info', 'режим: onClick на каждой кнопке')
           }}
         >
           Режим: на каждой кнопке
-        </button>
+        </LabButton>
       </div>
 
       <div className={shell.row}>
@@ -176,22 +173,16 @@ export function EventDelegationLab() {
       {taskList('sandbox')}
 
       <div className={shell.row}>
-        <button type="button" className={shell.btn} onClick={addTask}>
-          Добавить
-        </button>
-        <button
-          type="button"
-          className={shell.btn}
+        <LabButton onClick={addTask}>Добавить</LabButton>
+        <LabButton
           onClick={() => {
             setTasks(INITIAL)
             setNextId(4)
           }}
         >
           Сбросить
-        </button>
-        <button type="button" className={shell.btn} onClick={clear}>
-          Очистить лог
-        </button>
+        </LabButton>
+        <LabButton onClick={clear}>Очистить лог</LabButton>
       </div>
       <LabLogView lines={lines} />
     </div>

@@ -5,6 +5,7 @@ import shell from '../../components/lab/JsLabShell.module.css'
 import { InteractiveCodePanel } from '../../components/lab/InteractiveCodePanel'
 import { LabLogView } from '../../components/lab/LabLogView'
 import { useLabLog } from '../../components/lab/useLabLog'
+import { LabVizPanel } from '../../components/lab/LabViz'
 import viz from './AlgorithmsGraphsListLab.module.css'
 
 const TOPIC_ID = '134-algorithms-graphs-list'
@@ -598,22 +599,19 @@ console.log(dfs(g, 'A'));`,
         </LabButton>
       </div>
 
-      <div className={viz.viz} aria-live="polite">
-        <div className={viz.vizHead}>
-          <p className={viz.vizTitle}>
-            {mode === 'list' ? 'Связный список' : `Граф · ${traverse.toUpperCase()}`}
-          </p>
-          <p className={viz.vizMeta}>
-            {mode === 'list'
-              ? showCycle
-                ? 'разворот + замыкание хвоста'
-                : 'редактруйте значения → live'
-              : graphKind === 'undirected'
-                ? 'рёбра без стрелок'
-                : 'рёбра со стрелками'}
-          </p>
-        </div>
-
+      <LabVizPanel
+        aria-live="polite"
+        title={mode === 'list' ? 'Связный список' : `Граф · ${traverse.toUpperCase()}`}
+        meta={
+          mode === 'list'
+            ? showCycle
+              ? 'разворот + замыкание хвоста'
+              : 'редактруйте значения → live'
+            : graphKind === 'undirected'
+              ? 'рёбра без стрелок'
+              : 'рёбра со стрелками'
+        }
+      >
         {mode === 'list' ? (
           <div className={viz.listScene}>
             <ListChain values={displayBefore} label="до" />
@@ -653,7 +651,7 @@ console.log(dfs(g, 'A'));`,
             )}
           </>
         )}
-      </div>
+      </LabVizPanel>
 
       {hint ? (
         <p className={shell.hint}>
@@ -688,17 +686,16 @@ console.log(dfs(g, 'A'));`,
         </LabButton>
       </div>
 
-      <div className={`${viz.viz} ${viz.vizCompact}`}>
-        <div className={viz.vizHead}>
-          <p className={viz.vizTitle}>
-            {codeMode === 'list' ? 'Цепочка узлов' : 'Вершины и рёбра'}
-          </p>
-          <p className={viz.vizMeta}>
-            {codeMode === 'list'
-              ? 'value + next → … → null'
-              : 'список смежности, ветвления и циклы'}
-          </p>
-        </div>
+      <LabVizPanel
+        compact
+        className={viz.compactScene}
+        title={codeMode === 'list' ? 'Цепочка узлов' : 'Вершины и рёбра'}
+        meta={
+          codeMode === 'list'
+            ? 'value + next → … → null'
+            : 'список смежности, ветвления и циклы'
+        }
+      >
         {codeMode === 'list' ? (
           <div className={viz.listScene}>
             <ListChain values={codePreviewValues} label="пример" />
@@ -725,7 +722,7 @@ console.log(dfs(g, 'A'));`,
             </div>
           </>
         )}
-      </div>
+      </LabVizPanel>
 
       <InteractiveCodePanel
         key={codeMode}

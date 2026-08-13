@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from 'react'
+import { LabButton } from '../../components/lab/LabButton'
 import { LabCodePanel } from '../../components/lab/LabCodePanel'
 import styles from './MesosMarathonLab.module.css'
 
@@ -366,21 +367,13 @@ function ClusterBoard({ lab }: { lab: LiveMesosLabApi }) {
             </div>
             <div className={styles.agentActions}>
               {agent.alive ? (
-                <button
-                  type="button"
-                  className="uiBtn uiBtnDanger"
-                  onClick={() => killAgent(agent.id)}
-                >
+                <LabButton variant="danger" onClick={() => killAgent(agent.id)}>
                   Kill agent
-                </button>
+                </LabButton>
               ) : (
-                <button
-                  type="button"
-                  className="uiBtn uiBtnGhost"
-                  onClick={() => restoreAgent(agent.id)}
-                >
+                <LabButton variant="secondary" onClick={() => restoreAgent(agent.id)}>
                   Restore
-                </button>
+                </LabButton>
               )}
             </div>
           </article>
@@ -424,12 +417,12 @@ export function MesosProblemPanel({ lab }: { lab: LiveMesosLabApi }) {
       <SpecControls lab={lab} compact />
 
       <div className={styles.actions}>
-        <button type="button" className="uiBtn uiBtnPrimary" onClick={lab.deploy}>
+        <LabButton variant="primary" onClick={lab.deploy}>
           Развернуть / Apply
-        </button>
-        <button type="button" className="uiBtn uiBtnGhost" onClick={lab.reset}>
+        </LabButton>
+        <LabButton variant="secondary" onClick={lab.reset}>
           Сброс
-        </button>
+        </LabButton>
       </div>
 
       <ClusterBoard lab={lab} />
@@ -457,15 +450,15 @@ export function MesosSandboxPanel({ lab }: { lab: LiveMesosLabApi }) {
       <SpecControls lab={lab} />
 
       <div className={styles.actions}>
-        <button type="button" className="uiBtn uiBtnPrimary" onClick={lab.deploy}>
+        <LabButton variant="primary" onClick={lab.deploy}>
           Deploy / Scale
-        </button>
-        <button type="button" className="uiBtn uiBtnGhost" onClick={lab.clearLog}>
+        </LabButton>
+        <LabButton variant="secondary" onClick={lab.clearLog}>
           Очистить лог
-        </button>
-        <button type="button" className="uiBtn uiBtnGhost" onClick={lab.reset}>
+        </LabButton>
+        <LabButton variant="secondary" onClick={lab.reset}>
           Reset cluster
-        </button>
+        </LabButton>
       </div>
 
       <ClusterBoard lab={lab} />

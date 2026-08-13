@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { JsLabShell } from '../../components/lab/JsLabShell'
 import shell from '../../components/lab/JsLabShell.module.css'
+import { LabButton } from '../../components/lab/LabButton'
 import { LabCodePanel } from '../../components/lab/LabCodePanel'
 import { LabLogView } from '../../components/lab/LabLogView'
 import { useLabLog } from '../../components/lab/useLabLog'
@@ -29,16 +30,15 @@ export function PrototypeChainLab() {
         <li>Запишите своё свойство — оно заслонит прототип.</li>
       </ol>
       <div className={shell.row}>
-        <button
-          type="button"
-          className={shell.btnPrimary}
+        <LabButton
+          variant="primary"
           onClick={() => {
             refresh()
             log('ok', `obj.color=${String(obj.color)}, own=${Object.hasOwn(obj, 'color')}, proto=${proto.color}`)
           }}
         >
           Проверить цепочку
-        </button>
+        </LabButton>
       </div>
       <LabLogView lines={lines} />
     </div>
@@ -54,19 +54,15 @@ export function PrototypeChainLab() {
         <span className={shell.badge} style={{ background: obj.color ?? proto.color, color: '#111' }}>
           {obj.color ?? proto.color}
         </span>
-        <button
-          type="button"
-          className={shell.btn}
+        <LabButton
           onClick={() => {
             refresh()
             log('info', `read color → ${obj.color}`)
           }}
         >
           Прочитать
-        </button>
-        <button
-          type="button"
-          className={shell.btn}
+        </LabButton>
+        <LabButton
           onClick={() => {
             let p: object | null = obj
             const chain: string[] = []
@@ -78,10 +74,8 @@ export function PrototypeChainLab() {
           }}
         >
           Показать цепочку
-        </button>
-        <button type="button" className={shell.btn} onClick={clear}>
-          Очистить
-        </button>
+        </LabButton>
+        <LabButton onClick={clear}>Очистить</LabButton>
       </div>
       <LabLogView lines={lines} />
     </div>

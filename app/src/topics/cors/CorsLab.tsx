@@ -7,6 +7,7 @@ import shell from '../../components/lab/JsLabShell.module.css'
 import { InteractiveCodePanel } from '../../components/lab/InteractiveCodePanel'
 import { LabLogView } from '../../components/lab/LabLogView'
 import { useLabLog } from '../../components/lab/useLabLog'
+import { LabNode, LabVizPanel, type LabNodeState } from '../../components/lab/LabViz'
 import styles from './CorsLab.module.css'
 
 gsap.registerPlugin(useGSAP)
@@ -48,77 +49,46 @@ function CorsFlowViz({ phase, scenario, pageOrigin }: FlowVizProps) {
   )
 
   const showPreflight = scenario === 'preflight'
-  const browserCls =
-    phase === 'blocked'
-      ? `${styles.node} ${styles.nodeErr}`
-      : phase === 'ok'
-        ? `${styles.node} ${styles.nodeOk}`
-        : phase === 'idle'
-          ? styles.node
-          : `${styles.node} ${styles.nodeActive}`
-
-  const apiCls =
-    phase === 'ok'
-      ? `${styles.node} ${styles.nodeOk}`
-      : phase === 'request' || phase === 'preflight'
-        ? `${styles.node} ${styles.nodeActive}`
-        : styles.node
+  const browserState: LabNodeState =
+    phase === 'blocked' ? 'err' : phase === 'ok' ? 'ok' : phase === 'idle' ? 'idle' : 'active'
+  const apiState: LabNodeState =
+    phase === 'ok' ? 'ok' : phase === 'request' || phase === 'preflight' ? 'active' : 'idle'
+  const jsState: LabNodeState =
+    phase === 'ok' ? 'ok' : phase === 'blocked' ? 'err' : 'idle'
 
   const arrowCls = (active: boolean, err = false) =>
     `${styles.arrow}${err ? ` ${styles.arrowErr}` : active ? ` ${styles.arrowActive}` : ''}`
 
   return (
-    <div ref={rootRef} className={styles.viz}>
-      <div className={styles.vizHead}>
-        <p className={styles.vizTitle}>Поток CORS</p>
-        <p className={styles.vizMeta}>{pageOrigin || 'origin?'}</p>
-      </div>
+    <LabVizPanel ref={rootRef} title="Поток CORS" meta={pageOrigin || 'origin?'}>
       <div className={styles.flow}>
-        <div data-node className={browserCls}>
-          <span className={styles.nodeLabel}>Browser</span>
-          <span className={styles.nodeSub}>JS fetch</span>
-        </div>
+        <LabNode data-node label="Browser" sub="JS fetch" state={browserState} />
         <span className={arrowCls(phase !== 'idle', phase === 'blocked')}>→</span>
         {showPreflight ? (
           <>
-            <div
+            <LabNode
               data-node
-              className={
-                phase === 'preflight' ? `${styles.node} ${styles.nodeActive}` : styles.node
-              }
-            >
-              <span className={styles.nodeLabel}>OPTIONS</span>
-              <span className={styles.nodeSub}>preflight</span>
-            </div>
+              label="OPTIONS"
+              sub="preflight"
+              state={phase === 'preflight' ? 'active' : 'idle'}
+            />
             <span className={arrowCls(phase === 'preflight' || phase === 'request' || phase === 'ok')}>
               →
             </span>
           </>
         ) : null}
-        <div data-node className={apiCls}>
-          <span className={styles.nodeLabel}>API</span>
-          <span className={styles.nodeSub}>Access-Control-*</span>
-        </div>
+        <LabNode data-node label="API" sub="Access-Control-*" state={apiState} />
         <span className={arrowCls(phase === 'ok' || phase === 'blocked', phase === 'blocked')}>
           {phase === 'blocked' ? '✗' : '→'}
         </span>
-        <div
+        <LabNode
           data-node
-          className={
-            phase === 'ok'
-              ? `${styles.node} ${styles.nodeOk}`
-              : phase === 'blocked'
-                ? `${styles.node} ${styles.nodeErr}`
-                : styles.node
-          }
-        >
-          <span className={styles.nodeLabel}>JS</span>
-          <span className={styles.nodeSub}>
-            {phase === 'ok' ? 'читает тело' : phase === 'blocked' ? 'CORS error' : 'ждёт'}
-          </span>
-        </div>
+          label="JS"
+          sub={phase === 'ok' ? 'читает тело' : phase === 'blocked' ? 'CORS error' : 'ждёт'}
+          state={jsState}
+        />
       </div>
-    </div>
+    </LabVizPanel>
   )
 }
 

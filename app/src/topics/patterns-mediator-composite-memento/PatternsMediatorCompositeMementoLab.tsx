@@ -6,6 +6,7 @@ import shell from '../../components/lab/JsLabShell.module.css'
 import { InteractiveCodePanel, type InteractiveSnippet } from '../../components/lab/InteractiveCodePanel'
 import { LabLogView } from '../../components/lab/LabLogView'
 import { useLabLog } from '../../components/lab/useLabLog'
+import { LabVizPanel, labVizStyles } from '../../components/lab/LabViz'
 import styles from './PatternsMediatorCompositeMementoLab.module.css'
 
 const TOPIC_ID = '161-patterns-mediator-composite-memento'
@@ -201,7 +202,7 @@ function reducedMotion() {
 }
 
 function nodeCls(...mods: Array<string | false | undefined>) {
-  return [styles.node, ...mods.filter(Boolean)].join(' ')
+  return [labVizStyles.node, ...mods.filter(Boolean)].join(' ')
 }
 
 function playTimeline(
@@ -241,53 +242,49 @@ function MediatorViz({ phase, caseId, hubRef }: MedVizProps) {
   const meshWarn = !hub && done
 
   return (
-    <div className={styles.viz}>
-      <div className={styles.vizHead}>
-        <p className={styles.vizTitle}>Форма логина</p>
-        <p className={styles.vizMeta}>{hub ? 'звезда через хаб' : 'полный граф связей'}</p>
-      </div>
+    <LabVizPanel title="Форма логина" meta={hub ? 'звезда через хаб' : 'полный граф связей'}>
       <div className={styles.hubLayout}>
         <div className={styles.colleagues}>
           <div
             className={nodeCls(
-              emit && styles.nodeActive,
-              done && (hub ? styles.nodeOk : styles.nodeWarn),
+              emit && labVizStyles.nodeActive,
+              done && (hub ? labVizStyles.nodeOk : styles.nodeWarn),
             )}
           >
-            <span className={styles.nodeLabel}>Email</span>
-            <span className={styles.nodeSub}>{hub ? 'change()' : '→ Submit'}</span>
+            <span className={labVizStyles.nodeLabel}>Email</span>
+            <span className={labVizStyles.nodeSub}>{hub ? 'change()' : '→ Submit'}</span>
           </div>
           <div
             className={nodeCls(
-              emit && styles.nodeActive,
-              done && (hub ? styles.nodeOk : styles.nodeWarn),
+              emit && labVizStyles.nodeActive,
+              done && (hub ? labVizStyles.nodeOk : styles.nodeWarn),
             )}
           >
-            <span className={styles.nodeLabel}>Password</span>
-            <span className={styles.nodeSub}>{hub ? 'change()' : '→ Banner'}</span>
+            <span className={labVizStyles.nodeLabel}>Password</span>
+            <span className={labVizStyles.nodeSub}>{hub ? 'change()' : '→ Banner'}</span>
           </div>
         </div>
         <div
           ref={hubRef}
-          className={`${styles.node} ${styles.hub}${hub ? '' : ` ${styles.nodeSkipped}`}${
-            hub && routed ? ` ${styles.nodeActive}` : ''
-          }${hub && done ? ` ${styles.nodeOk}` : ''}`}
+          className={`${labVizStyles.node} ${styles.hub}${hub ? '' : ` ${styles.nodeSkipped}`}${
+            hub && routed ? ` ${labVizStyles.nodeActive}` : ''
+          }${hub && done ? ` ${labVizStyles.nodeOk}` : ''}`}
         >
-          <span className={styles.nodeLabel}>{hub ? 'Mediator' : '—'}</span>
-          <span className={styles.nodeSub}>{hub && routed ? 'publish' : 'хаб'}</span>
+          <span className={labVizStyles.nodeLabel}>{hub ? 'Mediator' : '—'}</span>
+          <span className={labVizStyles.nodeSub}>{hub && routed ? 'publish' : 'хаб'}</span>
         </div>
         <div
           className={nodeCls(
-            routed && styles.nodeActive,
-            done && (hub ? styles.nodeOk : styles.nodeWarn),
+            routed && labVizStyles.nodeActive,
+            done && (hub ? labVizStyles.nodeOk : styles.nodeWarn),
             meshWarn && styles.nodeWarn,
           )}
         >
-          <span className={styles.nodeLabel}>Submit</span>
-          <span className={styles.nodeSub}>{done ? (hub ? 'enabled' : 'жёсткие связи') : 'ждёт'}</span>
+          <span className={labVizStyles.nodeLabel}>Submit</span>
+          <span className={labVizStyles.nodeSub}>{done ? (hub ? 'enabled' : 'жёсткие связи') : 'ждёт'}</span>
         </div>
       </div>
-    </div>
+    </LabVizPanel>
   )
 }
 
@@ -305,53 +302,49 @@ function CompositeViz({ phase, caseId, treeRef }: CompVizProps) {
   const total = tree ? (done ? '140' : kidsOn ? '…' : '—') : done ? '100' : '—'
 
   return (
-    <div className={styles.viz}>
-      <div className={styles.vizHead}>
-        <p className={styles.vizTitle}>size()</p>
-        <p className={styles.vizMeta}>{tree ? 'folder recurse' : 'один file'}</p>
-      </div>
+    <LabVizPanel title="size()" meta={tree ? 'folder recurse' : 'один file'}>
       <div className={styles.treeLayout} ref={treeRef}>
         <div
           className={nodeCls(
-            rootOn && styles.nodeActive,
-            done && styles.nodeOk,
+            rootOn && labVizStyles.nodeActive,
+            done && labVizStyles.nodeOk,
             styles.treeRoot,
           )}
         >
-          <span className={styles.nodeLabel}>{tree ? 'src/' : 'a.ts'}</span>
-          <span className={styles.nodeSub}>size = {total}</span>
+          <span className={labVizStyles.nodeLabel}>{tree ? 'src/' : 'a.ts'}</span>
+          <span className={labVizStyles.nodeSub}>size = {total}</span>
         </div>
         {tree ? (
           <div className={styles.treeKids}>
-            <div className={nodeCls(kidsOn && styles.nodeActive, done && styles.nodeOk)}>
-              <span className={styles.nodeLabel}>a.ts</span>
-              <span className={styles.nodeSub}>100</span>
+            <div className={nodeCls(kidsOn && labVizStyles.nodeActive, done && labVizStyles.nodeOk)}>
+              <span className={labVizStyles.nodeLabel}>a.ts</span>
+              <span className={labVizStyles.nodeSub}>100</span>
             </div>
-            <div className={nodeCls(kidsOn && styles.nodeActive, done && styles.nodeOk)}>
-              <span className={styles.nodeLabel}>ui/</span>
-              <span className={styles.nodeSub}>{done ? '40' : 'folder'}</span>
+            <div className={nodeCls(kidsOn && labVizStyles.nodeActive, done && labVizStyles.nodeOk)}>
+              <span className={labVizStyles.nodeLabel}>ui/</span>
+              <span className={labVizStyles.nodeSub}>{done ? '40' : 'folder'}</span>
             </div>
             <div
               className={nodeCls(
-                kidsOn && styles.nodeActive,
-                done && styles.nodeOk,
+                kidsOn && labVizStyles.nodeActive,
+                done && labVizStyles.nodeOk,
                 styles.treeLeaf,
               )}
             >
-              <span className={styles.nodeLabel}>Button.tsx</span>
-              <span className={styles.nodeSub}>40</span>
+              <span className={labVizStyles.nodeLabel}>Button.tsx</span>
+              <span className={labVizStyles.nodeSub}>40</span>
             </div>
           </div>
         ) : (
           <div className={`${styles.treeKids} ${styles.nodeSkipped}`}>
-            <div className={styles.node}>
-              <span className={styles.nodeLabel}>дети</span>
-              <span className={styles.nodeSub}>нет — leaf</span>
+            <div className={labVizStyles.node}>
+              <span className={labVizStyles.nodeLabel}>дети</span>
+              <span className={labVizStyles.nodeSub}>нет — leaf</span>
             </div>
           </div>
         )}
       </div>
-    </div>
+    </LabVizPanel>
   )
 }
 
@@ -370,48 +363,44 @@ function MementoViz({ phase, caseId, slotRef }: MemVizProps) {
   const lost = !withUndo && done
 
   return (
-    <div className={styles.viz}>
-      <div className={styles.vizHead}>
-        <p className={styles.vizTitle}>Редактор</p>
-        <p className={styles.vizMeta}>{withUndo ? 'снимок → undo' : 'правка без истории'}</p>
-      </div>
+    <LabVizPanel title="Редактор" meta={withUndo ? 'снимок → undo' : 'правка без истории'}>
       <div className={styles.memLayout}>
         <div
           className={nodeCls(
-            phase !== 'idle' && styles.nodeActive,
-            done && (withUndo ? styles.nodeOk : styles.nodeWarn),
+            phase !== 'idle' && labVizStyles.nodeActive,
+            done && (withUndo ? labVizStyles.nodeOk : styles.nodeWarn),
             styles.editorCard,
           )}
         >
-          <span className={styles.nodeLabel}>Originator</span>
-          <span className={styles.nodeSub}>{`"${text}"`}</span>
+          <span className={labVizStyles.nodeLabel}>Originator</span>
+          <span className={labVizStyles.nodeSub}>{`"${text}"`}</span>
         </div>
         <div
           ref={slotRef}
-          className={`${styles.node} ${styles.slot}${withUndo ? '' : ` ${styles.nodeSkipped}`}${
-            withUndo && snapped ? ` ${styles.nodeActive}` : ''
-          }${withUndo && done ? ` ${styles.nodeOk}` : ''}`}
+          className={`${labVizStyles.node} ${styles.slot}${withUndo ? '' : ` ${styles.nodeSkipped}`}${
+            withUndo && snapped ? ` ${labVizStyles.nodeActive}` : ''
+          }${withUndo && done ? ` ${labVizStyles.nodeOk}` : ''}`}
         >
-          <span className={styles.nodeLabel}>{withUndo ? 'Memento' : '—'}</span>
-          <span className={styles.nodeSub}>
+          <span className={labVizStyles.nodeLabel}>{withUndo ? 'Memento' : '—'}</span>
+          <span className={labVizStyles.nodeSub}>
             {withUndo && snapped ? '"Hello"' : 'слот снимка'}
           </span>
         </div>
         <div
           className={nodeCls(
-            withUndo && edited && styles.nodeActive,
-            withUndo && done && styles.nodeOk,
+            withUndo && edited && labVizStyles.nodeActive,
+            withUndo && done && labVizStyles.nodeOk,
             !withUndo && styles.nodeSkipped,
             lost && styles.nodeWarn,
           )}
         >
-          <span className={styles.nodeLabel}>Caretaker</span>
-          <span className={styles.nodeSub}>
+          <span className={labVizStyles.nodeLabel}>Caretaker</span>
+          <span className={labVizStyles.nodeSub}>
             {lost ? 'истории нет' : done && withUndo ? 'undo ✓' : 'stack'}
           </span>
         </div>
       </div>
-    </div>
+    </LabVizPanel>
   )
 }
 

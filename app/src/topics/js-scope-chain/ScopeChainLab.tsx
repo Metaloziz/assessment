@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { JsLabShell } from '../../components/lab/JsLabShell'
 import shell from '../../components/lab/JsLabShell.module.css'
+import { LabButton } from '../../components/lab/LabButton'
 import { LabCodePanel } from '../../components/lab/LabCodePanel'
 import { LabLogView } from '../../components/lab/LabLogView'
 import { useLabLog } from '../../components/lab/useLabLog'
@@ -21,9 +22,8 @@ export function ScopeChainLab() {
         <li>Место вызова не подменяет лексическую цепочку.</li>
       </ol>
       <div className={shell.row}>
-        <button
-          type="button"
-          className={shell.btnPrimary}
+        <LabButton
+          variant="primary"
           onClick={() => {
             const x = 2
             const inner = () => x
@@ -31,7 +31,7 @@ export function ScopeChainLab() {
           }}
         >
           Показать поиск по цепочке
-        </button>
+        </LabButton>
       </div>
       <LabLogView lines={lines} />
     </div>
@@ -41,9 +41,7 @@ export function ScopeChainLab() {
     <div className={shell.panel}>
       <p className={shell.hint}>Сравните: свободная переменная из родителя vs параметр.</p>
       <div className={shell.row}>
-        <button
-          type="button"
-          className={shell.btn}
+        <LabButton
           onClick={() => {
             let outer = 'outer'
             function mid() {
@@ -56,10 +54,8 @@ export function ScopeChainLab() {
           }}
         >
           outer → mid → inner
-        </button>
-        <button
-          type="button"
-          className={shell.btn}
+        </LabButton>
+        <LabButton
           onClick={() => {
             const x = 'shadow'
             function f() {
@@ -70,10 +66,8 @@ export function ScopeChainLab() {
           }}
         >
           Shadowing
-        </button>
-        <button type="button" className={shell.btn} onClick={clear}>
-          Очистить
-        </button>
+        </LabButton>
+        <LabButton onClick={clear}>Очистить</LabButton>
       </div>
       <LabLogView lines={lines} />
     </div>

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { LabButton } from '../components/lab/LabButton'
 import { apiJson, apiUrl } from '../lib/apiBase'
 import styles from './ApiSmokePage.module.css'
 
@@ -61,30 +62,22 @@ export function ApiSmokePage() {
       </header>
 
       <div className={styles.actions}>
-        <button
-          type="button"
-          className={styles.btn}
-          disabled={busy}
-          onClick={() => void run('health', '/api/health')}
-        >
+        <LabButton disabled={busy} onClick={() => void run('health', '/api/health')}>
           GET /api/health
-        </button>
-        <button
-          type="button"
-          className={styles.btn}
+        </LabButton>
+        <LabButton
           disabled={busy}
           onClick={() => void run('echo', '/api/demo/echo?message=assessment')}
         >
           GET /api/demo/echo
-        </button>
-        <button
-          type="button"
-          className={styles.btnPrimary}
+        </LabButton>
+        <LabButton
+          variant="primary"
           disabled={busy}
           onClick={() => void run('db-ping', '/api/demo/db-ping')}
         >
           GET /api/demo/db-ping
-        </button>
+        </LabButton>
       </div>
 
       <pre className={styles.log} aria-live="polite">

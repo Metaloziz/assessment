@@ -146,3 +146,6 @@ Live-API (CORS, JWT, SQLi…) — двигатель стенда, не заме
 - [ ] intro/lead/pain без мета-инструкций агенту
 - [ ] Стиль схемы — `assessment-lab-visualizations`
 - [ ] Следование `LAB_FORMAT.md`
+- [ ] Кнопки только через `LabButton` (не `shell.btn`, не локальный `.btn`, не hex-цвета)
+- [ ] Панель схемы через `LabVizPanel` / `labVizStyles` — **не** копировать `.viz {` в CSS топика
+- [ ] Цвета / радиусы / font-size chrome — только `var(--…)` из `tokens.css` (см. `app/THEME.md`)

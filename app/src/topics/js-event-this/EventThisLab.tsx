@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { JsLabShell } from '../../components/lab/JsLabShell'
 import shell from '../../components/lab/JsLabShell.module.css'
+import { LabButton } from '../../components/lab/LabButton'
 import { LabCodePanel } from '../../components/lab/LabCodePanel'
 import { LabLogView } from '../../components/lab/LabLogView'
 import { useLabLog } from '../../components/lab/useLabLog'
@@ -57,12 +58,12 @@ export function EventThisLab() {
         <li>Кликните стрелку — элемент берите из <code>event.currentTarget</code>.</li>
       </ol>
       <div className={shell.row}>
-        <button type="button" id="p-btn-fn" className={shell.btnPrimary} ref={pFn}>
+        <LabButton variant="primary" id="p-btn-fn" ref={pFn}>
           Обычная function
-        </button>
-        <button type="button" id="p-btn-arrow" className={shell.btn} ref={pArrow}>
+        </LabButton>
+        <LabButton id="p-btn-arrow" ref={pArrow}>
           Стрелка
-        </button>
+        </LabButton>
       </div>
       <LabLogView lines={lines} />
     </div>
@@ -72,15 +73,13 @@ export function EventThisLab() {
     <div className={shell.panel}>
       <p className={shell.hint}>Сравните this / currentTarget / target ещё раз.</p>
       <div className={shell.row}>
-        <button type="button" id="s-btn-fn" className={shell.btnPrimary} ref={sFn}>
+        <LabButton variant="primary" id="s-btn-fn" ref={sFn}>
           Обычная function
-        </button>
-        <button type="button" id="s-btn-arrow" className={shell.btn} ref={sArrow}>
+        </LabButton>
+        <LabButton id="s-btn-arrow" ref={sArrow}>
           Стрелка
-        </button>
-        <button type="button" className={shell.btn} onClick={clear}>
-          Очистить
-        </button>
+        </LabButton>
+        <LabButton onClick={clear}>Очистить</LabButton>
       </div>
       <LabLogView lines={lines} />
     </div>

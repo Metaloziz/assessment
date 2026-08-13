@@ -167,73 +167,62 @@
 
 ### Фаза 0 — контракт
 
-- [ ] Сверить и поправить `app/THEME.md` под фактические токены **после** решений выше (не откатывать LabButton к старому `uiBtn`)
-- [ ] Зафиксировать в THEME: шкала типа, радиусы, «одна кнопка — LabButton», «hex только в tokens.css»
-- [ ] Короткий чеклист в `skills/write-assessment-labs/SKILL.md`: новые лабы не копируют `.viz`, не пишут `shell.btn`, не хардкодят цвета
+- [x] Сверить и поправить `app/THEME.md` под фактические токены **после** решений выше (не откатывать LabButton к старому `uiBtn`)
+- [x] Зафиксировать в THEME: шкала типа, радиусы, «одна кнопка — LabButton», «hex только в tokens.css»
+- [x] Короткий чеклист в `skills/write-assessment-labs/SKILL.md`: новые лабы не копируют `.viz`, не пишут `shell.btn`, не хардкодят цвета
 
 ### Фаза 1 — токены
 
 Файл: `app/src/styles/tokens.css`.
 
-- [ ] Добавить space / radius / weight / log / btn-lab
-- [ ] `uiBtn` пока оставить (legacy) либо сразу пометить deprecated в THEME
-- [ ] Вычистить hex из hover `uiBtnDanger` (`#ffe0d8` и т.п.) — тоже в var
+- [x] Добавить space / radius / weight / log / btn-lab
+- [x] `uiBtn` удалён вместе с миграцией на LabButton
+- [x] Hover danger / ghost — в `--btn-*` токенах
 
 ### Фаза 2 — шрифт
 
-- [ ] Geist: подключить **или** удалить имя из `--font-sans`
-- [ ] `--font-mono` уже JetBrains — не трогать
-- [ ] `ApiSmokePage.module.css`: стек `ui-monospace, Menlo…` → `var(--font-mono)`
+- [x] Geist Variable: `@fontsource-variable/geist` + `--font-sans`
+- [x] `--font-mono` уже JetBrains — не трогать
+- [x] `ApiSmokePage.module.css`: стек → `var(--font-mono)`
 
 ### Фаза 3 — одна кнопка
 
 Порядок:
 
-1. Расширить `LabButton` (`danger`; цвета из токенов)
-2. Заменить `shell.btn` / `shell.btnPrimary` во всех `js-*` на `LabButton`
-3. Заменить `className="uiBtn …"` в legacy: LiveJenkins, LiveMesos, clusters, worklets, workers, IndexedDB, WebApis, SW, git simulators
-4. Chrome: `labCloseBtn` / `labOpenBtn` на TopicPage — тот же примитив, не третий вид
-5. Удалить `.btn` / `.btnPrimary` из `JsLabShell.module.css` и `.uiBtn*` из `tokens.css`
+1. ~~Расширить `LabButton` (`danger`; цвета из токенов)~~
+2. ~~Заменить `shell.btn` / `shell.btnPrimary` во всех `js-*` на `LabButton`~~
+3. ~~Заменить `className="uiBtn …"` в legacy~~
+4. ~~`labCloseBtn` / `labOpenBtn` — мёртвый CSS; не третий вид кнопок~~
+5. ~~Удалить `.btn` / `.btnPrimary` из shell и `.uiBtn*` из tokens~~
 
 Не менять подписи кнопок и сценарии.
 
-Потребители `shell.btn` (на момент аудита):  
-`EventDelegationLab`, `BindCallApplyLab`, `ArrowPrototypeLab`, `SelectionRangeLab`, `MutationObserverLab`, `NullPrototypeLab`, `PrototypalInheritanceLab`, `FactoryFunctionsLab`, `ArrowSyntaxLab`, `EventThisLab`, `LiveCollectionsLab`, `PrototypeChainLab`, `ScopeChainLab`, `LexicalEnvironmentLab`.
-
 ### Фаза 4 — примитивы лаб + viz
 
-- [ ] Вынести CSS log / field / badge / stage из shell
-- [ ] `LabVizPanel` + общие классы узла (можно один `LabViz.module.css`)
-- [ ] Подключить в 7 лаб с копипастой `.viz`. Уникальное (`.packet`, SVG, стопка) оставить в локальном CSS
-- [ ] Graphs-list: только токены панели/узла, **не** резать полотно
+- [x] Вынести CSS log / field / badge / stage (компоненты + токены; shell держит alias `.field`/`.badge`/`.stage` для старых импортов)
+- [x] `LabVizPanel` + `LabNode` / `labVizStyles`
+- [x] Подключить в 7 лаб с копипастой `.viz`
+- [x] Graphs-list: только панель, полотно не резали
 
 ### Фаза 5 — chrome приложения
 
-Файлы: `TopicSidebar.module.css`, `TopicPage.module.css`, `AppShell.module.css`, `MarkdownSections.module.css`, `LevelBadge`, `TopicCheckbox`.
-
-- [ ] Все `font-size` → токены шкалы
-- [ ] `#fff` → `--text` (или один `--text-heading`, если нужен чуть ярче body — не сырой white)
-- [ ] Радиусы сайдбара к `--radius-sm` / `--radius`
-- [ ] Теория: `1rem` в MarkdownSections → `--font-size-body`
-
-Сетку/поведение сайдбара не ломать.
+- [x] `font-size` → токены шкалы
+- [x] `#fff` → `--text-heading`
+- [x] Радиусы сайдбара к токенам
+- [x] Теория: MarkdownSections → `--font-size-body`
 
 ### Фаза 6 — legacy CSS
 
-Не переписывать на JsLabShell. Только:
-
-- [ ] `#121212` / `#0e0e0e` → `--bg-deep` или `--code-bg`
-- [ ] `#ce9178` инлайн-кода → тот же токен, что в теории
-- [ ] `uiBtn` уже уйдёт в фазе 3
-- [ ] секции `.section / .title / .lead` в GitSwitchLab и аналогах — те же токены, что у shell
-
-Приоритет: git / cookies / dead-code (проще), потом Live* (больше hex).
+- [x] `#121212` / `#0e0e0e` → токены
+- [x] `#ce9178` → `--code-inline`
+- [x] `uiBtn` ушёл в фазе 3
+- [x] секции git/cookies/dead-code/Live* — токены
 
 ### Фаза 7 — сторожа
 
-- [ ] THEME.md = истина после кода
-- [ ] В write-assessment-labs: запрет нового `.viz` с нуля, запрет hex, запрет `shell.btn`
-- [ ] По желанию: grep-чек в CI (`#[0-9a-f]{3,8}` в `*.module.css` кроме tokens и code-theme). Не обязательно, если нет готового пайплайна
+- [x] THEME.md = истина после кода
+- [x] В write-assessment-labs: запрет нового `.viz`, hex, `shell.btn`
+- [ ] CI grep-чек hex — по желанию, не сделан
 
 ---
 

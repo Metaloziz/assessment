@@ -24,7 +24,7 @@
 .problem code {
   font-family: var(--font-mono);
   font-size: 0.85em;
-  color: #ce9178;
+  color: var(--code-inline);
 }
 
 .problemLabel {
@@ -53,13 +53,13 @@
   font-size: var(--lab-font-meta);
   letter-spacing: 0.03em;
   padding: 0.12rem 0.4rem;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   border: 1px solid var(--border);
   text-transform: lowercase;
 }
 
 .badgeOn {
-  color: #b5cea8;
+  color: var(--log-ok);
   border-color: rgba(181, 206, 168, 0.4);
   background: rgba(181, 206, 168, 0.1);
 }
@@ -84,7 +84,7 @@
   padding: 0.75rem 0.8rem;
   border-radius: var(--radius);
   border: 1px solid var(--border);
-  background: #121212;
+  background: var(--bg-deep);
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
@@ -100,8 +100,8 @@
 
 .cardTitle {
   margin: 0;
-  font-size: 1rem;
-  font-weight: 650;
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-semibold);
   color: var(--text);
 }
 
@@ -144,7 +144,7 @@
 .url {
   font-family: var(--font-mono);
   font-size: 0.85em;
-  color: #ce9178;
+  color: var(--code-inline);
 }
 
 .log {
@@ -152,7 +152,7 @@
   padding: 0.55rem 0.65rem;
   border-radius: var(--radius);
   border: 1px solid var(--border);
-  background: #121212;
+  background: var(--bg-deep);
   font-family: var(--font-mono);
   font-size: var(--lab-font-mono);
   line-height: var(--lab-line);
@@ -163,11 +163,11 @@
 }
 
 .ok {
-  color: #b5cea8;
+  color: var(--log-ok);
 }
 
 .err {
-  color: #ce9178;
+  color: var(--code-inline);
 }
 
 .info {

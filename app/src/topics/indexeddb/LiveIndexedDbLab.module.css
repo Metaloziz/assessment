@@ -26,7 +26,7 @@
 .id {
   font-family: var(--font-mono);
   font-size: 0.85em;
-  color: #ce9178;
+  color: var(--code-inline);
 }
 
 .problemLabel {
@@ -54,7 +54,7 @@
 .field textarea {
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  background: #121212;
+  background: var(--bg-deep);
   color: var(--text);
   padding: 0.45rem 0.55rem;
   font: inherit;
@@ -95,7 +95,7 @@
 }
 
 .warn {
-  color: #ce9178;
+  color: var(--warn);
 }
 
 .list {
@@ -115,7 +115,7 @@
   padding: 0.55rem 0.6rem;
   border-radius: var(--radius);
   border: 1px solid var(--border);
-  background: #121212;
+  background: var(--bg-deep);
 }
 
 .itemBody {
@@ -126,7 +126,7 @@
 }
 
 .itemTitle {
-  font-weight: 650;
+  font-weight: var(--font-weight-semibold);
   color: var(--text);
   font-size: var(--lab-font-lead);
 }
@@ -161,7 +161,7 @@
   padding: 0.55rem 0.65rem;
   border-radius: var(--radius);
   border: 1px solid var(--border);
-  background: #121212;
+  background: var(--bg-deep);
   font-family: var(--font-mono);
   font-size: var(--lab-font-mono);
   line-height: var(--lab-line);
@@ -172,11 +172,11 @@
 }
 
 .ok {
-  color: #b5cea8;
+  color: var(--log-ok);
 }
 
 .err {
-  color: #ce9178;
+  color: var(--code-inline);
 }
 
 .info {

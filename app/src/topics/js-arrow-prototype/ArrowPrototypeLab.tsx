@@ -1,5 +1,6 @@
 import { JsLabShell } from '../../components/lab/JsLabShell'
 import shell from '../../components/lab/JsLabShell.module.css'
+import { LabButton } from '../../components/lab/LabButton'
 import { LabCodePanel } from '../../components/lab/LabCodePanel'
 import { LabLogView } from '../../components/lab/LabLogView'
 import { useLabLog } from '../../components/lab/useLabLog'
@@ -19,9 +20,7 @@ export function ArrowPrototypeLab() {
         <li>Для конструкторов используйте <code>function</code> или <code>class</code>.</li>
       </ol>
       <div className={shell.row}>
-        <button
-          type="button"
-          className={shell.btn}
+        <LabButton
           onClick={() => {
             const Arrow = () => ({ ok: true })
             try {
@@ -34,10 +33,9 @@ export function ArrowPrototypeLab() {
           }}
         >
           new Arrow()
-        </button>
-        <button
-          type="button"
-          className={shell.btnPrimary}
+        </LabButton>
+        <LabButton
+          variant="primary"
           onClick={() => {
             function Ctor(this: { ok: boolean }) {
               this.ok = true
@@ -51,7 +49,7 @@ export function ArrowPrototypeLab() {
           }}
         >
           Сравнить с function
-        </button>
+        </LabButton>
       </div>
       <LabLogView lines={lines} />
     </div>
@@ -61,9 +59,7 @@ export function ArrowPrototypeLab() {
     <div className={shell.panel}>
       <p className={shell.hint}>Проверьте typeof, prototype и construct.</p>
       <div className={shell.row}>
-        <button
-          type="button"
-          className={shell.btn}
+        <LabButton
           onClick={() => {
             const a = () => 1
             function b() {
@@ -74,10 +70,8 @@ export function ArrowPrototypeLab() {
           }}
         >
           typeof / prototype
-        </button>
-        <button type="button" className={shell.btn} onClick={clear}>
-          Очистить
-        </button>
+        </LabButton>
+        <LabButton onClick={clear}>Очистить</LabButton>
       </div>
       <LabLogView lines={lines} />
     </div>

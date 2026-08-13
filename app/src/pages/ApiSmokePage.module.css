@@ -10,28 +10,28 @@
 
 .eyebrow {
   margin: 0 0 0.35rem;
-  font-size: 0.75rem;
+  font-size: var(--font-size-ui-xs);
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--text-muted);
 }
 
 .title {
   margin: 0 0 0.5rem;
-  font-size: 1.5rem;
-  font-weight: 600;
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-semibold);
 }
 
 .lead {
   margin: 0 0 0.75rem;
-  color: var(--muted);
+  color: var(--text-muted);
   line-height: 1.45;
 }
 
 .back {
   color: var(--accent-bright);
   text-decoration: none;
-  font-size: 0.9rem;
+  font-size: var(--lab-font-meta);
 }
 
 .back:hover {
@@ -41,64 +41,36 @@
 .actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-}
-
-.btn,
-.btnPrimary {
-  appearance: none;
-  border: 1px solid var(--border);
-  background: var(--bg-elevated);
-  color: inherit;
-  border-radius: 6px;
-  padding: 0.45rem 0.75rem;
-  font: inherit;
-  cursor: pointer;
-}
-
-.btn:hover:not(:disabled),
-.btnPrimary:hover:not(:disabled) {
-  border-color: var(--accent-dim);
-}
-
-.btnPrimary {
-  border-color: var(--accent-dim);
-  background: color-mix(in srgb, var(--accent) 18%, var(--bg-elevated));
-}
-
-.btn:disabled,
-.btnPrimary:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
 }
 
 .log {
   margin: 0;
-  padding: 0.85rem 1rem;
+  padding: 0.85rem var(--space-4);
   min-height: 12rem;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: var(--radius-lg);
   background: var(--bg-elevated);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 0.8rem;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-ui-sm);
   line-height: 1.45;
   white-space: pre-wrap;
   word-break: break-word;
 }
 
 .muted {
-  color: var(--muted);
+  color: var(--text-muted);
 }
 
 .ok {
-  color: var(--ok);
+  color: var(--log-ok);
 }
 
 .err {
-  color: var(--danger, #f07178);
+  color: var(--log-err);
 }
 
 .info {
-  color: var(--muted);
+  color: var(--text-muted);
 }
