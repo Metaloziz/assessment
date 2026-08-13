@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, type PointerEvent as ReactPointerEvent } from 'react'
-import { Outlet, Link, useMatch } from 'react-router-dom'
+import { Outlet, useMatch } from 'react-router-dom'
 import gsap from 'gsap'
 import { useGSAP } from '@gsap/react'
 import { TopicSidebar } from './TopicSidebar'
@@ -121,15 +121,12 @@ export function AppShell() {
         theoryWidthRef.current || workspaceW - dockW - resizerW,
       )
 
+      // theoryHidden → % ширины, не px: иначе после DevTools/resize док не сжимается
       const dockWidth = !dockExpanded
         ? 0
-        : theoryHidden
-          ? mobile
-            ? '100%'
-            : workspaceW
-          : mobile
-            ? '100%'
-            : dockW
+        : theoryHidden || mobile
+          ? '100%'
+          : dockW
 
       const theoryOpenWidth = mobile
         ? workspaceW
@@ -287,27 +284,68 @@ export function AppShell() {
     }
   }, [activeHasLab, labOpen, onTopicPage, setDock, setLabOpen])
 
-  /** Sync dock/theory widths after drag — do not touch xPercent (breaks slide-in). */
+  /**
+   * Пересчёт ширин при resize viewport / DevTools / labShare.
+   * GSAP пишет inline width в px — без RO док «залипает» на старом размере.
+   * Не трогаем xPercent (ломает slide теории).
+   */
   useEffect(() => {
-    const dock = dockRef.current
     const workspace = workspaceRef.current
+    const dock = dockRef.current
     const main = mainRef.current
-    if (!dock || !workspace || !main) return
-    if (theoryHiddenRef.current || draggingRef.current) return
-    if (window.matchMedia('(max-width: 860px)').matches) return
-    const workspaceW = workspace.getBoundingClientRect().width || window.innerWidth
-    if (!dockExpanded) {
-      gsap.set(dock, { width: 0 })
-      theoryWidthRef.current = workspaceW
-      gsap.set(main, { width: workspaceW })
-      return
+    if (!workspace || !dock || !main) return
+
+    const sync = () => {
+      if (draggingRef.current) return
+      const mobile = window.matchMedia('(max-width: 860px)').matches
+      const workspaceW = workspace.getBoundingClientRect().width || window.innerWidth
+      const { labOpen: lab, sidebarOpen: side, theoryOpen: theory, labShare: share } =
+        useLayoutStore.getState()
+      const expanded = lab || !theory || (side && theory)
+      const theoryHiddenNow = !theory
+
+      if (mobile) {
+        const maxH = !expanded ? 0 : theoryHiddenNow ? '100%' : lab ? '55vh' : '40vh'
+        gsap.set(dock, {
+          width: '100%',
+          maxHeight: maxH,
+          opacity: expanded ? 1 : 0,
+        })
+        theoryWidthRef.current = workspaceW
+        gsap.set(main, { width: workspaceW })
+        return
+      }
+
+      if (!expanded) {
+        gsap.set(dock, { width: 0, maxHeight: 'none', opacity: 1 })
+        theoryWidthRef.current = workspaceW
+        gsap.set(main, { width: workspaceW })
+        return
+      }
+
+      if (theoryHiddenNow) {
+        gsap.set(dock, { width: '100%', maxHeight: 'none', opacity: 1 })
+        theoryWidthRef.current = workspaceW
+        gsap.set(main, { width: workspaceW })
+        return
+      }
+
+      const dockW = dockWidthFromShare(workspaceW, share)
+      gsap.set(dock, { width: dockW, maxHeight: 'none', opacity: 1 })
+      const openW = Math.max(200, workspaceW - dockW - 6)
+      theoryWidthRef.current = openW
+      gsap.set(main, { width: openW })
     }
-    const dockW = dockWidthFromShare(workspaceW, labShare)
-    gsap.set(dock, { width: dockW })
-    const openW = Math.max(200, workspaceW - dockW - 6)
-    theoryWidthRef.current = openW
-    gsap.set(main, { width: openW })
-  }, [labShare, dockExpanded])
+
+    sync()
+    const ro = new ResizeObserver(sync)
+    ro.observe(workspace)
+    window.addEventListener('resize', sync)
+    return () => {
+      ro.disconnect()
+      window.removeEventListener('resize', sync)
+    }
+  }, [labShare, dockExpanded, theoryHidden, labOpen])
 
   const onResizePointerDown = useCallback(
     (event: ReactPointerEvent<HTMLDivElement>) => {
@@ -398,9 +436,6 @@ export function AppShell() {
             Теория
           </button>
         </div>
-        <Link className={styles.apiSmokeLink} to="/dev/api-smoke" title="Проверка API и БД">
-          API
-        </Link>
       </header>
 
       <div ref={workspaceRef} className={styles.workspace}>
@@ -441,17 +476,6 @@ export function AppShell() {
         />
 
         <main ref={mainRef} className={styles.main} aria-hidden={theoryHidden}>
-          {!dockExpanded && theoryOpen ? (
-            <button
-              type="button"
-              className={styles.sidebarReveal}
-              onClick={() => setSidebarOpen(true)}
-              aria-label="Показать список тем"
-              title="Показать список тем"
-            >
-              <span aria-hidden>«</span>
-            </button>
-          ) : null}
           <div className={styles.mainBody}>
             <Outlet />
           </div>

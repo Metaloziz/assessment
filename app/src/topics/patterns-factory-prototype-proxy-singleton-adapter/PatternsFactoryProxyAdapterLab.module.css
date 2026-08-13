@@ -1,0 +1,252 @@
+.viz {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background:
+    radial-gradient(120% 80% at 10% 0%, rgba(105, 177, 255, 0.08), transparent 55%),
+    radial-gradient(90% 70% at 90% 100%, rgba(77, 183, 132, 0.06), transparent 50%),
+    var(--bg-elevated);
+  padding: 0.85rem 0.9rem 1rem;
+  margin-bottom: 0.85rem;
+  overflow: hidden;
+}
+
+.vizHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.vizTitle {
+  margin: 0;
+  font-size: var(--lab-font-ui);
+  font-weight: 650;
+  color: var(--text);
+}
+
+.vizMeta {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-meta);
+  color: var(--text-faint);
+}
+
+.node {
+  min-width: 5.2rem;
+  padding: 0.45rem 0.55rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: rgba(20, 24, 30, 0.55);
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-meta);
+  color: var(--text-muted);
+  transition:
+    border-color 0.4s ease,
+    color 0.4s ease,
+    box-shadow 0.4s ease,
+    background 0.4s ease,
+    opacity 0.4s ease;
+}
+
+.nodeActive {
+  border-color: var(--accent-bright, #69b1ff);
+  color: var(--text);
+  background: color-mix(in srgb, var(--accent) 16%, rgba(20, 24, 30, 0.7));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+.nodeOk {
+  border-color: color-mix(in srgb, var(--ok) 55%, var(--border));
+  color: var(--ok);
+}
+
+.nodeErr {
+  border-color: color-mix(in srgb, #f14c4c 55%, var(--border));
+  color: #f14c4c;
+}
+
+.nodeWarn {
+  border-color: color-mix(in srgb, #d7ba7d 55%, var(--border));
+  color: #d7ba7d;
+}
+
+.nodeSkipped {
+  opacity: 0.4;
+}
+
+.nodeLabel {
+  display: block;
+  font-weight: 650;
+  margin-bottom: 0.15rem;
+}
+
+.nodeSub {
+  display: block;
+  color: inherit;
+  opacity: 0.85;
+}
+
+/* Factory: catalog / stamp */
+.catalog {
+  display: grid;
+  grid-template-columns: minmax(6.5rem, 8.5rem) 1fr minmax(6.5rem, 8.5rem);
+  gap: 0.65rem 0.75rem;
+  align-items: center;
+  min-height: 7.2rem;
+}
+
+.slots {
+  display: flex;
+  gap: 0.4rem;
+  justify-content: center;
+}
+
+.slot {
+  flex: 1 1 4.5rem;
+  text-align: center;
+}
+
+.stamp {
+  text-align: center;
+  min-height: 3.4rem;
+}
+
+/* Prototype: original vs clone */
+.protoRow {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 0.55rem;
+  align-items: stretch;
+  min-height: 7.4rem;
+}
+
+.objCard {
+  min-width: 0;
+}
+
+.objFields {
+  margin: 0.35rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.fieldRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.fieldShared {
+  color: #d7ba7d;
+}
+
+.cloneArrow {
+  align-self: center;
+  color: var(--text-faint);
+  font-size: 1.1rem;
+  transition: color 0.4s ease;
+}
+
+.cloneArrowActive {
+  color: var(--accent-bright, #69b1ff);
+}
+
+/* Proxy: wrapper + cache */
+.proxyRow {
+  display: grid;
+  grid-template-columns: 1fr 1.3fr 1fr;
+  gap: 0.45rem;
+  align-items: center;
+  min-height: 6.2rem;
+}
+
+.proxyBox {
+  position: relative;
+  text-align: center;
+}
+
+.cacheBadge {
+  display: inline-block;
+  margin-top: 0.3rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  font-size: 0.72rem;
+  color: var(--text-faint);
+  transition:
+    border-color 0.4s ease,
+    color 0.4s ease,
+    background 0.4s ease;
+}
+
+.cacheHit {
+  border-color: color-mix(in srgb, var(--ok) 55%, var(--border));
+  color: var(--ok);
+  background: color-mix(in srgb, var(--ok) 12%, transparent);
+}
+
+.cacheMiss {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+  color: var(--accent-bright, #69b1ff);
+}
+
+/* Singleton: two call-sites → chips */
+.singleRow {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 0.7rem;
+  align-items: center;
+  min-height: 6.6rem;
+}
+
+.callCol,
+.chipCol {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.chip {
+  text-align: center;
+}
+
+/* Adapter: translator between contracts */
+.adaptRow {
+  display: grid;
+  grid-template-columns: 1fr minmax(5.5rem, 7.5rem) 1fr;
+  gap: 0.45rem;
+  align-items: stretch;
+  min-height: 6.4rem;
+}
+
+.translator {
+  text-align: center;
+  align-self: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .node,
+  .slot,
+  .stamp,
+  .objCard,
+  .proxyBox,
+  .chip,
+  .plug,
+  .translator,
+  .cloneArrow,
+  .cacheBadge {
+    transition: none;
+  }
+}
+
+.codePane {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+  gap: 0.55rem;
+}

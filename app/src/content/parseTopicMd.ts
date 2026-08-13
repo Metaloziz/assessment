@@ -174,6 +174,9 @@ export function parseTopicMd(id: string, raw: string, order: number): TopicDetai
       id === '11-xss' ||
       id === '12-sql-injection' ||
       id === '13-csrf' ||
+      id === '159-patterns-factory-prototype-proxy-singleton-adapter' ||
+      id === '160-patterns-chain-abstract-factory-strategy-decorator' ||
+      id === '161-patterns-mediator-composite-memento' ||
       id === '259-software-incremental-iterative-spiral',
     groupId: meta.groupId,
     groupTitle,

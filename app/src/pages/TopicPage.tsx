@@ -74,6 +74,9 @@ import { XssLab } from '../topics/xss/XssLab'
 import { SqlInjectionLab } from '../topics/sql-injection/SqlInjectionLab'
 import { CsrfLab } from '../topics/csrf/CsrfLab'
 import { IncrementalIterativeSpiralLab } from '../topics/software-incremental-iterative-spiral/IncrementalIterativeSpiralLab'
+import { PatternsFactoryProxyAdapterLab } from '../topics/patterns-factory-prototype-proxy-singleton-adapter/PatternsFactoryProxyAdapterLab'
+import { PatternsChainStrategyDecoratorLab } from '../topics/patterns-chain-abstract-factory-strategy-decorator/PatternsChainStrategyDecoratorLab'
+import { PatternsMediatorCompositeMementoLab } from '../topics/patterns-mediator-composite-memento/PatternsMediatorCompositeMementoLab'
 import { useDevToolsDocked } from '../hooks/useDevToolsDocked'
 import { LAB_DOCK_ID, useLayoutStore } from '../store/layout'
 import styles from './TopicPage.module.css'
@@ -109,6 +112,12 @@ function TopicLab({ topicId }: { topicId: string; topic: TopicDetail }) {
   if (topicId === '11-xss') return <XssLab />
   if (topicId === '12-sql-injection') return <SqlInjectionLab />
   if (topicId === '13-csrf') return <CsrfLab />
+  if (topicId === '159-patterns-factory-prototype-proxy-singleton-adapter')
+    return <PatternsFactoryProxyAdapterLab />
+  if (topicId === '160-patterns-chain-abstract-factory-strategy-decorator')
+    return <PatternsChainStrategyDecoratorLab />
+  if (topicId === '161-patterns-mediator-composite-memento')
+    return <PatternsMediatorCompositeMementoLab />
   if (topicId === '259-software-incremental-iterative-spiral')
     return <IncrementalIterativeSpiralLab />
   if (topicId === '31-git-switch') return <GitSwitchLab />

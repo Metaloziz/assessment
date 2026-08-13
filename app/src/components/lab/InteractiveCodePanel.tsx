@@ -117,7 +117,8 @@ function runUserCode(source: string): ConsoleLine[] {
 }
 
 const editorExtensions = [javascript(), ...cursorCodeMirrorExtensions]
-const MIN_EDITOR_PX = 176 // ~11rem
+const PREFERRED_EDITOR_PX = 176 // ~11rem
+const HARD_MIN_EDITOR_PX = 72 // при низком viewport (DevTools снизу) можно сжаться
 
 /** Render `code` backticks like theory inline highlights. */
 function formatLabRichText(text: string): ReactNode {
@@ -206,13 +207,22 @@ export function InteractiveCodePanel({
       const gaps = gap * Math.max(0, root.children.length - 1)
       const meta = shell.querySelector(`.${styles.editorMeta}`) as HTMLElement | null
       const metaH = meta?.offsetHeight ?? 0
-      setMaxEditorPx(Math.max(MIN_EDITOR_PX, Math.floor(rootH - used - gaps - metaH)))
+      const available = Math.floor(rootH - used - gaps - metaH)
+      // Не держим 11rem floor — иначе при DevTools снизу редактор раздувает лабу
+      setMaxEditorPx(Math.max(HARD_MIN_EDITOR_PX, available))
     }
 
     measure()
     const ro = new ResizeObserver(measure)
     ro.observe(root)
-    return () => ro.disconnect()
+    // Родительский док тоже меняет высоту при DevTools / resize
+    const parent = root.parentElement
+    if (parent) ro.observe(parent)
+    window.addEventListener('resize', measure)
+    return () => {
+      ro.disconnect()
+      window.removeEventListener('resize', measure)
+    }
   }, [fillAvailable, intro, activeMeta?.note, consoleLines.length, executable])
 
   if (!activeMeta) return null
@@ -269,7 +279,11 @@ export function InteractiveCodePanel({
           className={styles.editor}
           value={code}
           height="auto"
-          minHeight="11rem"
+          minHeight={
+            fillAvailable && maxEditorPx != null
+              ? `${Math.min(PREFERRED_EDITOR_PX, maxEditorPx)}px`
+              : '11rem'
+          }
           maxHeight={
             fillAvailable && maxEditorPx != null
               ? `${maxEditorPx}px`
