@@ -158,7 +158,7 @@ export const Header = ({ title }: HeaderProps) => (
 
 const CODE_SNIPPETS: Record<CaseId, InteractiveSnippet[]> = {
   crash: [SNIPPET_WIDGET, SNIPPET_APP_CRASH],
-  isolate: [SNIPPET_FALLBACK, SNIPPET_BOUNDARY],
+  isolate: [SNIPPET_HEADER, SNIPPET_FALLBACK, SNIPPET_BOUNDARY],
   miss: [SNIPPET_WIDGET, SNIPPET_BOUNDARY],
 }
 

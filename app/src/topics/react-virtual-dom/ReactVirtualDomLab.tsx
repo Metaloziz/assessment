@@ -179,6 +179,12 @@ function playTimeline(
 }
 
 type NodeKind = 'card' | 'h1' | 'span' | 'button'
+type NodeState = 'idle' | 'active' | 'ok' | 'warn'
+
+type TreeState = Record<NodeKind, NodeState> & {
+  meta: string
+  spanText: string
+}
 
 type VizProps = {
   phase: Phase
@@ -186,7 +192,7 @@ type VizProps = {
   patchRef: MutableRefObject<HTMLDivElement | null>
 }
 
-function treeState(phase: Phase, caseId: CaseId, side: 'vdom' | 'dom') {
+function treeState(phase: Phase, caseId: CaseId, side: 'vdom' | 'dom'): TreeState {
   const done = phase === 'done'
   const comparing = phase === 'compare' || done
   const rendering = phase !== 'idle'
