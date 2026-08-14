@@ -15,7 +15,7 @@
 
 .colTitle {
   margin: 0;
-  font-size: 0.72rem;
+  font-size: var(--lab-font-ui);
   font-weight: 600;
   letter-spacing: 0.02em;
   color: var(--text);
@@ -75,7 +75,7 @@
 .arrow {
   align-self: center;
   flex: 0 0 auto;
-  font-size: 0.72rem;
+  font-size: var(--lab-font-ui);
   color: var(--text-muted);
   padding: 0 0.1rem;
   white-space: nowrap;

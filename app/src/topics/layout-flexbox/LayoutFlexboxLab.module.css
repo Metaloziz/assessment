@@ -139,7 +139,7 @@
 }
 
 .cellRole {
-  font-size: 0.65rem;
+  font-size: var(--lab-font-meta);
   font-weight: var(--font-weight-medium);
   color: var(--text-muted);
   line-height: 1.2;
@@ -162,7 +162,7 @@
 .metaCode {
   color: var(--code-inline);
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: var(--lab-font-ui);
   white-space: pre-wrap;
 }
 

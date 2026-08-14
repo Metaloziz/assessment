@@ -94,7 +94,7 @@
   background: var(--code-bg);
   color: var(--code-inline);
   font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-size: var(--lab-font-meta);
   line-height: 1.45;
   white-space: pre-wrap;
   overflow: auto;

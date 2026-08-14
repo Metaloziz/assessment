@@ -91,7 +91,7 @@
 }
 
 .hocArrow {
-  font-size: 0.72rem;
+  font-size: var(--lab-font-ui);
   color: var(--muted);
 }
 

@@ -125,7 +125,7 @@
   border-radius: var(--radius-pill);
   background: color-mix(in srgb, var(--accent) 22%, transparent);
   color: var(--accent-bright);
-  font-size: 0.72rem;
+  font-size: var(--lab-font-ui);
   font-weight: var(--font-weight-bold);
   letter-spacing: 0.04em;
   text-transform: uppercase;

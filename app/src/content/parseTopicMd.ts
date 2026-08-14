@@ -197,8 +197,14 @@ export function parseTopicMd(id: string, raw: string, order: number): TopicDetai
       id === '189-react-portals' ||
       id === '190-react-router' ||
       id === '191-react-context' ||
+      id === '194-react-form-managers' ||
       id === '192-react-ssr' ||
+      id === '199-react-server-components' ||
       id === '193-react-compound-components' ||
+      id === '195-react-render-props' ||
+      id === '196-react-reconciliation' ||
+      id === '198-react-web-components' ||
+      id === '197-react-fiber' ||
       id === '213-async-js-single-thread' ||
       id === '214-async-xhr-fetch' ||
       id === '215-async-event-loop' ||

@@ -158,7 +158,7 @@
   border: none;
   background: color-mix(in srgb, var(--warn) 25%, transparent);
   color: var(--warn);
-  font-size: 0.95rem;
+  font-size: var(--lab-font-ui);
   outline: none;
 }
 

@@ -5,7 +5,7 @@
 
 .compactScene .nodeValue {
   padding: 0.4rem 0.5rem;
-  font-size: 0.9rem;
+  font-size: var(--lab-font-meta);
 }
 
 .compactScene .listRow {
@@ -81,7 +81,7 @@
   background: rgba(105, 177, 255, 0.12);
   border-left: 1px solid rgba(105, 177, 255, 0.25);
   color: var(--accent-bright);
-  font-size: 0.7rem;
+  font-size: var(--lab-font-meta);
 }
 
 .arrow {
@@ -89,7 +89,7 @@
   align-items: center;
   color: rgba(139, 194, 255, 0.75);
   padding: 0 0.2rem;
-  font-size: 1.1rem;
+  font-size: var(--lab-font-lead);
   line-height: 1;
   animation: fadeSlide 0.4s ease both;
 }
@@ -219,14 +219,14 @@
   background: rgba(105, 177, 255, 0.1);
   color: var(--accent-bright);
   font-family: var(--font-mono);
-  font-size: 0.8rem;
+  font-size: var(--lab-font-ui);
   font-weight: var(--font-weight-semibold);
   animation: chipIn 0.35s ease both;
 }
 
 .orderSep {
   color: var(--text-faint);
-  font-size: 0.75rem;
+  font-size: var(--lab-font-meta);
 }
 
 @keyframes nodeIn {

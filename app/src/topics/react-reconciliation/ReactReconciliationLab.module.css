@@ -1,0 +1,306 @@
+.layout {
+  display: flex;
+  align-items: stretch;
+  gap: 0.65rem;
+}
+
+.col {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.colHead {
+  margin: 0;
+  font-size: var(--lab-font-ui);
+  font-weight: 600;
+  color: var(--text);
+}
+
+.colSub {
+  margin: 0;
+  font-size: var(--lab-font-meta);
+  color: var(--muted);
+}
+
+.slots {
+  display: flex;
+  flex-direction: column;
+  gap: 0.38rem;
+}
+
+.slot {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.42rem 0.5rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg-elevated) 90%, transparent);
+  transition:
+    border-color 0.4s ease,
+    box-shadow 0.4s ease,
+    opacity 0.4s ease;
+}
+
+.slotPos {
+  font-size: var(--lab-font-meta);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.slotKey {
+  font-size: var(--lab-font-meta);
+  font-family: var(--font-mono, ui-monospace, monospace);
+  color: var(--accent-bright);
+}
+
+.slotBody {
+  font-size: var(--lab-font-ui);
+  color: var(--text);
+}
+
+.slotOk {
+  border-color: color-mix(in srgb, var(--ok) 50%, var(--border));
+}
+
+.slotActive {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 15%, transparent);
+}
+
+.slotWarn {
+  border-color: color-mix(in srgb, var(--warn) 55%, var(--border));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--warn) 14%, transparent);
+}
+
+.slotMuted {
+  opacity: 0.55;
+}
+
+.mid {
+  flex: 0 0 4.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  align-self: stretch;
+}
+
+.midArrow {
+  font-size: var(--lab-font-lead);
+  color: var(--muted);
+  line-height: 1;
+}
+
+.midLabel {
+  margin: 0;
+  font-size: var(--lab-font-meta);
+  text-align: center;
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+.matchLines {
+  display: flex;
+  flex-direction: column;
+  gap: 0.38rem;
+  justify-content: center;
+  min-height: 100%;
+}
+
+.matchLine {
+  height: 2.05rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--lab-font-meta);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--muted);
+  transition: color 0.4s ease;
+}
+
+.matchOk {
+  color: var(--ok);
+}
+
+.matchWarn {
+  color: var(--warn);
+}
+
+.verdict {
+  margin-top: 0.5rem;
+  padding: 0.5rem 0.6rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg-elevated) 88%, transparent);
+  transition:
+    border-color 0.4s ease,
+    color 0.4s ease;
+}
+
+.verdictIdle {
+  color: var(--muted);
+  font-size: var(--lab-font-meta);
+}
+
+.verdictActive {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+  color: var(--text);
+  font-size: var(--lab-font-ui);
+  line-height: 1.45;
+}
+
+.verdictOk {
+  border-color: color-mix(in srgb, var(--ok) 45%, var(--border));
+}
+
+.verdictWarn {
+  border-color: color-mix(in srgb, var(--warn) 45%, var(--border));
+}
+
+.verdictTitle {
+  margin: 0 0 0.2rem;
+  font-size: var(--lab-font-meta);
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.verdictOk .verdictTitle {
+  color: var(--ok);
+}
+
+.verdictWarn .verdictTitle {
+  color: var(--warn);
+}
+
+.verdictActive .verdictTitle {
+  color: var(--accent-bright);
+}
+
+.verdictText {
+  margin: 0;
+}
+
+.colHeadWarn {
+  color: var(--warn);
+}
+
+.colHeadOk {
+  color: var(--ok);
+}
+
+.dualNote {
+  margin: 0 0 0.35rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  font-size: var(--lab-font-meta);
+  color: var(--muted);
+  background: color-mix(in srgb, var(--bg-elevated) 85%, transparent);
+}
+
+.tree {
+  display: flex;
+  flex-direction: column;
+  gap: 0.32rem;
+}
+
+.treeNode {
+  text-align: left;
+  transition:
+    border-color 0.4s ease,
+    color 0.4s ease,
+    box-shadow 0.4s ease;
+}
+
+.treeIndent {
+  margin-left: 0.55rem;
+}
+
+.nodeWarn {
+  border-color: color-mix(in srgb, var(--warn) 55%, var(--border));
+  color: var(--warn);
+}
+
+.pipeline {
+  margin: 0;
+  font-size: var(--lab-font-meta);
+  font-family: var(--font-mono, ui-monospace, monospace);
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.pipelineActive {
+  color: var(--accent-bright);
+}
+
+.verdictRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.45rem;
+  margin-top: 0.5rem;
+}
+
+.verdictHalf {
+  margin-top: 0;
+}
+
+.naiveFoot {
+  margin: 0.45rem 0 0;
+  font-size: var(--lab-font-meta);
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.codePane {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+  gap: 0.55rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slot,
+  .matchLine,
+  .verdict,
+  .treeNode,
+  .checkItem {
+    transition: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .layout {
+    flex-direction: column;
+  }
+
+  .verdictRow {
+    grid-template-columns: 1fr;
+  }
+
+  .mid {
+    flex-direction: row;
+    flex: none;
+    width: 100%;
+    padding: 0.2rem 0;
+  }
+
+  .matchLines {
+    flex-direction: row;
+    gap: 0.5rem;
+  }
+
+  .matchLine {
+    height: auto;
+    min-height: 1.5rem;
+  }
+}

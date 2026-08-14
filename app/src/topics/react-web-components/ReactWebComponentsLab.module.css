@@ -1,0 +1,195 @@
+.stage {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.85fr);
+  gap: 0.65rem;
+  min-height: 13rem;
+}
+
+.colLabel {
+  margin: 0 0 0.3rem;
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-meta);
+  color: var(--text-faint);
+}
+
+.reactColumn,
+.bridgeColumn {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.appShell {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-elevated);
+  overflow: hidden;
+  min-height: 12.5rem;
+}
+
+.appHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.5rem 0.65rem;
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg) 45%, var(--bg-elevated));
+  font-size: var(--lab-font-ui);
+  color: var(--text);
+}
+
+.brandMark {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 2px;
+  background: var(--accent);
+  flex: 0 0 auto;
+}
+
+.appNav {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-meta);
+  color: var(--accent-bright);
+}
+
+.appBody {
+  flex: 1;
+  padding: 0.65rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.pageTitle {
+  margin: 0;
+  font-size: var(--lab-font-ui);
+  font-weight: 600;
+  color: var(--text-heading);
+}
+
+.chipHost {
+  min-height: 5.5rem;
+  padding: 0.45rem;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--bg) 55%, var(--bg-elevated));
+  transition:
+    border-color 0.4s ease,
+    box-shadow 0.4s ease;
+}
+
+.chipHostLive {
+  border-style: solid;
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--border));
+}
+
+.chipHostOk {
+  border-color: color-mix(in srgb, var(--ok) 40%, var(--border));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--ok) 18%, transparent);
+}
+
+.chipHostWarn {
+  border-color: color-mix(in srgb, var(--warn) 45%, var(--border));
+}
+
+.chipPlaceholder {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-meta);
+  color: var(--text-faint);
+}
+
+.bridgePanel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--bg) 60%, var(--bg-elevated));
+  min-height: 12.5rem;
+}
+
+.bridgeRow {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.bridgeKey {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-meta);
+  color: var(--text-faint);
+}
+
+.bridgeValue {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-ui);
+  color: var(--text);
+  word-break: break-word;
+}
+
+.bridgeValueOk {
+  color: var(--ok);
+}
+
+.bridgeValueWarn {
+  color: var(--warn);
+}
+
+.bridgeValueMuted {
+  color: var(--text-muted);
+}
+
+.eventBadge {
+  align-self: flex-start;
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-meta);
+  padding: 0.15rem 0.4rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  transition:
+    border-color 0.4s ease,
+    color 0.4s ease,
+    background 0.4s ease;
+}
+
+.eventBadgeLive {
+  border-color: color-mix(in srgb, var(--ok) 45%, var(--border));
+  color: var(--ok);
+  background: color-mix(in srgb, var(--ok) 8%, transparent);
+}
+
+.eventBadgeMiss {
+  border-color: color-mix(in srgb, var(--warn) 45%, var(--border));
+  color: var(--warn);
+}
+
+.codePane {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+  gap: 0.55rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chipHost,
+  .eventBadge {
+    transition: none;
+  }
+}
+
+@media (max-width: 720px) {
+  .stage {
+    grid-template-columns: 1fr;
+  }
+}

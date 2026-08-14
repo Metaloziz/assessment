@@ -1,7 +1,4 @@
-import { useEffect, useRef, useState, type MutableRefObject, type ReactNode } from 'react'
-import { createRoot, hydrateRoot, type Root } from 'react-dom/client'
-import { renderToString } from 'react-dom/server'
-import { flushSync } from 'react-dom'
+import { useRef, useState, type MutableRefObject, type ReactNode } from 'react'
 import gsap from 'gsap'
 import { JsLabShell } from '../../components/lab/JsLabShell'
 import { LabButton } from '../../components/lab/LabButton'
@@ -9,16 +6,14 @@ import shell from '../../components/lab/JsLabShell.module.css'
 import { InteractiveCodePanel, type InteractiveSnippet } from '../../components/lab/InteractiveCodePanel'
 import { LabLogView } from '../../components/lab/LabLogView'
 import { useLabLog } from '../../components/lab/useLabLog'
-import { LabVizPanel } from '../../components/lab/LabViz'
+import { LabVizPanel, LabNode, type LabNodeState } from '../../components/lab/LabViz'
 import styles from './ReactSsrLab.module.css'
 
 const TOPIC_ID = '192-react-ssr'
 const STEP = 0.6
-const SERVER_TITLE = 'Наушники Pro'
-const CLIENT_MISMATCH = 'Наушники Pro · sale'
 
 type CaseId = 'csr' | 'ssr' | 'mismatch'
-type Phase = 'idle' | 'wait' | 'html' | 'live' | 'mismatch'
+type Phase = 'idle' | 'html' | 'js' | 'done'
 
 const CASES: Array<{ id: CaseId; label: string }> = [
   { id: 'csr', label: 'CSR' },
@@ -175,34 +170,15 @@ const CASE_BRIEF: Record<CaseId, ReactNode> = {
   ),
   ssr: (
     <>
-      HTML карточки уже в ответе; после <code>hydrateRoot</code> кнопка начинает считать клики.
+      HTML карточки уже в ответе; после <code>hydrateRoot</code> кнопка получает listeners.
     </>
   ),
   mismatch: (
     <>
-      Сервер написал «{SERVER_TITLE}», клиент — «{CLIENT_MISMATCH}»; гидратация расходится.
+      Сервер написал «Наушники Pro», клиент — «Наушники Pro · sale»; гидратация расходится.
     </>
   ),
 }
-
-type CatalogProps = { title: string }
-
-const CatalogCard = ({ title }: CatalogProps) => {
-  const [count, setCount] = useState(0)
-  return (
-    <article data-ssr-card className={styles.product}>
-      <p className={styles.productEyebrow}>Каталог</p>
-      <h3 className={styles.productTitle}>{title}</h3>
-      <p className={styles.productPrice}>4 290 ₽</p>
-      <button type="button" className={styles.productBtn} onClick={() => setCount((n) => n + 1)}>
-        {count === 0 ? 'В корзину' : `В корзине · ${count}`}
-      </button>
-    </article>
-  )
-}
-
-const previewHtml = (html: string) =>
-  html.replace(/class="[^"]*"/g, 'class="…"').replace(/></g, '>\n<')
 
 const reducedMotion = () =>
   typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -230,109 +206,93 @@ const playTimeline = (
   motion?.(tl)
 }
 
+const nodeState = (active: boolean, done: boolean, err = false): LabNodeState => {
+  if (err && done) return 'err'
+  if (active) return 'active'
+  if (done) return 'ok'
+  return 'idle'
+}
+
 type VizProps = {
   caseId: CaseId
   phase: Phase
-  serverHtml: string
-  frameRef: MutableRefObject<HTMLDivElement | null>
+  focusRef: MutableRefObject<HTMLDivElement | null>
 }
 
-const SsrLiveViz = ({ caseId, phase, serverHtml, frameRef }: VizProps) => {
-  const htmlOn = phase === 'html' || phase === 'live' || phase === 'mismatch'
-  const jsOn = phase === 'wait' || phase === 'live' || phase === 'mismatch'
-  const liveOn = phase === 'live' || phase === 'mismatch'
+const SsrViz = ({ caseId, phase, focusRef }: VizProps) => {
+  const htmlOn = phase === 'html' || phase === 'js' || phase === 'done'
+  const jsOn = phase === 'js' || phase === 'done'
+  const done = phase === 'done'
+  const isCsr = caseId === 'csr'
+  const isMismatch = caseId === 'mismatch'
+
+  const serverSub = isCsr ? 'оболочка' : 'renderToString'
+  const htmlSub = !htmlOn || isCsr ? '#root пуст' : '<article>…'
+  const jsSub = isCsr ? 'createRoot' : 'hydrateRoot'
+  const rootSub = !jsOn
+    ? isCsr || !htmlOn
+      ? 'пусто'
+      : 'HTML · без listeners'
+    : isMismatch && done
+      ? 'sale · mismatch'
+      : isCsr
+        ? 'карточка + клики'
+        : 'HTML + listeners'
 
   const meta =
     phase === 'idle'
       ? 'ожидание'
-      : phase === 'wait'
-        ? '#root пуст'
-        : phase === 'html'
-          ? 'HTML · без listeners'
-          : phase === 'mismatch'
+      : phase === 'html'
+        ? isCsr
+          ? '#root пуст'
+          : 'HTML в ответе'
+        : phase === 'js'
+          ? isCsr
+            ? 'createRoot'
+            : 'hydrateRoot'
+          : isMismatch
             ? 'mismatch'
-            : 'hydrate · клики живые'
-
-  const empty =
-    phase === 'idle' || phase === 'wait'
-      ? phase === 'wait'
-        ? '#root пуст · ждём JS'
-        : '#root пуст'
-      : null
-
-  const foot =
-    phase === 'html'
-      ? 'кнопка в DOM, обработчиков нет'
-      : phase === 'live'
-        ? 'hydrateRoot · клик меняет счётчик'
-        : phase === 'mismatch'
-          ? 'клиент перерисовал заголовок'
-          : phase === 'wait'
-            ? 'createRoot ещё не вызван'
-            : caseId === 'csr'
-              ? 'ответ без разметки App'
-              : 'сервер ещё не отдал HTML'
+            : isCsr
+              ? 'UI после JS'
+              : 'клики живые'
 
   return (
     <LabVizPanel title="Запрос страницы" meta={meta}>
-      <div className={styles.stage}>
-        <div className={styles.serverCol}>
-          <p className={styles.colLabel}>ответ сервера</p>
-          <pre
-            className={[
-              styles.serverPanel,
-              htmlOn && caseId !== 'csr' ? styles.serverLive : '',
-              phase === 'mismatch' ? styles.serverWarn : '',
-            ]
-              .filter(Boolean)
-              .join(' ')}
-          >
-            {serverHtml || (caseId === 'csr' ? '<div id="root"></div>' : '—')}
-          </pre>
-        </div>
-
-        <div className={styles.browserCol}>
-          <p className={styles.colLabel}>браузер</p>
-          <div
-            className={[
-              styles.browser,
-              phase === 'live' ? styles.browserOk : '',
-              phase === 'mismatch' ? styles.browserWarn : '',
-            ]
-              .filter(Boolean)
-              .join(' ')}
-          >
-            <div className={styles.chrome}>
-              <span className={styles.dot} />
-              <span className={styles.dot} />
-              <span className={styles.dot} />
-              <span className={styles.url}>shop.app/item</span>
-            </div>
-            <div className={styles.pipeline}>
-              <span className={[styles.chip, htmlOn ? styles.chipOn : ''].filter(Boolean).join(' ')}>
-                HTML
-              </span>
-              <span className={[styles.chip, jsOn ? styles.chipOn : ''].filter(Boolean).join(' ')}>
-                JS
-              </span>
-              <span
-                className={[
-                  styles.chip,
-                  liveOn && phase === 'mismatch' ? styles.chipWarn : liveOn ? styles.chipOk : '',
-                ]
-                  .filter(Boolean)
-                  .join(' ')}
-              >
-                {phase === 'mismatch' ? 'mismatch' : 'клики'}
-              </span>
-            </div>
-            <div className={styles.viewport}>
-              <div ref={frameRef} className={styles.mount} />
-              {empty ? <p className={styles.placeholder}>{empty}</p> : null}
-            </div>
-            <p className={styles.foot}>{foot}</p>
-          </div>
-        </div>
+      <div className={styles.stack}>
+        <LabNode
+          className={styles.node}
+          label="сервер"
+          sub={serverSub}
+          state={nodeState(false, htmlOn)}
+        />
+        <span className={styles.arrow} aria-hidden>
+          ↓
+        </span>
+        <LabNode
+          className={styles.node}
+          label="HTML"
+          sub={htmlSub}
+          state={nodeState(phase === 'html', htmlOn && !isCsr && phase !== 'html')}
+        />
+        <span className={styles.arrow} aria-hidden>
+          ↓
+        </span>
+        <LabNode
+          className={styles.node}
+          label="JS"
+          sub={jsSub}
+          state={nodeState(phase === 'js', done)}
+        />
+        <span className={styles.arrow} aria-hidden>
+          ↓
+        </span>
+        <LabNode
+          ref={focusRef}
+          className={styles.node}
+          label="#root"
+          sub={rootSub}
+          state={nodeState(false, done && !isMismatch, isMismatch && done)}
+        />
       </div>
     </LabVizPanel>
   )
@@ -344,74 +304,14 @@ export const ReactSsrLab = () => {
   const [hint, setHint] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [phase, setPhase] = useState<Phase>('idle')
-  const [serverHtml, setServerHtml] = useState('')
 
   const tlRef = useRef<gsap.core.Timeline | null>(null)
-  const frameRef = useRef<HTMLDivElement | null>(null)
-  const mountRef = useRef<HTMLDivElement | null>(null)
-  const rootRef = useRef<Root | null>(null)
-
-  const teardown = () => {
-    rootRef.current?.unmount()
-    rootRef.current = null
-    if (mountRef.current) mountRef.current.innerHTML = ''
-  }
-
-  useEffect(() => {
-    const frame = frameRef.current
-    if (!frame) return
-    const mount = document.createElement('div')
-    mount.setAttribute('id', 'ssr-lab-root')
-    mount.className = styles.mountInner
-    frame.appendChild(mount)
-    mountRef.current = mount
-    return () => {
-      rootRef.current?.unmount()
-      rootRef.current = null
-      mount.remove()
-      mountRef.current = null
-    }
-  }, [])
-
-  const pulseCard = () => {
-    const el = mountRef.current?.querySelector('[data-ssr-card]')
-    if (!el || reducedMotion()) return
-    gsap.fromTo(el, { opacity: 0.55, y: 8 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.inOut' })
-  }
-
-  const paintCsr = () => {
-    const mount = mountRef.current
-    if (!mount) return
-    teardown()
-    const root = createRoot(mount)
-    rootRef.current = root
-    flushSync(() => {
-      root.render(<CatalogCard title={SERVER_TITLE} />)
-    })
-  }
-
-  const injectHtml = (title: string) => {
-    const mount = mountRef.current
-    if (!mount) return ''
-    teardown()
-    const html = renderToString(<CatalogCard title={title} />)
-    mount.innerHTML = html
-    return html
-  }
-
-  const hydrate = (title: string) => {
-    const mount = mountRef.current
-    if (!mount) return
-    flushSync(() => {
-      rootRef.current = hydrateRoot(mount, <CatalogCard title={title} />)
-    })
-  }
+  const focusRef = useRef<HTMLDivElement | null>(null)
 
   const resetViz = () => {
-    teardown()
     setPhase('idle')
     setHint(null)
-    setServerHtml('')
+    if (focusRef.current) gsap.set(focusRef.current, { clearProps: 'transform,opacity' })
   }
 
   const selectCase = (next: CaseId) => {
@@ -427,73 +327,47 @@ export const ReactSsrLab = () => {
     resetViz()
     setBusy(true)
 
-    if (caseId === 'csr') {
-      setServerHtml('<div id="root"></div>')
-      playTimeline(
-        tlRef,
-        [
-          () => {
-            setPhase('wait')
-            log('info', 'HTML: пустой #root')
-          },
-          () => {
-            paintCsr()
-            setPhase('live')
-            log('ok', 'createRoot().render → карточка')
-            setHint('UI появился вместе с JS')
-          },
-        ],
-        (tl) => {
-          tl.call(() => pulseCard(), undefined, STEP + 0.08)
-        },
-        () => setBusy(false),
-      )
-      return
-    }
-
-    if (caseId === 'ssr') {
-      playTimeline(
-        tlRef,
-        [
-          () => {
-            const html = injectHtml(SERVER_TITLE)
-            setServerHtml(previewHtml(html))
-            setPhase('html')
-            log('ok', 'renderToString → HTML в #root')
-          },
-          () => {
-            hydrate(SERVER_TITLE)
-            setPhase('live')
-            log('ok', 'hydrateRoot · кнопка живая')
-            setHint('HTML был раньше listeners')
-          },
-        ],
-        (tl) => {
-          tl.call(() => pulseCard(), undefined, 0.08)
-        },
-        () => setBusy(false),
-      )
-      return
-    }
-
     playTimeline(
       tlRef,
       [
         () => {
-          const html = injectHtml(SERVER_TITLE)
-          setServerHtml(previewHtml(html))
           setPhase('html')
-          log('ok', 'сервер: «Наушники Pro»')
+          if (caseId === 'csr') log('info', 'HTML: пустой #root')
+          else log('ok', 'renderToString → HTML в #root')
         },
         () => {
-          hydrate(CLIENT_MISMATCH)
-          setPhase('mismatch')
-          log('warn', 'клиент: «Наушники Pro · sale»')
-          setHint('разная разметка → mismatch')
+          setPhase('js')
+          if (caseId === 'csr') log('info', 'бандл → createRoot')
+          else log('info', 'бандл → hydrateRoot')
+        },
+        () => {
+          setPhase('done')
+          if (caseId === 'csr') {
+            log('ok', 'createRoot().render → карточка')
+            setHint('UI появился вместе с JS')
+          } else if (caseId === 'ssr') {
+            log('ok', 'hydrateRoot · listeners на существующем DOM')
+            setHint('HTML был раньше listeners')
+          } else {
+            log('warn', 'клиент: «Наушники Pro · sale»')
+            setHint('разная разметка → mismatch')
+          }
         },
       ],
       (tl) => {
-        tl.call(() => pulseCard(), undefined, 0.08)
+        tl.call(
+          () => {
+            const el = focusRef.current
+            if (!el) return
+            gsap.fromTo(
+              el,
+              { opacity: 0.55, y: 6 },
+              { opacity: 1, y: 0, duration: 0.5, ease: 'power2.inOut' },
+            )
+          },
+          undefined,
+          STEP * 2 + 0.08,
+        )
       },
       () => setBusy(false),
     )
@@ -536,7 +410,7 @@ export const ReactSsrLab = () => {
       <p className={shell.pain}>{PAIN}</p>
       <p className={shell.hint}>{CASE_BRIEF[caseId]}</p>
 
-      <SsrLiveViz caseId={caseId} phase={phase} serverHtml={serverHtml} frameRef={frameRef} />
+      <SsrViz caseId={caseId} phase={phase} focusRef={focusRef} />
 
       {hint ? (
         <p className={shell.hint}>
@@ -574,7 +448,7 @@ export const ReactSsrLab = () => {
   return (
     <JsLabShell
       title="SSR"
-      lead="Живой стенд: пустой `#root` vs HTML с `renderToString` и `hydrateRoot`; клики оживают только после гидратации."
+      lead="`renderToString` отдаёт HTML; `hydrateRoot` навешивает обработчики; расхождение сервер/клиент — mismatch."
       problem={problem}
       code={code}
     />

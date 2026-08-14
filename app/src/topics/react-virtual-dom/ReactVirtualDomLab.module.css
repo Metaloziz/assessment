@@ -20,7 +20,7 @@
 
 .colTitle {
   margin: 0;
-  font-size: 0.72rem;
+  font-size: var(--lab-font-ui);
   font-weight: 600;
   letter-spacing: 0.02em;
   color: var(--text);
@@ -28,7 +28,7 @@
 
 .colMeta {
   margin: 0;
-  font-size: 0.68rem;
+  font-size: var(--lab-font-meta);
   color: var(--muted);
 }
 
@@ -54,7 +54,7 @@
 .arrow {
   align-self: center;
   flex: 0 0 auto;
-  font-size: 0.72rem;
+  font-size: var(--lab-font-ui);
   color: var(--muted);
   padding: 0 0.15rem;
 }

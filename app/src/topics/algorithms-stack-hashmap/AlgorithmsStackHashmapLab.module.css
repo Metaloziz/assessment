@@ -62,7 +62,7 @@
   color: #e8f1ff;
   font-family: var(--font-mono);
   font-weight: 700;
-  font-size: 1.05rem;
+  font-size: var(--lab-font-lead);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.28);
   animation: plateIn 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
@@ -94,7 +94,7 @@
   background: rgba(105, 177, 255, 0.1);
   color: var(--accent-bright);
   font-family: var(--font-mono);
-  font-size: 0.85rem;
+  font-size: var(--lab-font-meta);
   font-weight: var(--font-weight-semibold);
 }
 
@@ -138,7 +138,7 @@
 
 .arrayIdx {
   font-family: var(--font-mono);
-  font-size: 0.65rem;
+  font-size: var(--lab-font-meta);
   color: var(--text-faint);
 }
 
@@ -153,7 +153,7 @@
   color: #e8f1ff;
   font-family: var(--font-mono);
   font-weight: 700;
-  font-size: 0.9rem;
+  font-size: var(--lab-font-meta);
   transition: border-color 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
 }
 
@@ -187,13 +187,13 @@
 
 .bucketKey {
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: var(--lab-font-ui);
   color: var(--text-faint);
 }
 
 .bucketPair {
   font-family: var(--font-mono);
-  font-size: 0.88rem;
+  font-size: var(--lab-font-ui);
   font-weight: var(--font-weight-semibold);
   color: #e8f1ff;
 }

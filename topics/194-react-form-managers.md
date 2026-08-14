@@ -16,7 +16,7 @@ Form manager ведёт values, валидацию и submit, чтобы фор�
 >
 > Зачем: регистрация, чекаут, длинный фильтр. Наивный `useState` на каждое поле делает ввод **controlled**: каждый символ — `setState` и повторный `render` всей формы вместе с соседями. Рядом расползаются проверки, `touched` и разбор ответа 400.
 >
-> Как: менеджер держит снимок полей. React Hook Form по умолчанию **uncontrolled**: `register('email')` вешает `ref` на native input и читает значение при blur/submit — ввод не гоняет дерево. Formik чаще держит values в React state. Валидация — правила в `register` или схема (`zod` / `yup` через resolver). Клиентский проход зовёт `handleSubmit(values)`; текст под полем берётся из `formState.errors`. Ответ `{ email: 'already taken' }` кладут туда же через `setError`.
+> Как: менеджер держит снимок полей. React Hook Form по умолчанию **uncontrolled**: `register('email')` вешает `ref` на native input и читает значение при blur/submit — ввод не гоняет дерево. Formik чаще держит values в React state. Валидация — правила поля или схема (`zod` / `yup` через resolver). `handleSubmit` зовёт колбэк только после клиентской проверки; текст под полем — `formState.errors`. Ответ `{ email: 'already taken' }` кладут туда же через `setError`.
 >
 > Ловушка: тащить каждое нажатие в Redux или широкий Context — те же лишние render. Кастомный инпут без DOM-`ref` (DatePicker, MUI) подключают через `Controller`. Клиентская схема не заменяет проверку на сервере.
 

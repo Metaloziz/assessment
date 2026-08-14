@@ -221,7 +221,7 @@
 
 .crashTitle {
   margin: 0;
-  font-size: 1.05rem;
+  font-size: var(--lab-font-lead);
   font-weight: var(--font-weight-semibold);
   color: var(--text-heading);
 }

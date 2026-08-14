@@ -93,13 +93,13 @@
   --font-size-h3: 1.15rem;
   --line-height-body: 1.65;
 
-  /* Lab reading scale — aligned with theory pane */
-  --lab-font-title: var(--font-size-h3);
-  --lab-font-lead: 1.05rem;
-  --lab-font-body: var(--font-size-body);
-  --lab-font-ui: 0.95rem;
-  --lab-font-meta: 0.85rem;
-  --lab-font-mono: 0.875rem;
+  /* Lab reading scale — aligned with theory pane (+1 step vs body) */
+  --lab-font-title: 1.2rem;
+  --lab-font-lead: 1.1rem;
+  --lab-font-body: 17px;
+  --lab-font-ui: 1rem;
+  --lab-font-meta: 0.9rem;
+  --lab-font-mono: 0.925rem;
   --lab-line: var(--line-height-body);
 
   /* Space */

@@ -226,7 +226,7 @@
 
 .dialogTitle {
   margin: 0;
-  font-size: 0.95rem;
+  font-size: var(--lab-font-ui);
   font-weight: 650;
   color: var(--text-heading);
 }

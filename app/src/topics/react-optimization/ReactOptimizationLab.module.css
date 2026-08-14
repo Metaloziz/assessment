@@ -39,7 +39,7 @@
 .arrow {
   align-self: center;
   flex: 0 0 auto;
-  font-size: 0.72rem;
+  font-size: var(--lab-font-ui);
   color: var(--muted);
   padding: 0 0.15rem;
 }

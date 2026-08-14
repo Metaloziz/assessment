@@ -93,8 +93,14 @@ import { ReactFragmentsLab } from '../topics/react-fragments/ReactFragmentsLab'
 import { ReactPortalsLab } from '../topics/react-portals/ReactPortalsLab'
 import { ReactRouterLab } from '../topics/react-router/ReactRouterLab'
 import { ReactContextLab } from '../topics/react-context/ReactContextLab'
+import { ReactFormManagersLab } from '../topics/react-form-managers/ReactFormManagersLab'
 import { ReactSsrLab } from '../topics/react-ssr/ReactSsrLab'
+import { ReactServerComponentsLab } from '../topics/react-server-components/ReactServerComponentsLab'
 import { ReactCompoundComponentsLab } from '../topics/react-compound-components/ReactCompoundComponentsLab'
+import { ReactRenderPropsLab } from '../topics/react-render-props/ReactRenderPropsLab'
+import { ReactReconciliationLab } from '../topics/react-reconciliation/ReactReconciliationLab'
+import { ReactFiberLab } from '../topics/react-fiber/ReactFiberLab'
+import { ReactWebComponentsLab } from '../topics/react-web-components/ReactWebComponentsLab'
 import { LayoutGridLab } from '../topics/layout-grid/LayoutGridLab'
 import { LayoutFlexboxLab } from '../topics/layout-flexbox/LayoutFlexboxLab'
 import { LayoutAnimationLab } from '../topics/layout-animation/LayoutAnimationLab'
@@ -109,7 +115,6 @@ import { AsyncAwaitLab } from '../topics/async-await/AsyncAwaitLab'
 import { AsyncPromiseAfterCatchLab } from '../topics/async-promise-after-catch/AsyncPromiseAfterCatchLab'
 import { AsyncGeneratorsLab } from '../topics/async-generators/AsyncGeneratorsLab'
 import { AsyncInfiniteGeneratorsLab } from '../topics/async-infinite-generators/AsyncInfiniteGeneratorsLab'
-import { useDevToolsDocked } from '../hooks/useDevToolsDocked'
 import { LAB_DOCK_ID, useLayoutStore } from '../store/layout'
 import styles from './TopicPage.module.css'
 
@@ -172,8 +177,14 @@ function TopicLab({ topicId }: { topicId: string; topic: TopicDetail }) {
   if (topicId === '189-react-portals') return <ReactPortalsLab />
   if (topicId === '190-react-router') return <ReactRouterLab />
   if (topicId === '191-react-context') return <ReactContextLab />
+  if (topicId === '194-react-form-managers') return <ReactFormManagersLab />
   if (topicId === '192-react-ssr') return <ReactSsrLab />
+  if (topicId === '199-react-server-components') return <ReactServerComponentsLab />
   if (topicId === '193-react-compound-components') return <ReactCompoundComponentsLab />
+  if (topicId === '195-react-render-props') return <ReactRenderPropsLab />
+  if (topicId === '196-react-reconciliation') return <ReactReconciliationLab />
+  if (topicId === '197-react-fiber') return <ReactFiberLab />
+  if (topicId === '198-react-web-components') return <ReactWebComponentsLab />
   if (topicId === '213-async-js-single-thread') return <AsyncJsSingleThreadLab />
   if (topicId === '214-async-xhr-fetch') return <AsyncXhrFetchLab />
   if (topicId === '215-async-event-loop') return <AsyncEventLoopLab />
@@ -234,11 +245,9 @@ export function TopicPage() {
   const [topic, setTopic] = useState<TopicDetail | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [dockEl, setDockEl] = useState<HTMLElement | null>(null)
-  const labOpen = useLayoutStore((s) => s.labOpen)
   const setActiveHasLab = useLayoutStore((s) => s.setActiveHasLab)
   const setTheoryOpen = useLayoutStore((s) => s.setTheoryOpen)
   const setLabOpen = useLayoutStore((s) => s.setLabOpen)
-  const devToolsDocked = useDevToolsDocked()
 
   useEffect(() => {
     setDockEl(document.getElementById(LAB_DOCK_ID))
@@ -269,12 +278,6 @@ export function TopicPage() {
       setTheoryOpen(true)
     }
   }, [topicId, setActiveHasLab, setLabOpen, setTheoryOpen])
-
-  /** DevTools + лаба → прячем теорию (как раньше labFocus). */
-  useEffect(() => {
-    if (!topic?.hasLab || !labOpen || !devToolsDocked) return
-    setTheoryOpen(false)
-  }, [topic?.hasLab, labOpen, devToolsDocked, setTheoryOpen])
 
   if (error) {
     return <div className={styles.state}>{error}</div>

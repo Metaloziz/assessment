@@ -48,7 +48,7 @@
 
 .arrow {
   align-self: center;
-  font-size: 1.1rem;
+  font-size: var(--lab-font-lead);
   color: var(--text-faint);
   opacity: 0.35;
   transition:
