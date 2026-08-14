@@ -87,6 +87,14 @@ import { LayoutDesignSystemLab } from '../topics/layout-design-system/LayoutDesi
 import { LayoutA11yLab } from '../topics/layout-a11y/LayoutA11yLab'
 import { LayoutMicrodataLab } from '../topics/layout-microdata/LayoutMicrodataLab'
 import { ReactVirtualDomLab } from '../topics/react-virtual-dom/ReactVirtualDomLab'
+import { ReactOptimizationLab } from '../topics/react-optimization/ReactOptimizationLab'
+import { ReactErrorBoundariesLab } from '../topics/react-error-boundaries/ReactErrorBoundariesLab'
+import { ReactFragmentsLab } from '../topics/react-fragments/ReactFragmentsLab'
+import { ReactPortalsLab } from '../topics/react-portals/ReactPortalsLab'
+import { ReactRouterLab } from '../topics/react-router/ReactRouterLab'
+import { ReactContextLab } from '../topics/react-context/ReactContextLab'
+import { ReactSsrLab } from '../topics/react-ssr/ReactSsrLab'
+import { ReactCompoundComponentsLab } from '../topics/react-compound-components/ReactCompoundComponentsLab'
 import { LayoutGridLab } from '../topics/layout-grid/LayoutGridLab'
 import { LayoutFlexboxLab } from '../topics/layout-flexbox/LayoutFlexboxLab'
 import { LayoutAnimationLab } from '../topics/layout-animation/LayoutAnimationLab'
@@ -158,6 +166,14 @@ function TopicLab({ topicId }: { topicId: string; topic: TopicDetail }) {
   if (topicId === '177-layout-a11y') return <LayoutA11yLab />
   if (topicId === '178-layout-microdata') return <LayoutMicrodataLab />
   if (topicId === '185-react-virtual-dom') return <ReactVirtualDomLab />
+  if (topicId === '186-react-optimization') return <ReactOptimizationLab />
+  if (topicId === '187-react-fragments') return <ReactFragmentsLab />
+  if (topicId === '188-react-error-boundaries') return <ReactErrorBoundariesLab />
+  if (topicId === '189-react-portals') return <ReactPortalsLab />
+  if (topicId === '190-react-router') return <ReactRouterLab />
+  if (topicId === '191-react-context') return <ReactContextLab />
+  if (topicId === '192-react-ssr') return <ReactSsrLab />
+  if (topicId === '193-react-compound-components') return <ReactCompoundComponentsLab />
   if (topicId === '213-async-js-single-thread') return <AsyncJsSingleThreadLab />
   if (topicId === '214-async-xhr-fetch') return <AsyncXhrFetchLab />
   if (topicId === '215-async-event-loop') return <AsyncEventLoopLab />

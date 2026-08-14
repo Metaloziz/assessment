@@ -9,11 +9,7 @@ import { useLayoutStore } from '../store/layout'
 import { useProgressStore } from '../store/progress'
 import styles from './TopicSidebar.module.css'
 
-type Props = {
-  onCollapse?: () => void
-}
-
-export function TopicSidebar({ onCollapse }: Props) {
+export function TopicSidebar() {
   const [topics, setTopics] = useState<TopicSummary[]>([])
   const [query, setQuery] = useState('')
   const hydrated = useProgressHydrated()
@@ -105,17 +101,6 @@ export function TopicSidebar({ onCollapse }: Props) {
         <div className={styles.brandText}>
           <div className={styles.brandTitle}>Assessment Prep</div>
         </div>
-        {onCollapse ? (
-          <button
-            type="button"
-            className={styles.collapseBtn}
-            onClick={onCollapse}
-            aria-label="Скрыть список тем"
-            title="Скрыть список тем"
-          >
-            <span aria-hidden>»</span>
-          </button>
-        ) : null}
       </div>
 
       <div className={styles.progress}>

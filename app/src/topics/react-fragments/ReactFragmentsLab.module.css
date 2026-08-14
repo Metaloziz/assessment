@@ -1,0 +1,124 @@
+.layout {
+  display: flex;
+  align-items: stretch;
+  gap: 0.55rem;
+  min-height: 10rem;
+}
+
+.col {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.colTitle {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--text);
+}
+
+.tree {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.45rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--bg) 55%, var(--bg-elevated));
+  min-height: 8.5rem;
+}
+
+.treeBroken {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--danger) 35%, transparent);
+}
+
+.treeOk {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ok) 30%, transparent);
+}
+
+.leaf {
+  text-align: left;
+  transition:
+    border-color 0.4s ease,
+    color 0.4s ease,
+    box-shadow 0.4s ease,
+    opacity 0.4s ease,
+    background 0.4s ease;
+}
+
+.indent {
+  margin-left: 0.75rem;
+}
+
+.indent2 {
+  margin-left: 1.5rem;
+}
+
+.ghost {
+  border-style: dashed;
+  opacity: 0.85;
+}
+
+.slotEmpty {
+  margin-top: auto;
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-meta);
+  color: var(--text-faint);
+  padding: 0.35rem 0.25rem;
+}
+
+.arrow {
+  align-self: center;
+  flex: 0 0 auto;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  padding: 0 0.1rem;
+  white-space: nowrap;
+}
+
+.nodeWarn {
+  border-color: color-mix(in srgb, var(--warn) 55%, var(--border));
+  color: var(--warn);
+  background: color-mix(in srgb, var(--warn) 12%, var(--node-idle-bg));
+}
+
+.nodeDim {
+  opacity: 0.45;
+}
+
+.codePane {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+  gap: 0.55rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .leaf {
+    transition: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .layout {
+    flex-direction: column;
+  }
+
+  .arrow {
+    align-self: flex-start;
+  }
+
+  .indent {
+    margin-left: 0.5rem;
+  }
+
+  .indent2 {
+    margin-left: 1rem;
+  }
+}

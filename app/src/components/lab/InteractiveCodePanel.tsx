@@ -154,13 +154,44 @@ export function InteractiveCodePanel({
   const rootRef = useRef<HTMLDivElement>(null)
   const editorShellRef = useRef<HTMLDivElement>(null)
   const [maxEditorPx, setMaxEditorPx] = useState<number | undefined>()
+  /** Пишем в LS только после правки в редакторе, не при mount / смене эталона. */
+  const editedRef = useRef(false)
+  const persistTimerRef = useRef<number | null>(null)
 
   const loadSnippet = useCallback(
     (snippet: InteractiveSnippet) => {
+      editedRef.current = false
+      if (persistTimerRef.current != null) {
+        window.clearTimeout(persistTimerRef.current)
+        persistTimerRef.current = null
+      }
       setActiveId(snippet.id)
       setCode(readStored(topicId, snippet.id) ?? snippet.code)
     },
     [topicId],
+  )
+
+  const persistIfEdited = useCallback(
+    (snippetId: string, canonical: string, next: string) => {
+      if (!editedRef.current) return
+      if (persistTimerRef.current != null) window.clearTimeout(persistTimerRef.current)
+      persistTimerRef.current = window.setTimeout(() => {
+        persistTimerRef.current = null
+        if (next === canonical) clearStored(topicId, snippetId)
+        else writeStored(topicId, snippetId, next)
+      }, 400)
+    },
+    [topicId],
+  )
+
+  const onCodeChange = useCallback(
+    (value: string) => {
+      if (!activeMeta) return
+      editedRef.current = true
+      setCode(value)
+      persistIfEdited(activeMeta.id, activeMeta.code, value)
+    },
+    [activeMeta, persistIfEdited],
   )
 
   const run = useCallback((source: string) => {
@@ -171,19 +202,24 @@ export function InteractiveCodePanel({
     if (!activeMeta) return
     if (activeMeta.executable === false) {
       setConsoleLines([])
-      const id = window.setTimeout(() => {
-        if (code === activeMeta.code) clearStored(topicId, activeMeta.id)
-        else writeStored(topicId, activeMeta.id, code)
-      }, 400)
-      return () => window.clearTimeout(id)
+      return
     }
-    const id = window.setTimeout(() => {
-      if (code === activeMeta.code) clearStored(topicId, activeMeta.id)
-      else writeStored(topicId, activeMeta.id, code)
-      run(code)
-    }, 400)
+    const id = window.setTimeout(() => run(code), 400)
     return () => window.clearTimeout(id)
-  }, [code, topicId, activeMeta, run])
+  }, [code, activeMeta, run])
+
+  // Эталон обновился (HMR / правка лабы), черновика нет — подтянуть новый код без записи в LS.
+  useEffect(() => {
+    if (!activeMeta || editedRef.current) return
+    if (readStored(topicId, activeMeta.id) != null) return
+    setCode((prev) => (prev === activeMeta.code ? prev : activeMeta.code))
+  }, [activeMeta, topicId])
+
+  useEffect(() => {
+    return () => {
+      if (persistTimerRef.current != null) window.clearTimeout(persistTimerRef.current)
+    }
+  }, [])
 
   useLayoutEffect(() => {
     if (!fillAvailable) {
@@ -262,8 +298,13 @@ export function InteractiveCodePanel({
         ) : null}
         <LabButton
           variant="secondary"
-          disabled={!dirty && readStored(topicId, activeMeta.id) == null}
+          disabled={!dirty}
           onClick={() => {
+            editedRef.current = false
+            if (persistTimerRef.current != null) {
+              window.clearTimeout(persistTimerRef.current)
+              persistTimerRef.current = null
+            }
             clearStored(topicId, activeMeta.id)
             setCode(activeMeta.code)
           }}
@@ -302,7 +343,7 @@ export function InteractiveCodePanel({
             indentOnInput: true,
           }}
           aria-label={`Код: ${activeMeta.label}`}
-          onChange={(value) => setCode(value)}
+          onChange={onCodeChange}
         />
       </div>
 

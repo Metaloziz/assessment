@@ -1,0 +1,140 @@
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  min-height: 9.5rem;
+}
+
+.urlBar {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.55rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--bg) 60%, var(--bg-elevated));
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-meta);
+  transition:
+    border-color 0.4s ease,
+    box-shadow 0.4s ease;
+}
+
+.urlBarActive {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+.urlScheme {
+  color: var(--text-faint);
+  flex: 0 0 auto;
+}
+
+.urlPath {
+  color: var(--text);
+  font-weight: 600;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tree {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.leaf {
+  text-align: left;
+  transition:
+    border-color 0.4s ease,
+    color 0.4s ease,
+    box-shadow 0.4s ease,
+    opacity 0.4s ease,
+    background 0.4s ease;
+}
+
+.indent {
+  margin-left: 0.85rem;
+}
+
+.outletWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin-left: 0.85rem;
+  padding: 0.4rem;
+  border: 1px dashed color-mix(in srgb, var(--border) 90%, transparent);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+}
+
+.outletLabel {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-meta);
+  color: var(--text-faint);
+  transition: color 0.4s ease;
+}
+
+.outletLabelOn {
+  color: var(--accent-bright);
+}
+
+.hocRow {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-left: 0.55rem;
+}
+
+.hocArrow {
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.nodeWarn {
+  border-color: color-mix(in srgb, var(--warn) 55%, var(--border));
+  color: var(--warn);
+  background: color-mix(in srgb, var(--warn) 12%, var(--node-idle-bg));
+}
+
+.injectNote {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-meta);
+  color: var(--warn);
+}
+
+.injectNote code {
+  color: var(--accent-bright);
+  font-size: inherit;
+}
+
+.codePane {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+  gap: 0.55rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .leaf,
+  .urlBar,
+  .outletLabel {
+    transition: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .indent {
+    margin-left: 0.5rem;
+  }
+
+  .outletWrap {
+    margin-left: 0.45rem;
+  }
+}

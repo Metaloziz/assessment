@@ -1,0 +1,67 @@
+.memoLayout,
+.lazyLayout,
+.keysLayout {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  min-height: 8.5rem;
+}
+
+.lazyLayout {
+  flex-direction: row;
+  align-items: stretch;
+  gap: 0.55rem;
+}
+
+.rowStrip,
+.routeCol,
+.keysLayout {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.rowStrip {
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.rowStrip > * {
+  flex: 1;
+  min-width: 5.5rem;
+}
+
+.routeCol {
+  flex: 1;
+  min-width: 0;
+}
+
+.arrow {
+  align-self: center;
+  flex: 0 0 auto;
+  font-size: 0.72rem;
+  color: var(--muted);
+  padding: 0 0.15rem;
+}
+
+.codePane {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+  gap: 0.55rem;
+}
+
+@media (max-width: 640px) {
+  .lazyLayout {
+    flex-direction: column;
+  }
+
+  .arrow {
+    align-self: flex-start;
+  }
+
+  .rowStrip {
+    flex-direction: column;
+  }
+}

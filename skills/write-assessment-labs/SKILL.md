@@ -2,11 +2,12 @@
 name: write-assessment-labs
 description: >-
   Creates and edits assessment interactive labs (`*Lab.tsx`): visual stands
-  (metaphor per mechanism, ghost tabs + Запустить on top, case brief, one
-  diagram on screen), JsLabShell, InteractiveCodePanel, real-file Code tab
-  with ← markers, problem tab, wiring in parseTopicMd and TopicPage. Use when
-  adding or rewriting labs, вкладка Код, лаборатория, middle/senior lab, or
-  LAB_FORMAT work in this repo.
+  (live mechanism when the effect is visible in-browser, else nodes / UI look
+  samples; ghost tabs + Запустить on top, case brief, one picture on screen),
+  JsLabShell, InteractiveCodePanel, real-file Code tab with ← markers,
+  problem tab, wiring in parseTopicMd and TopicPage. Use when adding or
+  rewriting labs, вкладка Код, лаборатория, middle/senior lab, or LAB_FORMAT
+  work in this repo.
 ---
 
 # Как писать лабы assessment
@@ -35,21 +36,30 @@ description: >-
 3. Эталон UX **«Решение проблемы»** (кнопки сверху + описание кейса): `app/src/topics/patterns-mediator-composite-memento/PatternsMediatorCompositeMementoLab.tsx`
 4. Доп. эталон ghost + запуск (без новой раскладки текста): `app/src/topics/software-incremental-iterative-spiral/IncrementalIterativeSpiralLab.tsx`, `app/src/topics/algorithms-stack-hashmap/AlgorithmsStackHashmapLab.tsx`
 5. Live-API / HTTP-поток (не шаблон любой схемы): `app/src/topics/cors/CorsLab.tsx`
-6. **Обязательно при схеме:** [`assessment-lab-visualizations/SKILL.md`](../assessment-lab-visualizations/SKILL.md) — прочитать до кода схемы (см. § выше). Algorithms — стиль, не объём файла
-7. Оболочка: `app/src/topics/js-*/*Lab.tsx` (пилоты `107+`)
+6. **Живой механизм** (реальный API/DOM в стенде): `app/src/topics/react-portals/ReactPortalsLab.tsx`, `app/src/topics/react-error-boundaries/ReactErrorBoundariesLab.tsx`
+7. **Обязательно при схеме:** [`assessment-lab-visualizations/SKILL.md`](../assessment-lab-visualizations/SKILL.md) — прочитать до кода схемы (см. § выше). Algorithms — стиль, не объём файла
+8. Оболочка: `app/src/topics/js-*/*Lab.tsx` (пилоты `107+`)
 
 ## Стенд, не статья
 
-На экране — **одна** схема выбранного механизма. За 10–20 секунд ясно: что сломано, что выбрать, что нажать, что изменилось.
+На экране — **одна** картина выбранного механизма. За 10–20 секунд ясно: что сломано, что выбрать, что нажать, что изменилось.
 
 Вкладки UI **две** (не три): **Код** и **Решение проблемы**. Схема живёт на «Решении проблемы», не отдельной вкладкой.
 
 ### Дизайн до кода
 
 0. Есть схема / визуализация → **прочитать** [`assessment-lab-visualizations`](../assessment-lab-visualizations/SKILL.md) (обязательно).
-1. Выбрать механизм **или** кластер с переключателем (на экране всё равно одна схема).
-2. Подобрать **метафору** под механизм: каталог, клон, кэш, стопка, слот, луковица, семейство… **или живые UI-образцы**, если тема про look (дизайн-система / типографика / a11y contrast) — см. [`assessment-lab-visualizations`](../assessment-lab-visualizations/SKILL.md) § «Живой UI-образец». Не копировать горизонтальный поток `A → B → C`, если тема не про пайплайн запроса.
-3. Набросать картину: либо 3–6 узлов и 2–4 состояния (`idle` → шаг → ok / ошибка), либо 2–3 сцены с контролами (совпадение vs дрейф).
+1. Выбрать механизм **или** кластер с переключателем (на экране всё равно одна картина).
+2. Выбрать **вид картины** (не по привычке к `LabNode`):
+
+   | Вид | Когда уместен | Эталон |
+   |-----|----------------|--------|
+   | **Живой механизм** | Эффект можно **увидеть/потрогать** в браузере тем же API, что в теме (`createPortal`, Error Boundary, `overflow`+clip, focus, реальный HTTP-стенд…) | `react-portals`, `react-error-boundaries`, CorsLab |
+   | **Живой UI-образец** | Тема про **look** (токены, типографика, contrast) | `layout-design-system` |
+   | **Механизм узлами** | Абстрактная структура/шаги: граф, стек, кэш, паттерн-связи, пайплайн без «живого» DOM-эффекта | `algorithms-stack-hashmap`, mediator |
+
+   **Правило выбора:** если абстрактные узлы **прячут** эффект (обрезание, портал в другом DOM, fallback UI, ошибка сети) — делай **живой механизм**, не схему `#root → Card → Modal`. Если «пощупать» нельзя без фейка целого движка — узлы/метафора. Не копировать горизонтальный `A → B → C`, если тема не про пайплайн запроса.
+3. Набросать картину: живой мини-стенд **или** 3–6 узлов / 2–3 UI-сцены; 2–4 состояния (`idle` → шаг → ok / ошибка).
 4. Ghost-кейсы (2 на паттерн) + отдельная кнопка **Запустить**. Клик по кейсу **не** стартует прогон.
 5. Для каждого кейса — **1 предложение**, что он показывает (`CASE_BRIEF`).
 6. Только потом — сниппеты «Код» и проводка.
@@ -62,20 +72,20 @@ description: >-
 | описание кейса | **1** предложение про **выбранный** кейс |
 | кейсы на **видимый** механизм | **2–3**, не 4–5 |
 | сниппеты | **2–3** файла |
-| схема | 3–6 узлов **или** 2–3 UI-сцены; один «сейчас» / один контраст |
+| схема / стенд | 3–6 узлов **или** 2–3 UI-сцены **или** один живой мини-стенд; один «сейчас» / один контраст |
 | лог за прогон | 2–5 строк; не дублировать `pain` / brief |
 
 Кластер паттернов: переключатель не считается «4–5 сценариями». На выбранный паттерн — 2 контраста.
 
-### Схема
+### Схема / стенд
 
-На «Решении проблемы» схема **норма**, не опция. **Запустить** обновляет картинку; лог — квитанция (статус, заголовок), не урок.
+На «Решении проблемы» картина **норма**, не опция. **Запустить** обновляет её; лог — квитанция (статус, заголовок), не урок.
 
-Метафора схемы — **каждый раз под тему**. CorsLab — эталон live-API/HTTP, не шаблон визуализации.
+Вид картины — по таблице в «Дизайн до кода». CorsLab — эталон live-API/HTTP; `react-portals` / `react-error-boundaries` — эталон **живого механизма** (не подменять узлами, если глаз должен увидеть clip / portal / fallback).
 
 Исключение: у темы нет состояний (чистый синтаксис/конфиг) — контраст в UI или крошечный before/after. **Запрещено** учить механизм только строками `log(...)`.
 
-Live-API (CORS, JWT, SQLi…) — двигатель стенда, не замена схеме. Стиль — только [`assessment-lab-visualizations`](../assessment-lab-visualizations/SKILL.md).
+Live-API и живой механизм — двигатель стенда внутри `LabVizPanel`; стиль chrome — только [`assessment-lab-visualizations`](../assessment-lab-visualizations/SKILL.md).
 
 ### Анимация
 
@@ -93,6 +103,7 @@ Live-API (CORS, JWT, SQLi…) — двигатель стенда, не заме
 ### Антипаттерны
 
 - Только лог, без картины — как `sql-injection` / соседние security до рерайта
+- **Узлы вместо живого эффекта**, когда механизм можно показать тем же API (`#root → Modal` вместо реального `createPortal` / clip)
 - Кнопка кейса сразу запускает прогон (нужны ghost + **Запустить**)
 - Горизонтальный поток `A → B → C` для любой темы «потому что CorsLab»
 - 4–5 кейсов на один видимый механизм
@@ -107,7 +118,7 @@ Live-API (CORS, JWT, SQLi…) — двигатель стенда, не заме
 - `JsLabShell` + `InteractiveCodePanel`
 - Две вкладки: **Код** (первая) и **Решение проблемы**
 - **Не** передавать `sandbox` / не делать «Песочницу»
-- `TOPIC_ID` = id темы; ключ LS: `assessment-lab-code:${topicId}:${snippetId}`
+- `TOPIC_ID` = id темы; ключ LS: `assessment-lab-code:${topicId}:${snippetId}` (пишется только после правки кода; эталон сам по себе не сохраняется)
 
 Проводка:
 
@@ -122,6 +133,15 @@ Live-API (CORS, JWT, SQLi…) — двигатель стенда, не заме
 - Node / `require` / неисполняемое → `executable: false` (консоль и «Выполнить» скрыты).
 - 2–3 сниппета-файла по подтемам; у кластера — **тот же** ghost-переключатель, что на «Решении проблемы», и сниппеты выбранного паттерна (эталон: `algorithms-stack-hashmap`).
 
+### Группа React (`groupId: "react"`)
+
+Сниппеты `.tsx` / `.jsx` и UI-компоненты самой лабы — **стрелочные компоненты** на **React + TypeScript**:
+
+- `export const Modal = ({ open }: Props) => { … }` / `export const App = () => (…)`
+- Типы пропсов: `type Props = { … }` или `Props` рядом с компонентом
+- **Не** `export function Modal(…)`, **не** `class … extends Component` (кроме редких API, где класс обязателен: например legacy `ErrorBoundary` через class — только если тема именно про это)
+- Эталон стиля: `react-error-boundaries` (`ReactErrorBoundariesLab.tsx`)
+
 ### Не писать в UI
 
 В `intro` / `note` / `lead` / `pain` / `hint` / описании кейса **запрещены** мета-фразы:
@@ -132,6 +152,30 @@ Live-API (CORS, JWT, SQLi…) — двигатель стенда, не заме
 - «Выберите паттерн / кейс…», «схема ещё не играет», «Нажмите Запустить и смотрите…»
 
 `intro` — про **содержание темы**. Пометки `←` — только внутри кода.
+
+### Не эхо промпта и стиля кода
+
+В сниппетах, комментариях `← …`, блоках `/* … */`, JSDoc, `note` / `intro` / `lead` / `pain` / brief **запрещено** отражать просьбы из промпта автора и «как мы пишем код» как тему урока.
+
+Пометки `←` — только про **механизм темы** (`HMR`, `render-phase`, `FallbackComponent`, `patch`), не про формат/стиль по запросу.
+
+Плохо:
+
+```text
+// FALLBACK ← стрелка, не класс
+// APP ← только стрелки, без class
+/* Live stand: без class по просьбе */
+note: «В приложении — только стрелки…»
+```
+
+Хорошо:
+
+```text
+// FALLBACK ← экран ошибки виджета
+// BOUNDARY ← изоляция сбоя в main
+// ← render-phase
+note: '`ErrorBoundary` оборачивает виджет; `FallbackComponent` — запасной UI.'
+```
 
 ## Вкладка «Решение проблемы»
 
@@ -190,13 +234,15 @@ Live-API (CORS, JWT, SQLi…) — двигатель стенда, не заме
 - [ ] Есть описание **выбранного** кейса; нет meta-шагов про «выберите / нажмите»
 - [ ] Ghost-выбор + отдельный **Запустить**; клик по кейсу не гоняет прогон
 - [ ] Кластер: те же ghost-табы паттернов на «Код» и на «Проблеме»
-- [ ] Метафора схемы подобрана под механизм, не скопирован CORS-поток; look-темы → живые контролы, не абстрактные слои-узлы
-- [ ] При схеме: прочитан [`assessment-lab-visualizations/SKILL.md`](../assessment-lab-visualizations/SKILL.md); стиль — только из него (`LabVizPanel` / токены / анимация; UI-образец — по § скилла)
+- [ ] Метафора / вид картины подобраны под механизм (живой стенд, если эффект виден в DOM/API; иначе узлы / look-образец); не скопирован CORS-поток вслепую
+- [ ] При схеме: прочитан [`assessment-lab-visualizations/SKILL.md`](../assessment-lab-visualizations/SKILL.md); стиль — только из него (`LabVizPanel` / токены / анимация; UI-образец / живой механизм — по § скилла)
 - [ ] Анимация: timeline 0.5–0.7 с, не `fromTo` всех узлов на шаг; `prefers-reduced-motion`
 - [ ] Лог — квитанция, не урок; `hint` только после прогона
 - [ ] Код = узнаваемые файлы + `←` в коде
+- [ ] Группа React → стрелочные компоненты React + TS (не `function`/`class`, кроме обязательного API темы)
 - [ ] `executable: false` где нужно; нет плейсхолдера «эталон без запуска» в консоли
 - [ ] intro/lead/pain/brief без мета-инструкций агенту и без «как пользоваться стендом»
+- [ ] В коде/`←`/note нет эха промпта («не класс», «только стрелки», «по просьбе…») — только механизм темы
 - [ ] Следование `LAB_FORMAT.md`
 - [ ] Кнопки только через `LabButton` (не `shell.btn`, не локальный `.btn`, не hex-цвета)
 - [ ] Панель схемы через `LabVizPanel` / `labVizStyles` — **не** копировать `.viz {` в CSS топика

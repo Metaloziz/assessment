@@ -447,9 +447,7 @@ export function AppShell() {
         >
           <div className={styles.dockStage}>
             <div ref={topicsRef} className={styles.topicsLayer} aria-hidden={!topicsOn}>
-              <TopicSidebar
-                onCollapse={labOpen || theoryHidden ? undefined : () => setSidebarOpen(false)}
-              />
+              <TopicSidebar />
             </div>
 
             <div

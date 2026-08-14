@@ -2,12 +2,13 @@
 name: assessment-lab-visualizations
 description: >-
   Shared visual language for interactive lab diagrams and animations in
-  assessment (algorithms, security, network, layout, performance, and any live
-  stand): dark panels, accent/ok highlights, live UI samples when the topic is
+  assessment (algorithms, security, network, layout, performance, React live
+  stands, and any live stand): dark panels, accent/ok highlights, live mechanism
+  demos when the API/DOM effect is visible, live UI samples when the topic is
   about visual look, SVG typography, GSAP timeline with prefers-reduced-motion.
   Use when building or polishing lab schemes, graphs, catalogs, clones, caches,
-  stacks, design-system / typography / a11y contrasts, or animated state in
-  `*Lab.tsx`.
+  stacks, portals / boundaries, design-system / typography / a11y contrasts, or
+  animated state in `*Lab.tsx`.
 ---
 
 # Визуализации в лабах
@@ -21,12 +22,15 @@ description: >-
 
 Схема на вкладке **«Решение проблемы»** — норма, не опция. **Запустить** меняет картинку; лог не заменяет схему.
 
-Два равноправных вида картины (выбрать по теме, не по привычке к `LabNode`):
+Два-три равноправных вида картины (выбрать по теме, не по привычке к `LabNode`):
 
 | Вид | Когда | Что на экране |
 |---|---|---|
-| **Механизм узлами** | поток, граф, стек, кэш, пайплайн… | 3–6 узлов, подсвечен **один** текущий шаг |
+| **Живой механизм** | эффект темы виден в браузере тем же API/DOM (`createPortal`, boundary, clip, HTTP…) | мини-приложение / контрол; **Запустить** включает реальный эффект |
 | **Живой UI-образец** | механизм = **визуальный контракт / look** | 2–3 карточки с реальными контролами; глаз видит совпадение или дрейф |
+| **Механизм узлами** | поток, граф, стек, кэш, пайплайн, связи паттерна… | 3–6 узлов, подсвечен **один** текущий шаг |
+
+**Выбор:** если узлы только *рассказывают* то, что глаз может *увидеть* на живом стенде — бери живой механизм. Если «пощупать» нельзя (алгоритм, внутренняя структура без DOM-эффекта) — узлы. Look-темы — UI-образец, не стек `LabNode`.
 
 Если тема чисто про синтаксис/конфиг без состояний — схема не обязательна (крошечный before/after или контраст в UI).
 
@@ -38,7 +42,9 @@ description: >-
 
 | Механизм | Примеры метафор |
 |---|---|
-| HTTP / CORS / запрос | поток браузер → API |
+| HTTP / CORS / запрос | **живой** поток браузер → API (CorsLab) |
+| React portals / overflow clip | **живой** Card + `createPortal` в `#modal-root` (`react-portals`) |
+| Error boundaries | **живой** cabinet + fallback (`react-error-boundaries`) |
 | Factory | каталог / штамп продукта |
 | Prototype | оригинал vs clone |
 | Proxy / кэш | обёртка + hit/miss |
@@ -53,8 +59,24 @@ description: >-
 | **Типографика / ритм / denseness** | два столбца текста или контролов side-by-side |
 | **a11y contrast / focus** | один контрол «ок» рядом с «сломано» (контраст, focus ring) |
 
-CorsLab — эталон **live-API**, не шаблон визуализации.  
+CorsLab — эталон **live-API**, не шаблон любой схемы.  
+Эталон **живого механизма (React/DOM)**: `app/src/topics/react-portals/ReactPortalsLab.tsx`, `app/src/topics/react-error-boundaries/ReactErrorBoundariesLab.tsx`.  
 Эталон **живого UI-образца**: `app/src/topics/layout-design-system/LayoutDesignSystemLab.tsx`.
+
+### Живой механизм (не подменять узлами)
+
+Если тема про поведение, которое **уже видно в DOM/браузере** (портал, clip от `overflow`, fallback границы, реальный запрос) — **не** рисовать схему «узел Card → узел Modal». Стенд должен **делать** то же, что сниппет.
+
+Правила:
+
+1. Мини-сценарий (карточка, кабинет, запрос) внутри `LabVizPanel`; API темы — настоящий (`createPortal`, throw + boundary, `fetch`…).
+2. Ghost-кейсы = контраст поведения (без portal / с portal; без границы / с границей), не разные «рисунки узлов».
+3. **Запустить** включает эффект; допускается лёгкая анимация появления, но смысл — в реальном результате.
+4. Подписи — квитанция (`#modal-root`, `overflow · clip`), не урок.
+5. Не раздувать до полноценного продукта: 1 экран, 1 механизм, те же лимиты кейсов.
+
+Плохо: два столбца `#root` / `#modal-root` из `LabNode` с текстом «Modal overlay».  
+Хорошо: карточка с `overflow: hidden` и реальный `createPortal` в соседний host.
 
 ### Живой UI-образец (не подменять узлами)
 
@@ -76,8 +98,10 @@ CorsLab — эталон **live-API**, не шаблон визуализаци�
 - `app/src/topics/algorithms-graphs-list/` — граф + порядок обхода
 - `app/src/topics/algorithms-stack-hashmap/` — стопка LIFO и корзины `Map` (переключатель, не полотно)
 - `app/src/topics/layout-design-system/` — живые primary на экранах (контракт vs дрейф)
+- `app/src/topics/react-portals/` — живой `createPortal` + clip
+- `app/src/topics/react-error-boundaries/` — живой cabinet + fallback
 
-Новые live-API лабы (CORS, JWT, SQLi, WS…) переиспользуют **тот же** язык токенов и панелей: `LabVizPanel` / `LabNode` / `labVizStyles` из `app/src/components/lab/LabViz.tsx`. Не копировать блок `.viz` в CSS топика. UI-look темы — тот же `LabVizPanel`, но содержимое = образцы, не обязанность `LabNode`.
+Новые live-API / живой-механизм лабы переиспользуют **тот же** язык токенов и панелей: `LabVizPanel` / `LabNode` / `labVizStyles` из `app/src/components/lab/LabViz.tsx`. Не копировать блок `.viz` в CSS топика. UI-look и живой механизм — тот же `LabVizPanel`, но содержимое = сцена/контролы, не обязанность `LabNode`.
 
 ## Визуальный язык
 
@@ -112,6 +136,7 @@ CorsLab — эталон **live-API**, не шаблон визуализаци�
 ## Не делать
 
 - Только таблица/лог вместо схемы, если структура — граф/список/дерево/каталог/клон
+- **Абстрактные `LabNode`-слои** вместо живого эффекта, если механизм можно показать тем же API/DOM (portal, clip, boundary, live request)
 - **Абстрактные `LabNode`-слои** вместо живых контролов, если тема про визуальный look / дизайн-систему / типографику / contrast
 - Горизонтальный CORS-поток для темы, которая не про пайплайн запроса
 - Оверлеи-бейджи, фиолетовый glow «из коробки AI»

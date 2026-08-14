@@ -1,0 +1,150 @@
+.stage {
+  min-height: 12rem;
+}
+
+.tree {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0.15rem 0.1rem 0.25rem;
+}
+
+.providerRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem 0.65rem;
+  padding: 0.45rem 0.55rem;
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border));
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--accent) 8%, var(--bg-elevated));
+}
+
+.providerLabel {
+  font-size: var(--lab-font-ui);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-heading);
+}
+
+.providerValue {
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-meta);
+  color: var(--code-inline);
+  background: transparent;
+  padding: 0;
+}
+
+.node {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.5rem 0.55rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--bg) 45%, var(--bg-elevated));
+  transition:
+    border-color 0.4s ease,
+    box-shadow 0.4s ease,
+    background-color 0.4s ease;
+}
+
+.nodeMid {
+  margin-left: 0.55rem;
+}
+
+.leaf {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.55rem;
+  margin-left: 0.55rem;
+  padding: 0.5rem 0.55rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--bg) 30%, var(--bg-elevated));
+  transition:
+    border-color 0.4s ease,
+    box-shadow 0.4s ease,
+    background-color 0.4s ease;
+}
+
+.nodeFlash {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 25%, transparent);
+  background: color-mix(in srgb, var(--accent) 12%, var(--bg-elevated));
+}
+
+.nodeHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.55rem;
+}
+
+.nodeName {
+  font-size: var(--lab-font-ui);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text);
+}
+
+.nodeHint {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-meta);
+  color: var(--text-faint);
+}
+
+.nodeMeta {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-meta);
+  color: var(--text-faint);
+}
+
+.propTag,
+.propTagMuted {
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-meta);
+  padding: 0.1rem 0.35rem;
+  border-radius: var(--radius-sm);
+}
+
+.propTag {
+  color: var(--warn);
+  background: color-mix(in srgb, var(--warn) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--warn) 35%, var(--border));
+}
+
+.propTagMuted {
+  color: var(--text-faint);
+  background: color-mix(in srgb, var(--bg) 40%, transparent);
+  border: 1px solid var(--border);
+}
+
+.themeChip {
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-meta);
+  padding: 0.12rem 0.4rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid color-mix(in srgb, var(--ok) 40%, var(--border));
+  color: var(--ok);
+  background: color-mix(in srgb, var(--ok) 12%, transparent);
+  transition:
+    color 0.4s ease,
+    border-color 0.4s ease,
+    background-color 0.4s ease;
+}
+
+.themeChip[data-theme='light'] {
+  color: var(--accent-bright);
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.codePane {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+  gap: 0.55rem;
+}

@@ -1,0 +1,279 @@
+.stage {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.9fr);
+  gap: 0.65rem;
+  min-height: 14rem;
+  isolation: isolate;
+}
+
+.colLabel {
+  margin: 0 0 0.3rem;
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-meta);
+  color: var(--text-faint);
+}
+
+.appColumn,
+.hostColumn {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.appShell {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-elevated);
+  overflow: hidden;
+  min-height: 13rem;
+}
+
+.appHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.5rem 0.65rem;
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg) 45%, var(--bg-elevated));
+  font-size: var(--lab-font-ui);
+  color: var(--text);
+}
+
+.brandMark {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 2px;
+  background: var(--accent);
+  flex: 0 0 auto;
+}
+
+.appNav {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-meta);
+  color: var(--accent-bright);
+}
+
+.appBody {
+  position: relative;
+  flex: 1;
+  padding: 0.65rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-height: 0;
+}
+
+.orderCard {
+  position: relative;
+  overflow: hidden;
+  height: 8.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.6rem 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--bg) 50%, var(--bg-elevated));
+  transition:
+    border-color 0.4s ease,
+    box-shadow 0.4s ease;
+  cursor: default;
+}
+
+.orderCardFlash {
+  border-color: color-mix(in srgb, var(--accent) 50%, var(--border));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+.orderHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.orderTitle {
+  margin: 0;
+  font-size: var(--lab-font-ui);
+  font-weight: 600;
+  color: var(--text-heading);
+}
+
+.orderBadge {
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-meta);
+  color: var(--ok);
+  border: 1px solid color-mix(in srgb, var(--ok) 40%, var(--border));
+  border-radius: var(--radius);
+  padding: 0.1rem 0.35rem;
+}
+
+.orderMeta {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-meta);
+  color: var(--text-faint);
+}
+
+.orderList {
+  margin: 0;
+  padding-left: 1rem;
+  font-size: var(--lab-font-ui);
+  color: var(--text-muted);
+  line-height: 1.35;
+}
+
+.orderActions {
+  margin-top: auto;
+  position: relative;
+  z-index: 1;
+}
+
+.clipNote {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-meta);
+  color: var(--text-faint);
+}
+
+.modalHost {
+  position: relative;
+  flex: 1;
+  min-height: 13rem;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--bg) 60%, var(--bg-elevated));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  transition:
+    border-color 0.4s ease,
+    background 0.4s ease;
+}
+
+.modalHostLive {
+  border-style: solid;
+  border-color: color-mix(in srgb, var(--ok) 40%, var(--border));
+  background: color-mix(in srgb, var(--ok) 6%, var(--bg-elevated));
+}
+
+.hostEmpty,
+.hostLive {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-meta);
+  color: var(--text-faint);
+  text-align: center;
+}
+
+.hostLive {
+  color: var(--ok);
+}
+
+.hostMount {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  box-sizing: border-box;
+}
+
+.dialog {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.7rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-elevated);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--bg-deep) 45%, transparent);
+  min-width: 11rem;
+  max-width: 15rem;
+}
+
+.dialogTrapped {
+  position: absolute;
+  left: 0.45rem;
+  right: 0.45rem;
+  top: 2.2rem;
+  min-height: 9.5rem;
+  z-index: 2;
+  border-color: color-mix(in srgb, var(--danger) 45%, var(--border));
+  background: color-mix(in srgb, var(--danger) 8%, var(--bg-elevated));
+}
+
+.dialogFree {
+  border-color: color-mix(in srgb, var(--ok) 40%, var(--border));
+  position: relative;
+  width: 100%;
+  max-width: none;
+}
+
+.dialogEyebrow {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-meta);
+  color: var(--text-faint);
+}
+
+.dialogTitle {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 650;
+  color: var(--text-heading);
+}
+
+.dialogLead,
+.dialogHint {
+  margin: 0;
+  font-size: var(--lab-font-ui);
+  color: var(--text-muted);
+  line-height: 1.35;
+}
+
+.dialogHint {
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-meta);
+  color: var(--accent-bright);
+}
+
+.dialogActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.25rem;
+}
+
+.codePane {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+  gap: 0.55rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .orderCard,
+  .modalHost,
+  .dialog {
+    transition: none;
+  }
+}
+
+@media (max-width: 720px) {
+  .stage {
+    grid-template-columns: 1fr;
+  }
+
+  .modalHost {
+    min-height: 8rem;
+  }
+}
