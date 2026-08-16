@@ -5,6 +5,17 @@ export function apiUrl(path: string): string {
   return `${base}${normalized}`
 }
 
+/** WebSocket URL for the same API base (`http`→`ws`, `https`→`wss`; relative → current host). */
+export function apiWsUrl(path: string): string {
+  const httpUrl = apiUrl(path)
+  if (httpUrl.startsWith('https://')) return `wss://${httpUrl.slice('https://'.length)}`
+  if (httpUrl.startsWith('http://')) return `ws://${httpUrl.slice('http://'.length)}`
+  if (typeof window === 'undefined') return httpUrl
+  const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+  const normalized = httpUrl.startsWith('/') ? httpUrl : `/${httpUrl}`
+  return `${proto}//${window.location.host}${normalized}`
+}
+
 export async function apiJson<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(apiUrl(path), {
     ...init,

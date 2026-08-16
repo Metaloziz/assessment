@@ -14,6 +14,7 @@ Thumbs.db
 server/.env
 app/.env
 app/.env.local
+app/.env.*.local
 
 # App
 app/node_modules/

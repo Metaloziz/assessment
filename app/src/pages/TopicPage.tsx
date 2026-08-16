@@ -135,6 +135,8 @@ import { NodejsCacheCrudLab } from '../topics/nodejs-cache-crud/NodejsCacheCrudL
 import { NodejsWorkerThreadsLab } from '../topics/nodejs-worker-threads/NodejsWorkerThreadsLab'
 import { NetworkApiFirstLab } from '../topics/network-api-first/NetworkApiFirstLab'
 import { NetworkHttpHttpsLab } from '../topics/network-http-https/NetworkHttpHttpsLab'
+import { NetworkTcpipInternetAppLab } from '../topics/network-tcpip-internet-app/NetworkTcpipInternetAppLab'
+import { NetworkLongPollingWsSseLab } from '../topics/network-long-polling-ws-sse/NetworkLongPollingWsSseLab'
 import { LAB_DOCK_ID, useLayoutStore } from '../store/layout'
 import styles from './TopicPage.module.css'
 
@@ -235,6 +237,8 @@ function TopicLab({ topicId }: { topicId: string; topic: TopicDetail }) {
   if (topicId === '246-nodejs-worker-threads') return <NodejsWorkerThreadsLab />
   if (topicId === '250-network-http-https') return <NetworkHttpHttpsLab />
   if (topicId === '251-network-api-first') return <NetworkApiFirstLab />
+  if (topicId === '252-network-long-polling-ws-sse') return <NetworkLongPollingWsSseLab />
+  if (topicId === '253-network-tcpip-internet-app') return <NetworkTcpipInternetAppLab />
   if (topicId === '259-software-incremental-iterative-spiral')
     return <IncrementalIterativeSpiralLab />
   if (topicId === '31-git-switch') return <GitSwitchLab />

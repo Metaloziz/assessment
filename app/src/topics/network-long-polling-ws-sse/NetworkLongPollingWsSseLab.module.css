@@ -1,0 +1,84 @@
+.stand {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  min-height: 11rem;
+}
+
+.flow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem 0.35rem;
+}
+
+.arrow {
+  flex: 0 0 auto;
+  color: var(--text-faint);
+  font-size: var(--lab-font-ui);
+  transition:
+    color 0.4s ease,
+    opacity 0.4s ease;
+}
+
+.arrowActive {
+  color: var(--accent-bright);
+}
+
+.arrowDuplex {
+  color: var(--ok);
+}
+
+.feed {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin: 0;
+  padding: 0.45rem 0.55rem;
+  list-style: none;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg) 55%, var(--bg-elevated));
+  min-height: 3.2rem;
+  max-height: 7.5rem;
+  overflow: auto;
+}
+
+.feedEmpty {
+  color: var(--muted);
+  font-size: var(--lab-font-meta);
+}
+
+.feedItem {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.55rem;
+  align-items: baseline;
+  font-size: var(--lab-font-meta);
+  font-family: var(--font-mono, ui-monospace, monospace);
+  color: var(--text);
+}
+
+.feedTag {
+  color: var(--accent-bright);
+  flex: 0 0 auto;
+}
+
+.feedBody {
+  color: var(--muted);
+  word-break: break-word;
+}
+
+.codePane {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+  gap: 0.55rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .arrow {
+    transition: none;
+  }
+}

@@ -122,8 +122,8 @@ const CASE_BRIEF: Record<CaseId, ReactNode> = {
 
 const CODE_INTRO: Record<Pattern, string> = {
   http: 'Учебные роуты `/api/http-lab/*`: метод, статус и заголовки ответа.',
-  http2: 'Метафора доставки: очередь HTTP/1.1 vs мультиплекс потоков HTTP/2.',
-  https: 'Стек канала: HTTP-сообщения поверх TLS поверх TCP.',
+  http2: 'Тот же handler; h2 включается на listen (часто вместе с TLS / ALPN).',
+  https: 'HTTPS = сертификат на listen; роуты те же, URL — `https://…`.',
 }
 
 const CODE_SNIPPETS: Record<Pattern, InteractiveSnippet[]> = {
@@ -165,57 +165,94 @@ return { status: res.status, cache, body };`,
   ],
   http2: [
     {
-      id: 'h2-hol',
-      label: 'notes/http1-hol.txt',
-      note: 'HTTP/1.1: на одном соединении ответы выстраиваются в очередь.',
+      id: 'h2-listen',
+      label: 'server/src/index.h2.ts',
+      note: 'В браузере h2 почти всегда поверх TLS; ALPN договаривается о `h2`.',
       executable: false,
-      languageLabel: 'text',
-      code: `HTTP/1.1 · одно TCP-соединение
-  req A (большой файл)  ──►  …ждём ответ A…
-  req B (CSS)           ──►  ждёт A          ← HOL
-  req C (JSON)          ──►  ждёт A и B`,
+      languageLabel: 'ts',
+      code: `import fs from 'node:fs';
+import Fastify from 'fastify';
+
+// ═══════════════════════════════════════════
+const app = Fastify({
+  http2: true, // ← бинарные фреймы + мультиплекс
+  https: {
+    key: fs.readFileSync('./certs/key.pem'),
+    cert: fs.readFileSync('./certs/cert.pem'), // ← ALPN: h2 / http/1.1
+  },
+});
+// ═══════════════════════════════════════════
+
+// Роут тот же, что на HTTP/1.1 — меняется транспорт, не семантика
+app.get('/api/http-lab/item', async (_req, reply) => {
+  reply.header('Cache-Control', 'private, max-age=60');
+  return reply.status(200).send({ ok: true, protocol: 'h2' }); // ← DevTools: h2
+});
+
+await app.listen({ port: 443, host: '0.0.0.0' });`,
     },
     {
-      id: 'h2-mux',
-      label: 'notes/http2-mux.txt',
-      note: 'HTTP/2: бинарные фреймы, несколько streams сразу.',
+      id: 'h2-client',
+      label: 'lab/fetchH2.ts',
+      note: 'Клиентский fetch не выбирает h2 вручную — решает браузер/стек по ALPN.',
       executable: false,
-      languageLabel: 'text',
-      code: `HTTP/2 · одно TCP, несколько streams
-  stream 1: HTML  ████░░░░
-  stream 3: CSS   ███░░░░░   ← кадры перемешаны
-  stream 5: JSON  ██░░░░░░
+      languageLabel: 'ts',
+      code: `// Один origin → одно TCP; много запросов = много streams (h2)
+const [html, css, api] = await Promise.all([
+  fetch('https://api.example.com/'),
+  fetch('https://api.example.com/app.css'),
+  fetch('https://api.example.com/api/http-lab/item'), // ← тот же path
+]);
 
-// Protocol в DevTools: h2 (часто после ALPN в TLS)`,
+// Network → Protocol: h2  (не «особая» строка в fetch)
+return { statuses: [html.status, css.status, api.status] };`,
     },
   ],
   https: [
     {
-      id: 'tls-stack',
-      label: 'notes/https-stack.txt',
-      note: 'HTTPS = HTTP messages внутри TLS handshake.',
-      executable: false,
-      languageLabel: 'text',
-      code: `[ HTTP request / response ]
-[ TLS  · handshake · certificate · encrypt ]  ← слой HTTPS
-[ TCP ]
-[ IP ]
-
-// cookie Secure → только по HTTPS
-// без TLS: Authorization и тело видны снифферу`,
-    },
-    {
-      id: 'tls-fetch',
-      label: 'lab/secureContext.ts',
-      note: 'В браузере HTTPS — secure context; localhost — исключение для DX.',
+      id: 'https-listen',
+      label: 'server/src/index.https.ts',
+      note: 'Сертификат на listen; handler и path не меняются.',
       executable: false,
       languageLabel: 'ts',
-      code: `// production
-fetch('https://api.example.com/item', {
-  headers: { Authorization: 'Bearer …' }, // ← канал шифрует TLS
+      code: `import fs from 'node:fs';
+import Fastify from 'fastify';
+
+// ═══════════════════════════════════════════
+const app = Fastify({
+  https: {
+    key: fs.readFileSync('./certs/key.pem'),
+    cert: fs.readFileSync('./certs/cert.pem'), // ← TLS handshake
+  },
+});
+// ═══════════════════════════════════════════
+
+app.get('/api/http-lab/item', async (_req, reply) => {
+  // ← тот же эндпоинт; канал уже зашифрован
+  reply.header('Strict-Transport-Security', 'max-age=31536000');
+  return reply.status(200).send({ ok: true, secure: true });
 });
 
-// DevTools → Security: сертификат + протокол (часто h2 поверх TLS)`,
+app.post('/api/http-lab/item', async (_req, reply) => {
+  return reply.status(201).send({ ok: true, id: 1 });
+});
+
+await app.listen({ port: 443, host: '0.0.0.0' });
+// URL: https://api.example.com/api/http-lab/item`,
+    },
+    {
+      id: 'https-client',
+      label: 'lab/fetchHttps.ts',
+      note: '`https://` + Secure-cookie; без TLS токен в сети читается открытым текстом.',
+      executable: false,
+      languageLabel: 'ts',
+      code: `const res = await fetch('https://api.example.com/api/http-lab/item', {
+  headers: { Authorization: 'Bearer …' }, // ← шифрует TLS, не сам HTTP
+  credentials: 'include', // ← cookie Secure уйдёт только по HTTPS
+});
+
+// DevTools → Security: сертификат, протокол (часто h2 поверх TLS)
+return { status: res.status, ok: res.ok };`,
     },
   ],
 }
