@@ -10,6 +10,7 @@ import {
 import { LabLogView } from '../../components/lab/LabLogView'
 import { useLabLog } from '../../components/lab/useLabLog'
 import { LabVizPanel, labVizStyles } from '../../components/lab/LabViz'
+import { apiJson } from '../../lib/apiBase'
 import styles from './NodejsDbAsyncConfigLab.module.css'
 
 const TOPIC_ID = '244-nodejs-db-async-config'
@@ -21,6 +22,13 @@ type AsyncCase = 'block' | 'await'
 type ConfigCase = 'hardcoded' | 'env'
 type CaseId = StoreCase | AsyncCase | ConfigCase
 type Phase = 'idle' | 'a' | 'b' | 'done'
+
+type LivePayload = {
+  path: string
+  latencyMs?: number
+  summary: string
+  ok: boolean
+}
 
 const PATTERNS: Array<{ id: Pattern; label: string }> = [
   { id: 'store', label: 'SQL / NoSQL' },
@@ -43,17 +51,19 @@ const CASES: Record<Pattern, Array<{ id: CaseId; label: string }>> = {
   ],
 }
 
+const LIVE_CASES = new Set<CaseId>(['sql', 'nosql', 'await', 'env'])
+
 const PAIN: Record<Pattern, ReactNode> = {
   store: (
     <>
-      SQL держит строки в таблицах со схемой; NoSQL отдаёт документ или пару ключ-значение —
-      форма данных другая, оба — внешний I/O из Node.
+      SQL держит строки в таблицах; документный контраст здесь — <code>jsonb</code> в той же
+      Postgres. Оба кейса бьют в живой API.
     </>
   ),
   async: (
     <>
       Пока handler ждёт БД, event loop должен обслуживать другие запросы — поэтому{' '}
-      <code>await</code> и пул, а не синхронная блокировка.
+      <code>await</code> и пул. Кейс «блок» — только схема (sync на сервере не включаем).
     </>
   ),
   config: (
@@ -67,86 +77,82 @@ const PAIN: Record<Pattern, ReactNode> = {
 const CASE_BRIEF: Record<CaseId, ReactNode> = {
   sql: (
     <>
-      <code>SELECT … FROM users</code> возвращает строки таблицы по схеме.
+      Живой <code>GET /api/lab/db/sql-user</code> — строка из <code>lab_users</code>.
     </>
   ),
   nosql: (
     <>
-      <code>findOne</code> возвращает документ коллекции без жёсткого JOIN.
+      Живой <code>GET /api/lab/db/doc-user</code> — документ из <code>lab_docs</code> (
+      <code>jsonb</code>).
     </>
   ),
   block: (
     <>
-      Синхронное ожидание держит поток — второй запрос не стартует, пока первый не закончит БД.
+      Синхронное ожидание держит поток — второй запрос не стартует (схема, без sync на API).
     </>
   ),
   await: (
     <>
-      <code>await pool.query</code> отпускает цикл: пока ждём сеть, принимаем другой request.
+      Живой <code>GET /api/lab/db/async-query</code> — <code>await</code> к пулу и{' '}
+      <code>latencyMs</code>.
     </>
   ),
   hardcoded: (
     <>
-      URL и пароль в исходнике — одна среда на всех и риск утечки в git.
+      URL и пароль в исходнике — одна среда на всех и риск утечки в git (схема).
     </>
   ),
   env: (
     <>
-      <code>DATABASE_URL</code> из <code>process.env</code> — dev и prod подставляют разные
-      значения.
+      Живой <code>GET /api/lab/db/config</code> — хост из env без пароля.
     </>
   ),
 }
 
 const CODE_INTRO: Record<Pattern, string> = {
-  store: 'SQL — строки и схема; документ — объект коллекции. Оба через async-драйвер.',
-  async: 'Пул соединений и `await` на запросе — event loop свободен для других handler.',
-  config: '`DATABASE_URL` из среды; fail fast, если ключа нет.',
+  store: 'SQL-строка и jsonb-документ через учебные роуты `/api/lab/db/*`.',
+  async: '`await` к пулу на `/api/lab/db/async-query`; sync-блок на сервере не включаем.',
+  config: 'Безопасный снимок env: host и флаги, без полного `DATABASE_URL`.',
 }
 
 const CODE_SNIPPETS: Record<Pattern, InteractiveSnippet[]> = {
   store: [
     {
-      id: 'sql-users',
-      label: 'db/users.sql.js',
-      note: 'Таблица users: строки по схеме, плейсхолдер $1.',
+      id: 'sql-user-route',
+      label: 'routes/dbLab.ts · sql',
+      note: 'Таблица lab_users: строки по схеме.',
       executable: false,
-      languageLabel: 'js',
-      code: `import pg from 'pg';
+      languageLabel: 'ts',
+      code: `// GET /api/lab/db/sql-user?id=1
+const rows = await db.execute(sql\`
+  SELECT id, email FROM lab_users WHERE id = \${id}
+\`); // ← SQL · строки
 
-const pool = new pg.Pool({
-  connectionString: process.env.DATABASE_URL,
-});
-
-// ═══════════════════════════════════════════
-// SQL ← таблица + схема
-// ═══════════════════════════════════════════
-export async function getUser(id) {
-  const { rows } = await pool.query(
-    'SELECT id, email FROM users WHERE id = $1', // ← строки
-    [id],
-  );
-  return rows[0] ?? null;
-}
+return {
+  ok: true,
+  store: 'sql',
+  latencyMs,
+  user: rows[0],
+};
 `,
     },
     {
-      id: 'nosql-users',
-      label: 'db/users.doc.js',
-      note: 'Коллекция users: один документ на запись.',
+      id: 'doc-user-route',
+      label: 'routes/dbLab.ts · doc',
+      note: 'lab_docs.doc — jsonb как документ.',
       executable: false,
-      languageLabel: 'js',
-      code: `import { MongoClient } from 'mongodb';
+      languageLabel: 'ts',
+      code: `// GET /api/lab/db/doc-user?id=1
+const rows = await db.execute(sql\`
+  SELECT doc FROM lab_docs WHERE id = \${id}
+\`); // ← jsonb · документ
 
-const client = new MongoClient(process.env.MONGO_URL);
-const db = client.db('app');
-
-// ═══════════════════════════════════════════
-// NOSQL ← документ коллекции
-// ═══════════════════════════════════════════
-export async function getUser(id) {
-  return db.collection('users').findOne({ _id: id }); // ← документ
-}
+return {
+  ok: true,
+  store: 'doc',
+  latencyMs,
+  document: rows[0].doc,
+};
 `,
     },
   ],
@@ -154,37 +160,29 @@ export async function getUser(id) {
     {
       id: 'block-bad',
       label: 'bad-sync.js',
-      note: 'Синхронное ожидание занимает поток целиком.',
+      note: 'Синхронное ожидание занимает поток — на API не включаем.',
       executable: false,
       languageLabel: 'js',
       code: `// плохо: псевдо-синхронный драйвер / busy-wait
 function getUserSync(id) {
   return db.querySync('SELECT * FROM users WHERE id = ?', [id]); // ← блок цикла
 }
-
-// пока querySync не вернётся — другие request не обрабатываются
 `,
     },
     {
-      id: 'pool-await',
-      label: 'pool.js',
-      note: 'Пул + await: I/O не держит event loop.',
+      id: 'async-query-route',
+      label: 'routes/dbLab.ts · async',
+      note: 'await к пулу + latencyMs в ответе.',
       executable: false,
-      languageLabel: 'js',
-      code: `import pg from 'pg';
+      languageLabel: 'ts',
+      code: `// GET /api/lab/db/async-query
+const started = performance.now();
+const rows = await db.execute(sql\`
+  SELECT id, email FROM lab_users WHERE id = 1
+\`); // ← await · цикл свободен
+const latencyMs = Math.round(performance.now() - started);
 
-const pool = new pg.Pool({
-  connectionString: process.env.DATABASE_URL,
-  max: 10, // ← слоты пула
-});
-
-export async function getUser(id) {
-  const { rows } = await pool.query(
-    'SELECT * FROM users WHERE id = $1',
-    [id],
-  ); // ← await: цикл свободен
-  return rows[0] ?? null;
-}
+return { ok: true, mode: 'await', latencyMs, user: rows[0] };
 `,
     },
   ],
@@ -203,26 +201,19 @@ const pool = new pg.Pool({
 `,
     },
     {
-      id: 'env-config',
-      label: 'config.js',
-      note: 'Ключи из process.env; разные значения в dev/prod.',
+      id: 'config-route',
+      label: 'routes/dbLab.ts · config',
+      note: 'Снимок среды без пароля.',
       executable: false,
-      languageLabel: 'js',
-      code: `// ═══════════════════════════════════════════
-// CONFIG ← среда, не литерал
-// ═══════════════════════════════════════════
-export const config = {
-  port: Number(process.env.PORT ?? 3000),
-  databaseUrl: process.env.DATABASE_URL, // ← из среды
+      languageLabel: 'ts',
+      code: `// GET /api/lab/db/config
+return {
+  ok: true,
+  hasDatabaseUrl: Boolean(process.env.DATABASE_URL),
+  dbHost: new URL(env.databaseUrl).hostname, // ← без пароля
   nodeEnv: process.env.NODE_ENV ?? 'development',
+  source: process.env.DATABASE_URL ? 'process.env' : 'fallback',
 };
-
-if (!config.databaseUrl) {
-  throw new Error('DATABASE_URL is required'); // ← fail fast
-}
-
-// .env.development → localhost
-// секреты CI/prod  → боевой хост
 `,
     },
   ],
@@ -319,30 +310,30 @@ type VizProps = {
   pattern: Pattern
   caseId: CaseId
   phase: Phase
+  live: LivePayload | null
   focusRef: MutableRefObject<HTMLDivElement | null>
 }
 
-function StoreViz({ caseId, phase, focusRef }: Omit<VizProps, 'pattern'>) {
+function StoreViz({ caseId, phase, live, focusRef }: Omit<VizProps, 'pattern'>) {
   const aOn = phase !== 'idle'
   const bOn = phase === 'b' || phase === 'done'
   const doneOn = phase === 'done'
   const isSql = caseId === 'sql'
+  const bad = doneOn && live != null && !live.ok
 
   return (
     <LabVizPanel
-      title={isSql ? 'SQL · таблицы' : 'NoSQL · документ'}
+      title={isSql ? 'SQL · lab_users' : 'jsonb · lab_docs'}
       meta={
         !doneOn
           ? phase === 'idle'
             ? 'ожидание'
             : phase === 'a'
-              ? 'handler'
-              : isSql
-                ? 'query…'
-                : 'findOne…'
-          : isSql
-            ? 'rows[0]'
-            : '{ _id, email }'
+              ? 'fetch…'
+              : 'query…'
+          : live
+            ? `${live.ok ? 'ok' : 'err'} · ${live.latencyMs ?? '—'} ms`
+            : 'done'
       }
     >
       <div className={styles.stage}>
@@ -352,33 +343,30 @@ function StoreViz({ caseId, phase, focusRef }: Omit<VizProps, 'pattern'>) {
             doneOn && styles.dim,
           )}
         >
-          <span className={labVizStyles.nodeLabel}>handler</span>
-          <span className={labVizStyles.nodeSub}>getUser(id)</span>
+          <span className={labVizStyles.nodeLabel}>lab</span>
+          <span className={labVizStyles.nodeSub}>
+            {isSql ? 'GET …/sql-user' : 'GET …/doc-user'}
+          </span>
         </div>
         <span className={styles.flowArrow}>↓</span>
         <div
           className={nodeCls(
             bOn && !doneOn && labVizStyles.nodeActive,
-            doneOn && labVizStyles.nodeOk,
+            doneOn && (bad ? labVizStyles.nodeErr : labVizStyles.nodeOk),
           )}
         >
-          <span className={labVizStyles.nodeLabel}>
-            {isSql ? 'pg.Pool' : 'collection'}
-          </span>
+          <span className={labVizStyles.nodeLabel}>API + Postgres</span>
           <span className={labVizStyles.nodeSub}>
-            {!bOn
-              ? 'ещё нет'
-              : isSql
-                ? 'SELECT … FROM users'
-                : 'users.findOne'}
+            {!bOn ? 'ещё нет' : isSql ? 'SELECT lab_users' : 'SELECT lab_docs.doc'}
           </span>
         </div>
         <span className={styles.flowArrow}>↓</span>
         <div
           ref={focusRef}
           className={nodeCls(
-            doneOn && labVizStyles.nodeOk,
-            doneOn && labVizStyles.nodeActive,
+            doneOn && !bad && labVizStyles.nodeOk,
+            doneOn && !bad && labVizStyles.nodeActive,
+            doneOn && bad && labVizStyles.nodeErr,
             !doneOn && styles.dim,
           )}
         >
@@ -386,7 +374,7 @@ function StoreViz({ caseId, phase, focusRef }: Omit<VizProps, 'pattern'>) {
             {isSql ? 'строка' : 'документ'}
           </span>
           <span className={labVizStyles.nodeSub}>
-            {!doneOn ? 'ещё нет' : isSql ? '{ id, email }' : '{ _id, email }'}
+            {!doneOn ? 'ещё нет' : (live?.summary ?? '—')}
           </span>
         </div>
       </div>
@@ -394,11 +382,12 @@ function StoreViz({ caseId, phase, focusRef }: Omit<VizProps, 'pattern'>) {
   )
 }
 
-function AsyncViz({ caseId, phase, focusRef }: Omit<VizProps, 'pattern'>) {
+function AsyncViz({ caseId, phase, live, focusRef }: Omit<VizProps, 'pattern'>) {
   const aOn = phase !== 'idle'
   const bOn = phase === 'b' || phase === 'done'
   const doneOn = phase === 'done'
   const blocked = caseId === 'block'
+  const bad = blocked ? doneOn : doneOn && live != null && !live.ok
 
   return (
     <LabVizPanel
@@ -408,13 +397,17 @@ function AsyncViz({ caseId, phase, focusRef }: Omit<VizProps, 'pattern'>) {
           ? phase === 'idle'
             ? 'ожидание'
             : phase === 'a'
-              ? 'req A в handler'
+              ? blocked
+                ? 'req A'
+                : 'fetch…'
               : blocked
                 ? 'цикл занят…'
-                : 'I/O ждёт, цикл свободен'
+                : 'await query…'
           : blocked
             ? 'req B ждал'
-            : 'req B успел ответить'
+            : live
+              ? `${live.ok ? 'ok' : 'err'} · ${live.latencyMs ?? '—'} ms`
+              : 'done'
       }
     >
       <div className={styles.stage}>
@@ -424,36 +417,46 @@ function AsyncViz({ caseId, phase, focusRef }: Omit<VizProps, 'pattern'>) {
             doneOn && styles.dim,
           )}
         >
-          <span className={labVizStyles.nodeLabel}>req A</span>
+          <span className={labVizStyles.nodeLabel}>
+            {blocked ? 'req A' : 'lab'}
+          </span>
           <span className={labVizStyles.nodeSub}>
-            {blocked ? 'querySync…' : 'await pool.query'}
+            {blocked ? 'querySync…' : 'GET …/async-query'}
           </span>
         </div>
         <span className={styles.flowArrow}>↓</span>
         <div
           className={nodeCls(
             bOn && !doneOn && labVizStyles.nodeActive,
-            doneOn && (blocked ? labVizStyles.nodeErr : labVizStyles.nodeOk),
+            doneOn && (bad ? labVizStyles.nodeErr : labVizStyles.nodeOk),
           )}
         >
           <span className={labVizStyles.nodeLabel}>event loop</span>
           <span className={labVizStyles.nodeSub}>
-            {!bOn ? 'ещё нет' : blocked ? 'занят A' : 'свободен'}
+            {!bOn ? 'ещё нет' : blocked ? 'занят A' : 'свободен · await'}
           </span>
         </div>
         <span className={styles.flowArrow}>↓</span>
         <div
           ref={focusRef}
           className={nodeCls(
-            doneOn && !blocked && labVizStyles.nodeOk,
-            doneOn && !blocked && labVizStyles.nodeActive,
-            doneOn && blocked && labVizStyles.nodeErr,
+            doneOn && !bad && labVizStyles.nodeOk,
+            doneOn && !bad && labVizStyles.nodeActive,
+            doneOn && bad && labVizStyles.nodeErr,
             !doneOn && styles.dim,
           )}
         >
-          <span className={labVizStyles.nodeLabel}>req B</span>
+          <span className={labVizStyles.nodeLabel}>
+            {blocked ? 'req B' : 'ответ'}
+          </span>
           <span className={labVizStyles.nodeSub}>
-            {!doneOn ? 'в очереди' : blocked ? 'старт после A' : 'ответил параллельно'}
+            {!doneOn
+              ? blocked
+                ? 'в очереди'
+                : 'ещё нет'
+              : blocked
+                ? 'старт после A'
+                : (live?.summary ?? '—')}
           </span>
         </div>
       </div>
@@ -461,11 +464,12 @@ function AsyncViz({ caseId, phase, focusRef }: Omit<VizProps, 'pattern'>) {
   )
 }
 
-function ConfigViz({ caseId, phase, focusRef }: Omit<VizProps, 'pattern'>) {
+function ConfigViz({ caseId, phase, live, focusRef }: Omit<VizProps, 'pattern'>) {
   const aOn = phase !== 'idle'
   const bOn = phase === 'b' || phase === 'done'
   const doneOn = phase === 'done'
   const hard = caseId === 'hardcoded'
+  const bad = hard ? doneOn : doneOn && live != null && !live.ok
 
   return (
     <LabVizPanel
@@ -475,13 +479,17 @@ function ConfigViz({ caseId, phase, focusRef }: Omit<VizProps, 'pattern'>) {
           ? phase === 'idle'
             ? 'ожидание'
             : phase === 'a'
-              ? 'старт app'
+              ? hard
+                ? 'старт app'
+                : 'fetch…'
               : hard
                 ? 'литерал в коде'
                 : 'чтение среды'
           : hard
             ? 'один URL · риск git'
-            : 'dev ≠ prod URL'
+            : live
+              ? live.summary
+              : 'done'
       }
     >
       <div className={styles.stage}>
@@ -491,14 +499,16 @@ function ConfigViz({ caseId, phase, focusRef }: Omit<VizProps, 'pattern'>) {
             doneOn && styles.dim,
           )}
         >
-          <span className={labVizStyles.nodeLabel}>app</span>
-          <span className={labVizStyles.nodeSub}>new Pool(…)</span>
+          <span className={labVizStyles.nodeLabel}>{hard ? 'app' : 'lab'}</span>
+          <span className={labVizStyles.nodeSub}>
+            {hard ? 'new Pool(…)' : 'GET …/config'}
+          </span>
         </div>
         <span className={styles.flowArrow}>↓</span>
         <div
           className={nodeCls(
             bOn && !doneOn && labVizStyles.nodeActive,
-            doneOn && (hard ? labVizStyles.nodeErr : labVizStyles.nodeOk),
+            doneOn && (bad ? labVizStyles.nodeErr : labVizStyles.nodeOk),
           )}
         >
           <span className={labVizStyles.nodeLabel}>
@@ -516,9 +526,9 @@ function ConfigViz({ caseId, phase, focusRef }: Omit<VizProps, 'pattern'>) {
         <div
           ref={focusRef}
           className={nodeCls(
-            doneOn && !hard && labVizStyles.nodeOk,
-            doneOn && !hard && labVizStyles.nodeActive,
-            doneOn && hard && labVizStyles.nodeErr,
+            doneOn && !bad && labVizStyles.nodeOk,
+            doneOn && !bad && labVizStyles.nodeActive,
+            doneOn && bad && labVizStyles.nodeErr,
             !doneOn && styles.dim,
           )}
         >
@@ -528,7 +538,7 @@ function ConfigViz({ caseId, phase, focusRef }: Omit<VizProps, 'pattern'>) {
               ? 'ещё нет'
               : hard
                 ? 'утечка / одна среда'
-                : 'localhost | prod-db'}
+                : (live?.summary ?? '—')}
           </span>
         </div>
       </div>
@@ -546,6 +556,60 @@ function defaultCase(pattern: Pattern): CaseId {
   return CASES[pattern][0]!.id
 }
 
+async function fetchLive(caseId: CaseId): Promise<LivePayload> {
+  if (caseId === 'sql') {
+    const data = await apiJson<{
+      ok: boolean
+      latencyMs?: number
+      user?: { id?: number; email?: string }
+    }>('/api/lab/db/sql-user?id=1')
+    return {
+      path: '/api/lab/db/sql-user',
+      ok: data.ok,
+      latencyMs: data.latencyMs,
+      summary: data.user?.email ?? JSON.stringify(data.user ?? {}),
+    }
+  }
+  if (caseId === 'nosql') {
+    const data = await apiJson<{
+      ok: boolean
+      latencyMs?: number
+      document?: { email?: string; _id?: string }
+    }>('/api/lab/db/doc-user?id=1')
+    const doc = data.document
+    return {
+      path: '/api/lab/db/doc-user',
+      ok: data.ok,
+      latencyMs: data.latencyMs,
+      summary: doc?.email ?? JSON.stringify(doc ?? {}),
+    }
+  }
+  if (caseId === 'await') {
+    const data = await apiJson<{
+      ok: boolean
+      latencyMs?: number
+      user?: { email?: string }
+    }>('/api/lab/db/async-query')
+    return {
+      path: '/api/lab/db/async-query',
+      ok: data.ok,
+      latencyMs: data.latencyMs,
+      summary: `${data.latencyMs ?? '—'} ms · ${data.user?.email ?? 'row'}`,
+    }
+  }
+  const data = await apiJson<{
+    ok: boolean
+    hasDatabaseUrl?: boolean
+    dbHost?: string | null
+    source?: string
+  }>('/api/lab/db/config')
+  return {
+    path: '/api/lab/db/config',
+    ok: data.ok,
+    summary: `${data.dbHost ?? '?'} · ${data.source ?? 'env'}`,
+  }
+}
+
 export function NodejsDbAsyncConfigLab() {
   const { lines, log, clear } = useLabLog()
   const [pattern, setPattern] = useState<Pattern>('store')
@@ -553,12 +617,14 @@ export function NodejsDbAsyncConfigLab() {
   const [phase, setPhase] = useState<Phase>('idle')
   const [hint, setHint] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const [live, setLive] = useState<LivePayload | null>(null)
   const tlRef = useRef<gsap.core.Timeline | null>(null)
   const focusRef = useRef<HTMLDivElement | null>(null)
 
   const resetViz = () => {
     setPhase('idle')
     setHint(null)
+    setLive(null)
     if (focusRef.current)
       gsap.set(focusRef.current, { clearProps: 'transform,opacity' })
   }
@@ -580,11 +646,19 @@ export function NodejsDbAsyncConfigLab() {
     resetViz()
   }
 
-  const run = () => {
-    clear()
-    resetViz()
-    setBusy(true)
+  const finishLive = (payload: LivePayload, hintText: string) => {
+    setLive(payload)
+    setPhase('done')
+    if (payload.ok) {
+      log('ok', `${payload.path} · ${payload.summary}`)
+      setHint(hintText)
+    } else {
+      log('err', `${payload.path} · ${payload.summary}`)
+      setHint(hintText)
+    }
+  }
 
+  const runSimulated = () => {
     playTimeline(
       tlRef,
       [
@@ -592,24 +666,12 @@ export function NodejsDbAsyncConfigLab() {
         () => setPhase('b'),
         () => {
           setPhase('done')
-          if (caseId === 'sql') {
-            log('ok', 'rows · users')
-            setHint('SQL вернул строку таблицы по схеме')
-          } else if (caseId === 'nosql') {
-            log('ok', 'document · users')
-            setHint('драйвер вернул документ коллекции')
-          } else if (caseId === 'block') {
+          if (caseId === 'block') {
             log('err', 'loop blocked')
             setHint('пока A в sync-ожидании, B не стартует')
-          } else if (caseId === 'await') {
-            log('ok', 'loop free')
-            setHint('await отпустил цикл — B успел ответить')
-          } else if (caseId === 'hardcoded') {
+          } else {
             log('err', 'secret in source')
             setHint('литерал в коде — одна среда и риск утечки')
-          } else {
-            log('ok', 'DATABASE_URL from env')
-            setHint('dev и prod подставляют разные URL')
           }
         },
       ],
@@ -620,6 +682,52 @@ export function NodejsDbAsyncConfigLab() {
       },
       () => setBusy(false),
     )
+  }
+
+  const runLive = async () => {
+    setPhase('a')
+    try {
+      const payload = await fetchLive(caseId)
+      setPhase('b')
+      await new Promise((r) => setTimeout(r, reducedMotion() ? 0 : STEP * 400))
+      if (caseId === 'sql') {
+        finishLive(payload, 'SQL вернул строку lab_users')
+      } else if (caseId === 'nosql') {
+        finishLive(payload, 'jsonb-документ из lab_docs')
+      } else if (caseId === 'await') {
+        finishLive(payload, 'await к пулу вернул строку и latencyMs')
+      } else {
+        finishLive(payload, 'host из env без пароля в ответе')
+      }
+      if (focusRef.current && !reducedMotion()) {
+        gsap.fromTo(
+          focusRef.current,
+          { scale: 0.94, opacity: 0.45 },
+          { scale: 1, opacity: 1, duration: 0.35, ease: 'power2.inOut' },
+        )
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err)
+      const payload: LivePayload = {
+        path: 'API',
+        ok: false,
+        summary: message,
+      }
+      finishLive(payload, 'API недоступен — поднимите server или дождитесь деплоя Render')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const run = () => {
+    clear()
+    resetViz()
+    setBusy(true)
+    if (LIVE_CASES.has(caseId)) {
+      void runLive()
+      return
+    }
+    runSimulated()
   }
 
   const reset = () => {
@@ -657,6 +765,7 @@ export function NodejsDbAsyncConfigLab() {
         pattern={pattern}
         caseId={caseId}
         phase={phase}
+        live={live}
         focusRef={focusRef}
       />
 
@@ -681,7 +790,7 @@ export function NodejsDbAsyncConfigLab() {
   return (
     <JsLabShell
       title="БД, async, конфиги"
-      lead="Модель данных, await к пулу и DATABASE_URL из среды — три слоя одного сервиса."
+      lead="Живой SQL/jsonb и config через assessment-api; sync-блок и hardcode — схема."
       problem={problem}
       code={code}
     />
