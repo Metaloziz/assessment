@@ -205,8 +205,6 @@ export function parseTopicMd(id: string, raw: string, order: number): TopicDetai
       id === '196-react-reconciliation' ||
       id === '198-react-web-components' ||
       id === '197-react-fiber' ||
-      id === '213-async-js-single-thread' ||
-      id === '214-async-xhr-fetch' ||
       id === '215-async-event-loop' ||
       id === '216-async-tasks-microtasks' ||
       id === '217-async-callback-promises' ||
@@ -215,6 +213,11 @@ export function parseTopicMd(id: string, raw: string, order: number): TopicDetai
       id === '220-async-promise-after-catch' ||
       id === '221-async-generators' ||
       id === '222-async-infinite-generators' ||
+      id === '225-ts-basic-types' ||
+      id === '226-ts-interface-types' ||
+      id === '227-ts-declaration-files' ||
+      id === '228-ts-type-guards' ||
+      id === '229-ts-type-transforms' ||
       id === '259-software-incremental-iterative-spiral',
     groupId: meta.groupId,
     groupTitle,

@@ -1,5 +1,5 @@
-import { useRef, useState, type MutableRefObject, type ReactNode } from 'react'
-import gsap from 'gsap'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { flushSync } from 'react-dom'
 import { JsLabShell } from '../../components/lab/JsLabShell'
 import { LabButton } from '../../components/lab/LabButton'
 import shell from '../../components/lab/JsLabShell.module.css'
@@ -10,17 +10,51 @@ import { LabVizPanel, labVizStyles } from '../../components/lab/LabViz'
 import styles from './AsyncTasksMicrotasksLab.module.css'
 
 const TOPIC_ID = '216-async-tasks-microtasks'
-const STEP = 0.6
-type CaseId = 'order' | 'drain'
-type Phase = 'idle' | 'sync' | 'micro' | 'done'
-const CASES: Array<{ id: CaseId; label: string }> = [{ id: 'order', label: 'then раньше timeout' }, { id: 'drain', label: 'Вложенный then' }]
-const CASE_BRIEF: Record<CaseId, ReactNode> = {
-  order: <>После синхронного кода <code>Promise.then</code> из microtask queue выполнится раньше <code>setTimeout(0)</code>.</>,
-  drain: <>Новый <code>then</code>, добавленный внутри microtask, тоже будет выполнен до следующей task.</>,
-}
-const SNIPPETS: InteractiveSnippet[] = [
-  { id: 'order', label: 'src/runtime/order.js', note: '`Promise.then` кладёт работу в microtask queue, а `setTimeout` — в task queue.', executable: false, code: `console.log('sync');
 
+type CaseId = 'order' | 'drain'
+type Phase = 'idle' | 'running' | 'done'
+type Slot = 'empty' | 'waiting' | 'active' | 'done'
+
+type OrderItem = {
+  id: string
+  label: string
+  kind: 'sync' | 'micro' | 'macro'
+}
+
+const CASES: Array<{ id: CaseId; label: string }> = [
+  { id: 'order', label: 'then раньше timeout' },
+  { id: 'drain', label: 'Вложенный then' },
+]
+
+const CASE_BRIEF: Record<CaseId, ReactNode> = {
+  order: (
+    <>
+      После sync runtime сначала дренирует <code>microtask queue</code> (
+      <code>Promise.then</code>), и только потом берёт <code>setTimeout(0)</code>.
+    </>
+  ),
+  drain: (
+    <>
+      <code>then</code>, поставленный внутри другого microtask, тоже успевает до следующей task.
+    </>
+  ),
+}
+
+const CODE_INTRO: Record<CaseId, string> = {
+  order: '`Promise.then` — microtask; `setTimeout(0)` — следующая macrotask после drain.',
+  drain: 'Вложенный `then` попадает в ту же microtask queue и выполняется в этом же раунде.',
+}
+
+const SNIPPET_ORDER: InteractiveSnippet = {
+  id: 'order',
+  label: 'src/runtime/order.js',
+  note: '`Promise.then` кладёт работу в microtask queue, а `setTimeout` — в task queue.',
+  executable: false,
+  code: `console.log('sync');
+
+// ═══════════════════════════════════════════
+// MICRO ← раньше следующего timeout
+// ═══════════════════════════════════════════
 Promise.resolve().then(() => {
   console.log('microtask'); // ← перед timer
 });
@@ -28,8 +62,18 @@ Promise.resolve().then(() => {
 setTimeout(() => {
   console.log('timeout'); // ← следующая task
 }, 0);
-` },
-  { id: 'nested-micro', label: 'src/runtime/nestedMicro.js', note: 'Очередь microtask дренируется полностью перед возвратом к task queue.', executable: false, code: `Promise.resolve().then(() => {
+`,
+}
+
+const SNIPPET_DRAIN: InteractiveSnippet = {
+  id: 'nested-micro',
+  label: 'src/runtime/nestedMicro.js',
+  note: 'Очередь microtask дренируется полностью, включая вновь добавленные `then`.',
+  executable: false,
+  code: `// ═══════════════════════════════════════════
+// DRAIN ← вложенный then в том же раунде
+// ═══════════════════════════════════════════
+Promise.resolve().then(() => {
   console.log('first then');
   return Promise.resolve();
 }).then(() => {
@@ -37,46 +81,409 @@ setTimeout(() => {
 });
 
 setTimeout(() => console.log('timeout'), 0);
-` },
-]
-function reducedMotion() { return typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches }
-function nodeCls(...mods: Array<string | false | undefined>) { return [labVizStyles.node, styles.nodeGrow, ...mods.filter(Boolean)].join(' ') }
-function playTimeline(tlRef: MutableRefObject<gsap.core.Timeline | null>, steps: Array<() => void>, motion: ((tl: gsap.core.Timeline) => void) | null, onDone: () => void) {
-  tlRef.current?.kill()
-  if (reducedMotion()) { steps.forEach((step) => step()); onDone(); return }
-  const tl = gsap.timeline({ defaults: { duration: 0.55, ease: 'power2.inOut' }, onComplete: onDone })
-  tlRef.current = tl; steps.forEach((step, index) => tl.call(step, undefined, index * STEP)); motion?.(tl)
+`,
 }
-function QueuesViz({ caseId, phase, panelRef }: { caseId: CaseId; phase: Phase; panelRef: MutableRefObject<HTMLDivElement | null> }) {
-  const micro = phase === 'micro' || phase === 'done'; const done = phase === 'done'; const nested = caseId === 'drain'
-  return <LabVizPanel title="Две очереди" meta={done ? 'microtask queue очищена первой' : 'sync → microtask → task'}>
-    <div ref={panelRef} className={styles.flow}>
-      <div className={nodeCls(phase === 'sync' && labVizStyles.nodeActive, phase !== 'idle' && labVizStyles.nodeOk)}><span className={labVizStyles.nodeLabel}>sync</span><span className={labVizStyles.nodeSub}>{phase === 'idle' ? 'script' : 'завершён'}</span></div>
-      <span className={styles.arrow}>→</span>
-      <div className={styles.queue}><p className={styles.label}>microtask queue</p><div className={nodeCls(micro && labVizStyles.nodeActive, done && labVizStyles.nodeOk)}><span className={labVizStyles.nodeLabel}>{nested ? 'then → then' : 'Promise.then'}</span><span className={labVizStyles.nodeSub}>{done ? 'выполнено' : 'ожидает'}</span></div></div>
-      <span className={styles.arrow}>→</span>
-      <div className={styles.queue}><p className={styles.label}>task queue</p><div className={nodeCls(done && labVizStyles.nodeActive, done && labVizStyles.nodeOk, micro && !done && styles.nodeDim)}><span className={labVizStyles.nodeLabel}>setTimeout</span><span className={labVizStyles.nodeSub}>{done ? 'после microtask' : 'ожидает'}</span></div></div>
-    </div>
-  </LabVizPanel>
+
+const CODE_SNIPPETS: Record<CaseId, InteractiveSnippet[]> = {
+  order: [SNIPPET_ORDER],
+  drain: [SNIPPET_DRAIN],
 }
+
+function nodeCls(...mods: Array<string | false | undefined>) {
+  return [labVizStyles.node, styles.slot, ...mods.filter(Boolean)].join(' ')
+}
+
+function slotState(slot: Slot) {
+  return {
+    active: slot === 'active' && labVizStyles.nodeActive,
+    ok: slot === 'done' && labVizStyles.nodeOk,
+    dim: slot === 'empty' && styles.slotDim,
+  }
+}
+
+type QueuesVizProps = {
+  phase: Phase
+  caseId: CaseId
+  sync: Slot
+  micro: Slot
+  nested: Slot
+  macro: Slot
+  order: OrderItem[]
+}
+
+const QueuesViz = ({ phase, caseId, sync, micro, nested, macro, order }: QueuesVizProps) => {
+  const showNested = caseId === 'drain'
+  const done = phase === 'done'
+
+  const meta =
+    phase === 'idle'
+      ? 'sync → microtask drain → task'
+      : done
+        ? 'microtask queue очищена раньше task'
+        : micro === 'active' || nested === 'active'
+          ? 'drain microtask queue'
+          : macro === 'active'
+            ? 'следующая macrotask'
+            : 'script на call stack'
+
+  const microLabel = showNested
+    ? nested === 'done'
+      ? 'then → then'
+      : micro === 'done'
+        ? 'first then'
+        : 'then…'
+    : 'Promise.then'
+
+  const microSub =
+    micro === 'active' || nested === 'active'
+      ? 'выполняется'
+      : micro === 'done' && (!showNested || nested === 'done')
+        ? 'drain ок'
+        : micro === 'waiting' || nested === 'waiting'
+          ? 'в очереди'
+          : 'очередь'
+
+  return (
+    <LabVizPanel title="Tasks · microtasks" meta={meta}>
+      <div className={styles.stage}>
+        <div className={styles.lanes}>
+          <div className={styles.lane}>
+            <p className={styles.label}>sync</p>
+            <div
+              className={nodeCls(
+                slotState(sync).active,
+                slotState(sync).ok,
+                phase !== 'idle' && sync === 'empty' && styles.slotDim,
+              )}
+            >
+              <span className={labVizStyles.nodeLabel}>script</span>
+              <span className={labVizStyles.nodeSub}>
+                {sync === 'active' ? 'идёт' : sync === 'done' ? 'завершён' : '—'}
+              </span>
+            </div>
+          </div>
+
+          <span className={styles.arrow} aria-hidden>
+            →
+          </span>
+
+          <div className={styles.lane}>
+            <p className={styles.label}>microtask queue</p>
+            <div className={nodeCls(slotState(micro).active || slotState(nested).active, (micro === 'done' && (!showNested || nested === 'done')) && labVizStyles.nodeOk, slotState(micro).dim)}>
+              <span className={labVizStyles.nodeLabel}>{microLabel}</span>
+              <span className={labVizStyles.nodeSub}>{microSub}</span>
+            </div>
+            {showNested ? (
+              <div
+                className={nodeCls(
+                  nested === 'active' && labVizStyles.nodeActive,
+                  nested === 'done' && labVizStyles.nodeOk,
+                  nested === 'empty' && styles.slotDim,
+                  nested === 'waiting' && labVizStyles.nodeActive,
+                )}
+              >
+                <span className={labVizStyles.nodeLabel}>nested then</span>
+                <span className={labVizStyles.nodeSub}>
+                  {nested === 'active'
+                    ? 'выполняется'
+                    : nested === 'done'
+                      ? 'в том же drain'
+                      : nested === 'waiting'
+                        ? 'добавлен'
+                        : '—'}
+                </span>
+              </div>
+            ) : null}
+          </div>
+
+          <span className={styles.arrow} aria-hidden>
+            →
+          </span>
+
+          <div className={styles.lane}>
+            <p className={styles.label}>task queue</p>
+            <div
+              className={nodeCls(
+                slotState(macro).active,
+                slotState(macro).ok,
+                (micro === 'active' || nested === 'active' || micro === 'waiting') && macro !== 'done' && styles.slotDim,
+              )}
+            >
+              <span className={labVizStyles.nodeLabel}>setTimeout</span>
+              <span className={labVizStyles.nodeSub}>
+                {macro === 'active' ? 'выполняется' : macro === 'done' ? 'после micro' : macro === 'waiting' ? 'ждёт drain' : '—'}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div className={styles.orderRow} aria-live="polite">
+          <span className={styles.orderLabel}>порядок</span>
+          {order.length === 0 ? (
+            <span className={styles.orderEmpty}>—</span>
+          ) : (
+            <ol className={styles.orderList}>
+              {order.map((item, index) => (
+                <li
+                  key={item.id}
+                  className={[
+                    styles.orderChip,
+                    item.kind === 'sync' && styles.orderSync,
+                    item.kind === 'micro' && styles.orderMicro,
+                    item.kind === 'macro' && styles.orderMacro,
+                  ]
+                    .filter(Boolean)
+                    .join(' ')}
+                >
+                  <span className={styles.orderIndex}>{index + 1}</span>
+                  {item.label}
+                </li>
+              ))}
+            </ol>
+          )}
+        </div>
+      </div>
+    </LabVizPanel>
+  )
+}
+
 export function AsyncTasksMicrotasksLab() {
   const { lines, log, clear } = useLabLog()
-  const [caseId, setCaseId] = useState<CaseId>('order'); const [phase, setPhase] = useState<Phase>('idle'); const [hint, setHint] = useState<ReactNode | null>(null); const [busy, setBusy] = useState(false)
-  const tlRef = useRef<gsap.core.Timeline | null>(null); const panelRef = useRef<HTMLDivElement | null>(null)
-  const reset = () => { setPhase('idle'); setHint(null) }
-  const selectCase = (next: CaseId) => { tlRef.current?.kill(); setBusy(false); setCaseId(next); clear(); reset() }
-  const run = () => {
-    const nested = caseId === 'drain'; clear(); reset(); setBusy(true)
-    playTimeline(tlRef, [
-      () => { setPhase('sync'); log('info', 'sync: script завершён') },
-      () => { setPhase('micro'); log('ok', nested ? 'microtask: first then → nested then' : 'microtask: Promise.then') },
-      () => { setPhase('done'); log('info', 'task: setTimeout callback') },
-    ], (tl) => { if (panelRef.current) tl.to(panelRef.current, { y: -4, duration: 0.4 }, STEP) },
-    () => { setBusy(false); setHint(nested ? <>Итог: очередь microtask дренируется, включая добавленный <code>then</code>, прежде чем начнётся <code>setTimeout</code>.</> : <>Итог: после sync-кода runtime сначала обработал <code>Promise.then</code>, затем task таймера.</>) })
+  const [caseId, setCaseId] = useState<CaseId>('order')
+  const [phase, setPhase] = useState<Phase>('idle')
+  const [sync, setSync] = useState<Slot>('empty')
+  const [micro, setMicro] = useState<Slot>('empty')
+  const [nested, setNested] = useState<Slot>('empty')
+  const [macro, setMacro] = useState<Slot>('empty')
+  const [order, setOrder] = useState<OrderItem[]>([])
+  const [hint, setHint] = useState<ReactNode | null>(null)
+  const [busy, setBusy] = useState(false)
+
+  const runIdRef = useRef(0)
+  const seqRef = useRef(0)
+
+  useEffect(() => () => {
+    runIdRef.current += 1
+  }, [])
+
+  const pushOrder = (label: string, kind: OrderItem['kind']) => {
+    seqRef.current += 1
+    const item: OrderItem = { id: `o-${seqRef.current}`, label, kind }
+    setOrder((prev) => [...prev, item])
   }
-  const problem = <div className={shell.panel}><div className={shell.row}>
-    {CASES.map((item) => <LabButton key={item.id} variant="ghost" size="sm" active={caseId === item.id} disabled={busy} onClick={() => selectCase(item.id)}>{item.label}</LabButton>)}
-    <LabButton variant="primary" disabled={busy} onClick={run}>Запустить</LabButton><LabButton variant="secondary" disabled={busy} onClick={() => { tlRef.current?.kill(); setBusy(false); clear(); setCaseId('order'); reset() }}>Сброс</LabButton>
-  </div><p className={shell.pain}>После окончания текущего скрипта runtime сначала очищает <code>microtask queue</code>, и только потом берёт следующую <code>task</code>.</p><p className={shell.hint}>{CASE_BRIEF[caseId]}</p><QueuesViz caseId={caseId} phase={phase} panelRef={panelRef} />{hint ? <p className={shell.hint}>{hint}</p> : null}<LabLogView lines={lines} /></div>
-  return <JsLabShell title="Tasks · microtasks" lead="Promise-обработчики имеют приоритет над следующей задачей таймера." problem={problem} code={<InteractiveCodePanel topicId={TOPIC_ID} intro="Порядок `Promise.then`, `setTimeout(0)` и вложенных microtask." snippets={SNIPPETS} />} />
+
+  const resetVisual = () => {
+    setPhase('idle')
+    setSync('empty')
+    setMicro('empty')
+    setNested('empty')
+    setMacro('empty')
+    setOrder([])
+    setHint(null)
+  }
+
+  const selectCase = (next: CaseId) => {
+    runIdRef.current += 1
+    setBusy(false)
+    setCaseId(next)
+    clear()
+    resetVisual()
+  }
+
+  const resetAll = () => {
+    runIdRef.current += 1
+    setBusy(false)
+    clear()
+    setCaseId('order')
+    resetVisual()
+  }
+
+  const run = () => {
+    const drain = caseId === 'drain'
+    const runId = ++runIdRef.current
+    seqRef.current = 0
+
+    clear()
+    resetVisual()
+    setBusy(true)
+
+    flushSync(() => {
+      setPhase('running')
+      setSync('active')
+      setMicro('empty')
+      setNested('empty')
+      setMacro('empty')
+      setOrder([])
+    })
+    log('info', 'sync: script стартовал')
+
+    flushSync(() => {
+      setSync('done')
+      pushOrder('sync', 'sync')
+      setMicro('waiting')
+      setMacro('waiting')
+      if (drain) setNested('empty')
+    })
+    log('info', 'sync: завершён — schedule then + setTimeout(0)')
+
+    const finish = () => {
+      if (runId !== runIdRef.current) return
+      setPhase('done')
+      setBusy(false)
+      setHint(
+        drain ? (
+          <>
+            Итог: оба <code>then</code> ушли в одном drain microtask queue; <code>setTimeout</code>{' '}
+            стартовал только после этого.
+          </>
+        ) : (
+          <>
+            Итог: <code>Promise.then</code> из microtask queue выполнился раньше task таймера.
+          </>
+        ),
+      )
+    }
+
+    if (drain) {
+      Promise.resolve()
+        .then(() => {
+          if (runId !== runIdRef.current) return
+          flushSync(() => {
+            setMicro('active')
+            pushOrder('first then', 'micro')
+            setNested('waiting')
+          })
+          log('ok', 'microtask: first then')
+          return Promise.resolve().then(() => {
+            if (runId !== runIdRef.current) return
+            flushSync(() => {
+              setMicro('done')
+              setNested('active')
+              pushOrder('nested then', 'micro')
+            })
+            log('ok', 'microtask: nested then (тот же drain)')
+          })
+        })
+        .then(() => {
+          if (runId !== runIdRef.current) return
+          flushSync(() => {
+            setNested('done')
+          })
+        })
+
+      window.setTimeout(() => {
+        if (runId !== runIdRef.current) return
+        flushSync(() => {
+          setMacro('active')
+          pushOrder('timeout', 'macro')
+        })
+        log('info', 'task: setTimeout callback')
+        flushSync(() => {
+          setMacro('done')
+        })
+        finish()
+      }, 0)
+      return
+    }
+
+    Promise.resolve().then(() => {
+      if (runId !== runIdRef.current) return
+      flushSync(() => {
+        setMicro('active')
+        pushOrder('then', 'micro')
+      })
+      log('ok', 'microtask: Promise.then')
+      flushSync(() => {
+        setMicro('done')
+      })
+    })
+
+    window.setTimeout(() => {
+      if (runId !== runIdRef.current) return
+      flushSync(() => {
+        setMacro('active')
+        pushOrder('timeout', 'macro')
+      })
+      log('info', 'task: setTimeout callback')
+      flushSync(() => {
+        setMacro('done')
+      })
+      finish()
+    }, 0)
+  }
+
+  const problem = (
+    <div className={shell.panel}>
+      <div className={shell.row}>
+        {CASES.map((item) => (
+          <LabButton
+            key={item.id}
+            variant="ghost"
+            size="sm"
+            active={caseId === item.id}
+            disabled={busy}
+            onClick={() => selectCase(item.id)}
+          >
+            {item.label}
+          </LabButton>
+        ))}
+        <LabButton variant="primary" disabled={busy} onClick={run}>
+          Запустить
+        </LabButton>
+        <LabButton variant="secondary" disabled={busy} onClick={resetAll}>
+          Сброс
+        </LabButton>
+      </div>
+
+      <p className={shell.pain}>
+        После sync runtime сначала полностью очищает <code>microtask queue</code>, и только потом берёт
+        следующую <code>task</code> — это видно в живом порядке колбэков.
+      </p>
+      <p className={shell.hint}>{CASE_BRIEF[caseId]}</p>
+
+      <QueuesViz
+        phase={phase}
+        caseId={caseId}
+        sync={sync}
+        micro={micro}
+        nested={nested}
+        macro={macro}
+        order={order}
+      />
+
+      {hint ? <p className={shell.hint}>{hint}</p> : null}
+      <LabLogView lines={lines} />
+    </div>
+  )
+
+  return (
+    <JsLabShell
+      title="Tasks · microtasks"
+      lead="Microtask из Promise обгоняет следующий setTimeout — даже с нулевой задержкой."
+      problem={problem}
+      code={
+        <div className={styles.codePane}>
+          <div className={styles.codeSwitch}>
+            {CASES.map((item) => (
+              <LabButton
+                key={item.id}
+                variant="ghost"
+                size="sm"
+                active={caseId === item.id}
+                onClick={() => selectCase(item.id)}
+              >
+                {item.label}
+              </LabButton>
+            ))}
+          </div>
+          <InteractiveCodePanel
+            key={caseId}
+            topicId={TOPIC_ID}
+            intro={CODE_INTRO[caseId]}
+            snippets={CODE_SNIPPETS[caseId]}
+          />
+        </div>
+      }
+    />
+  )
 }

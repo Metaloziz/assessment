@@ -105,8 +105,6 @@ import { LayoutGridLab } from '../topics/layout-grid/LayoutGridLab'
 import { LayoutFlexboxLab } from '../topics/layout-flexbox/LayoutFlexboxLab'
 import { LayoutAnimationLab } from '../topics/layout-animation/LayoutAnimationLab'
 import { LayoutScssPostcssLab } from '../topics/layout-scss-postcss/LayoutScssPostcssLab'
-import { AsyncJsSingleThreadLab } from '../topics/async-js-single-thread/AsyncJsSingleThreadLab'
-import { AsyncXhrFetchLab } from '../topics/async-xhr-fetch/AsyncXhrFetchLab'
 import { AsyncEventLoopLab } from '../topics/async-event-loop/AsyncEventLoopLab'
 import { AsyncTasksMicrotasksLab } from '../topics/async-tasks-microtasks/AsyncTasksMicrotasksLab'
 import { AsyncCallbackPromisesLab } from '../topics/async-callback-promises/AsyncCallbackPromisesLab'
@@ -115,6 +113,11 @@ import { AsyncAwaitLab } from '../topics/async-await/AsyncAwaitLab'
 import { AsyncPromiseAfterCatchLab } from '../topics/async-promise-after-catch/AsyncPromiseAfterCatchLab'
 import { AsyncGeneratorsLab } from '../topics/async-generators/AsyncGeneratorsLab'
 import { AsyncInfiniteGeneratorsLab } from '../topics/async-infinite-generators/AsyncInfiniteGeneratorsLab'
+import { TsBasicTypesLab } from '../topics/ts-basic-types/TsBasicTypesLab'
+import { TsInterfaceTypesLab } from '../topics/ts-interface-types/TsInterfaceTypesLab'
+import { TsTypeTransformsLab } from '../topics/ts-type-transforms/TsTypeTransformsLab'
+import { TsTypeGuardsLab } from '../topics/ts-type-guards/TsTypeGuardsLab'
+import { TsDeclarationFilesLab } from '../topics/ts-declaration-files/TsDeclarationFilesLab'
 import { LAB_DOCK_ID, useLayoutStore } from '../store/layout'
 import styles from './TopicPage.module.css'
 
@@ -185,8 +188,6 @@ function TopicLab({ topicId }: { topicId: string; topic: TopicDetail }) {
   if (topicId === '196-react-reconciliation') return <ReactReconciliationLab />
   if (topicId === '197-react-fiber') return <ReactFiberLab />
   if (topicId === '198-react-web-components') return <ReactWebComponentsLab />
-  if (topicId === '213-async-js-single-thread') return <AsyncJsSingleThreadLab />
-  if (topicId === '214-async-xhr-fetch') return <AsyncXhrFetchLab />
   if (topicId === '215-async-event-loop') return <AsyncEventLoopLab />
   if (topicId === '216-async-tasks-microtasks') return <AsyncTasksMicrotasksLab />
   if (topicId === '217-async-callback-promises') return <AsyncCallbackPromisesLab />
@@ -195,6 +196,11 @@ function TopicLab({ topicId }: { topicId: string; topic: TopicDetail }) {
   if (topicId === '220-async-promise-after-catch') return <AsyncPromiseAfterCatchLab />
   if (topicId === '221-async-generators') return <AsyncGeneratorsLab />
   if (topicId === '222-async-infinite-generators') return <AsyncInfiniteGeneratorsLab />
+  if (topicId === '225-ts-basic-types') return <TsBasicTypesLab />
+  if (topicId === '226-ts-interface-types') return <TsInterfaceTypesLab />
+  if (topicId === '227-ts-declaration-files') return <TsDeclarationFilesLab />
+  if (topicId === '228-ts-type-guards') return <TsTypeGuardsLab />
+  if (topicId === '229-ts-type-transforms') return <TsTypeTransformsLab />
   if (topicId === '259-software-incremental-iterative-spiral')
     return <IncrementalIterativeSpiralLab />
   if (topicId === '31-git-switch') return <GitSwitchLab />
