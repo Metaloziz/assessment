@@ -1,0 +1,60 @@
+.onion {
+  display: flex;
+  justify-content: center;
+  min-height: 8.4rem;
+  align-items: center;
+}
+
+.ring {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 0.55rem 0.65rem;
+  background: color-mix(in srgb, var(--bg-elevated) 80%, transparent);
+  transition:
+    border-color 0.4s ease,
+    box-shadow 0.4s ease,
+    background 0.4s ease,
+    opacity 0.4s ease;
+}
+
+.ringActive {
+  border-color: var(--accent-bright);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 30%, transparent);
+  background: color-mix(in srgb, var(--accent) 10%, var(--bg-elevated));
+}
+
+.ringOk {
+  border-color: color-mix(in srgb, var(--ok) 50%, var(--border));
+}
+
+.ringCaption {
+  display: block;
+  margin-bottom: 0.4rem;
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-meta);
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.ringActive .ringCaption,
+.ringOk .ringCaption {
+  color: inherit;
+}
+
+.dim {
+  opacity: 0.42;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ring {
+    transition: none;
+  }
+}
+
+.codePane {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+  gap: 0.55rem;
+}

@@ -118,6 +118,20 @@ import { TsInterfaceTypesLab } from '../topics/ts-interface-types/TsInterfaceTyp
 import { TsTypeTransformsLab } from '../topics/ts-type-transforms/TsTypeTransformsLab'
 import { TsTypeGuardsLab } from '../topics/ts-type-guards/TsTypeGuardsLab'
 import { TsDeclarationFilesLab } from '../topics/ts-declaration-files/TsDeclarationFilesLab'
+import { TsGenericsLab } from '../topics/ts-generics/TsGenericsLab'
+import { TsOptionalNullishLab } from '../topics/ts-optional-nullish/TsOptionalNullishLab'
+import { TsKeyofTypeofLab } from '../topics/ts-keyof-typeof/TsKeyofTypeofLab'
+import { TsConditionalMappedInferLab } from '../topics/ts-conditional-mapped-infer/TsConditionalMappedInferLab'
+import { TsTemplateLiteralTypesLab } from '../topics/ts-template-literal-types/TsTemplateLiteralTypesLab'
+import { TsFunctionOverloadsLab } from '../topics/ts-function-overloads/TsFunctionOverloadsLab'
+import { TsReferenceTypesLab } from '../topics/ts-reference-types/TsReferenceTypesLab'
+import { TsTscLab } from '../topics/ts-tsc/TsTscLab'
+import { TsDecoratorsLab } from '../topics/ts-decorators/TsDecoratorsLab'
+import { TsMixinsLab } from '../topics/ts-mixins/TsMixinsLab'
+import { NodejsModulesGlobalsLab } from '../topics/nodejs-modules-globals/NodejsModulesGlobalsLab'
+import { NodejsRoutingStaticLab } from '../topics/nodejs-routing-static/NodejsRoutingStaticLab'
+import { NodejsDbAsyncConfigLab } from '../topics/nodejs-db-async-config/NodejsDbAsyncConfigLab'
+import { NodejsCacheCrudLab } from '../topics/nodejs-cache-crud/NodejsCacheCrudLab'
 import { LAB_DOCK_ID, useLayoutStore } from '../store/layout'
 import styles from './TopicPage.module.css'
 
@@ -201,6 +215,20 @@ function TopicLab({ topicId }: { topicId: string; topic: TopicDetail }) {
   if (topicId === '227-ts-declaration-files') return <TsDeclarationFilesLab />
   if (topicId === '228-ts-type-guards') return <TsTypeGuardsLab />
   if (topicId === '229-ts-type-transforms') return <TsTypeTransformsLab />
+  if (topicId === '230-ts-generics') return <TsGenericsLab />
+  if (topicId === '231-ts-keyof-typeof') return <TsKeyofTypeofLab />
+  if (topicId === '232-ts-optional-nullish') return <TsOptionalNullishLab />
+  if (topicId === '233-ts-conditional-mapped-infer') return <TsConditionalMappedInferLab />
+  if (topicId === '234-ts-template-literal-types') return <TsTemplateLiteralTypesLab />
+  if (topicId === '235-ts-function-overloads') return <TsFunctionOverloadsLab />
+  if (topicId === '236-ts-reference-types') return <TsReferenceTypesLab />
+  if (topicId === '237-ts-tsc') return <TsTscLab />
+  if (topicId === '238-ts-decorators') return <TsDecoratorsLab />
+  if (topicId === '239-ts-mixins') return <TsMixinsLab />
+  if (topicId === '242-nodejs-modules-globals') return <NodejsModulesGlobalsLab />
+  if (topicId === '243-nodejs-routing-static') return <NodejsRoutingStaticLab />
+  if (topicId === '244-nodejs-db-async-config') return <NodejsDbAsyncConfigLab />
+  if (topicId === '245-nodejs-cache-crud') return <NodejsCacheCrudLab />
   if (topicId === '259-software-incremental-iterative-spiral')
     return <IncrementalIterativeSpiralLab />
   if (topicId === '31-git-switch') return <GitSwitchLab />

@@ -218,6 +218,20 @@ export function parseTopicMd(id: string, raw: string, order: number): TopicDetai
       id === '227-ts-declaration-files' ||
       id === '228-ts-type-guards' ||
       id === '229-ts-type-transforms' ||
+      id === '230-ts-generics' ||
+      id === '231-ts-keyof-typeof' ||
+      id === '232-ts-optional-nullish' ||
+      id === '233-ts-conditional-mapped-infer' ||
+      id === '234-ts-template-literal-types' ||
+      id === '235-ts-function-overloads' ||
+      id === '236-ts-reference-types' ||
+      id === '237-ts-tsc' ||
+      id === '238-ts-decorators' ||
+      id === '239-ts-mixins' ||
+      id === '242-nodejs-modules-globals' ||
+      id === '243-nodejs-routing-static' ||
+      id === '244-nodejs-db-async-config' ||
+      id === '245-nodejs-cache-crud' ||
       id === '259-software-incremental-iterative-spiral',
     groupId: meta.groupId,
     groupTitle,

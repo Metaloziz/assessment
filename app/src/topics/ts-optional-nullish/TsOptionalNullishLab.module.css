@@ -1,0 +1,27 @@
+.stageRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 5.5rem;
+}
+
+.arrow {
+  color: var(--muted);
+  font-size: var(--lab-font-meta);
+  user-select: none;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.dim {
+  opacity: 0.42;
+}
+
+.codePane {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+  gap: 0.55rem;
+}
