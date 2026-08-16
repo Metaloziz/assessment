@@ -20,6 +20,7 @@ type SseCase = 'stream' | 'drop'
 type WsCase = 'echo' | 'push'
 type CaseId = LongPollCase | SseCase | WsCase
 
+type Conn = 'closed' | 'connecting' | 'open' | 'waiting'
 type Phase = 'idle' | 'open' | 'wait' | 'data' | 'done' | 'err'
 
 type FeedItem = { id: string; tag: string; body: string }
@@ -49,7 +50,8 @@ const PAIN: Record<Pattern, ReactNode> = {
   longPoll: (
     <>
       HTTP-запрос висит, пока сервер не отдаст событие или не истечёт hold. Живой{' '}
-      <code>GET /api/lab/realtime/long-poll</code>.
+      <code>GET /api/lab/realtime/long-poll</code>; publish —{' '}
+      <code>POST /api/lab/realtime/event</code>.
     </>
   ),
   sse: (
@@ -69,42 +71,42 @@ const PAIN: Record<Pattern, ReactNode> = {
 const CASE_BRIEF: Record<CaseId, ReactNode> = {
   event: (
     <>
-      Сервер держит запрос ~700&nbsp;ms и отвечает JSON с <code>events[]</code>.
+      Poll ждёт в room, пока <code>POST /event</code> не разбудит waiter — ответ с{' '}
+      <code>events[]</code>.
     </>
   ),
   timeout: (
     <>
-      Hold без события: пустой <code>events</code> и <code>reason: timeout</code> — клиент
-      открыл бы следующий poll.
+      Hold ~1.2&nbsp;s без publish: пустой <code>events</code> и <code>reason: timeout</code>.
     </>
   ),
   stream: (
     <>
-      Три <code>tick</code> и <code>done</code> в одном потоке, затем сервер закрывает stream.
+      Поток живёт до «Закрыть»; <code>POST /event</code> пишет кадры в открытый SSE.
     </>
   ),
   drop: (
     <>
-      Один <code>ping</code>, соединение рвётся — типичный сигнал к reconnect.
+      После <code>hello</code>/<code>ping</code> сервер рвёт stream — сигнал к reconnect.
     </>
   ),
   echo: (
     <>
-      Клиент шлёт JSON, сервер отвечает <code>type: echo</code> — оба направления на одном
-      канале.
+      «Отправить событие» идёт через <code>ws.send</code>; сервер отвечает{' '}
+      <code>type: echo</code>.
     </>
   ),
   push: (
     <>
-      Сервер сам пушит <code>hello</code> / <code>push</code> без исходящего сообщения клиента.
+      «Отправить событие» — <code>POST /event</code> в room; кадр приходит в открытый сокет.
     </>
   ),
 }
 
 const CODE_INTRO: Record<Pattern, string> = {
-  longPoll: 'Учебный long-poll: hold HTTP до события или таймаута.',
-  sse: 'SSE: `text/event-stream` и браузерный `EventSource`.',
-  ws: 'WebSocket: upgrade и двусторонние JSON-фреймы.',
+  longPoll: 'Long-poll + room hub: hold до publish или таймаута.',
+  sse: 'SSE: открытый `event-stream` и publish в room.',
+  ws: 'WebSocket: echo по сокету или server push через POST /event.',
 }
 
 const CODE_SNIPPETS: Record<Pattern, InteractiveSnippet[]> = {
@@ -112,70 +114,67 @@ const CODE_SNIPPETS: Record<Pattern, InteractiveSnippet[]> = {
     {
       id: 'lp-route',
       label: 'routes/realtimeLab.ts · long-poll',
-      note: 'Сервер ждёт, затем отдаёт events или пустой timeout.',
+      note: 'Waiter в room; publish резолвит висящий GET.',
       executable: false,
       languageLabel: 'ts',
       code: `app.get('/api/lab/realtime/long-poll', async (req, reply) => {
-  const mode = req.query.mode === 'timeout' ? 'timeout' : 'event';
-  if (mode === 'timeout') {
-    await sleep(1200); // ← hold без события
-    return reply.send({ ok: true, events: [], reason: 'timeout' });
+  const room = getRoom(req.query.room);
+  if (req.query.mode === 'timeout') {
+    await sleep(1200); // ← hold без publish
+    return reply.send({ events: [], reason: 'timeout' });
   }
-  await sleep(700); // ← hold до события
-  return reply.send({
-    ok: true,
-    events: [{ id: 1, type: 'order', status: 'shipped' }], // ← push через HTTP
-  });
+  const event = await waitForPublish(room); // ← ждёт POST /event
+  return reply.send({ events: event ? [event] : [] });
 });
 `,
     },
     {
-      id: 'lp-client',
-      label: 'client · longPoll',
-      note: 'После ответа сразу открывают следующий GET.',
+      id: 'lp-publish',
+      label: 'client · open + publish',
+      note: 'Открыть poll, затем разбудить через POST.',
       executable: false,
       languageLabel: 'ts',
-      code: `async function longPoll(url: string, onEvent: (e: unknown) => void) {
-  for (;;) {
-    const res = await fetch(url);
-    const body = await res.json();
-    if (body.events?.length) onEvent(body.events); // ← событие
-    // ← следующий запрос сразу (и после timeout)
-  }
-}
+      code: `const room = crypto.randomUUID();
+const poll = fetch(\`/api/lab/realtime/long-poll?room=\${room}&mode=event\`);
+await fetch('/api/lab/realtime/event', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ room, payload: { type: 'order' } }), // ← будит waiter
+});
+const res = await poll;
 `,
     },
   ],
   sse: [
     {
       id: 'sse-route',
-      label: 'routes/realtimeLab.ts · sse',
-      note: 'Один HTTP-ответ, много data:-кадров.',
+      label: 'routes/realtimeLab.ts · sse + event',
+      note: 'Клиент в room.sse; publish пишет data:-кадр.',
       executable: false,
       languageLabel: 'ts',
       code: `app.get('/api/lab/realtime/sse', (req, reply) => {
   reply.hijack();
-  reply.raw.writeHead(200, {
-    'Content-Type': 'text/event-stream; charset=utf-8', // ← SSE
-    'Cache-Control': 'no-cache',
-  });
-  reply.raw.write('event: tick\\ndata: {"n":1}\\n\\n'); // ← кадр
+  // Content-Type: text/event-stream
+  room.sse.add({ write }); // ← держим поток
+  write({ note: 'stream open' }, 'hello');
+});
+
+app.post('/api/lab/realtime/event', async (req) => {
+  publishToRoom(req.body.room, req.body.payload); // ← кадр всем SSE в room
 });
 `,
     },
     {
       id: 'sse-client',
       label: 'client · EventSource',
-      note: 'Браузер сам переподключается при обрыве.',
+      note: 'Открыть поток, слушать event, закрыть вручную.',
       executable: false,
       languageLabel: 'ts',
-      code: `const es = new EventSource('/api/lab/realtime/sse?mode=stream');
-es.addEventListener('tick', (e) => {
+      code: `const es = new EventSource(\`/api/lab/realtime/sse?room=\${room}&mode=stream\`);
+es.addEventListener('event', (e) => {
   console.log(JSON.parse(e.data)); // ← server → client
 });
-es.onerror = () => {
-  /* EventSource reconnect */ // ← обрыв
-};
+es.close(); // ← Закрыть соединение
 `,
     },
   ],
@@ -183,34 +182,36 @@ es.onerror = () => {
     {
       id: 'ws-route',
       label: 'routes/realtimeLab.ts · ws',
-      note: 'После upgrade — message / send в обе стороны.',
+      note: 'Echo по message; push — через publish в room.ws.',
       executable: false,
       languageLabel: 'ts',
-      code: `app.get('/api/lab/realtime/ws', { websocket: true }, (socket) => {
-  socket.send(JSON.stringify({ type: 'ready' }));
+      code: `app.get('/api/lab/realtime/ws', { websocket: true }, (socket, req) => {
+  room.ws.add(socket);
   socket.on('message', (raw) => {
-    const got = JSON.parse(String(raw));
-    socket.send(JSON.stringify({ type: 'echo', got })); // ← duplex
+    socket.send(JSON.stringify({ type: 'echo', got: JSON.parse(String(raw)) })); // ← duplex
   });
 });
+// POST /event → socket.send({ type: 'event', … }) для mode=push
 `,
     },
     {
       id: 'ws-client',
-      label: 'client · WebSocket',
-      note: 'Клиент шлёт и слушает один канал.',
+      label: 'client · open / send / close',
+      note: 'Управление живым сокетом.',
       executable: false,
       languageLabel: 'ts',
-      code: `const ws = new WebSocket('wss://…/api/lab/realtime/ws?mode=echo');
+      code: `const ws = new WebSocket(\`wss://…/ws?room=\${room}&mode=echo\`);
 ws.addEventListener('open', () => {
-  ws.send(JSON.stringify({ type: 'ping' })); // ← client → server
+  ws.send(JSON.stringify({ type: 'ping' })); // ← Отправить событие
 });
-ws.addEventListener('message', (e) => {
-  console.log(JSON.parse(String(e.data))); // ← server → client
-});
+ws.close(); // ← Закрыть соединение
 `,
     },
   ],
+}
+
+function newRoomId() {
+  return crypto.randomUUID()
 }
 
 function PatternSwitch({
@@ -264,6 +265,7 @@ function RealtimeViz({
   const done = phase === 'done' || phase === 'err'
   const err = phase === 'err'
   const duplex = pattern === 'ws'
+  const live = phase === 'wait' || phase === 'data' || phase === 'open'
 
   const title =
     pattern === 'longPoll' ? 'Long-poll' : pattern === 'sse' ? 'SSE stream' : 'WebSocket'
@@ -276,10 +278,10 @@ function RealtimeViz({
           ? 'response'
           : 'GET'
       : pattern === 'sse'
-        ? waiting || hasData
+        ? live
           ? 'text/event-stream'
           : 'EventSource'
-        : waiting || hasData
+        : live
           ? 'frames'
           : 'upgrade'
 
@@ -297,19 +299,19 @@ function RealtimeViz({
           <LabNode
             label="Client"
             sub={pattern === 'ws' ? 'WebSocket' : pattern === 'sse' ? 'EventSource' : 'fetch'}
-            state={nodeState(open && !done, done, err)}
+            state={nodeState(live, done && !live, err)}
           />
           <span className={arrowCls}>{duplex ? '↔' : '→'}</span>
           <LabNode
             label="Channel"
             sub={channelSub}
-            state={nodeState(waiting || hasData, done && !err, err)}
+            state={nodeState(waiting || hasData || live, done && !err && !live, err)}
           />
           <span className={arrowCls}>{duplex ? '↔' : '→'}</span>
           <LabNode
             label="Server"
             sub="realtime-lab"
-            state={nodeState(waiting || (hasData && !done), done, err)}
+            state={nodeState(waiting || live, done && !live, err)}
           />
         </div>
         <ul className={styles.feed} aria-live="polite">
@@ -333,17 +335,26 @@ export function NetworkLongPollingWsSseLab() {
   const { lines, log, clear } = useLabLog()
   const [pattern, setPattern] = useState<Pattern>('longPoll')
   const [caseId, setCaseId] = useState<CaseId>('event')
+  const [conn, setConn] = useState<Conn>('closed')
   const [phase, setPhase] = useState<Phase>('idle')
   const [feed, setFeed] = useState<FeedItem[]>([])
   const [meta, setMeta] = useState('ожидание')
   const [hint, setHint] = useState<string | null>(null)
-  const [busy, setBusy] = useState(false)
 
+  const roomRef = useRef(newRoomId())
   const abortRef = useRef<AbortController | null>(null)
   const esRef = useRef<EventSource | null>(null)
   const wsRef = useRef<WebSocket | null>(null)
   const feedN = useRef(0)
-  const runId = useRef(0)
+  const sessionRef = useRef(0)
+
+  const connected = conn === 'open' || conn === 'waiting' || conn === 'connecting'
+  const canOpen = conn === 'closed'
+  const canSend =
+    (pattern === 'longPoll' && conn === 'waiting' && caseId === 'event') ||
+    (pattern === 'sse' && conn === 'open' && caseId === 'stream') ||
+    (pattern === 'ws' && conn === 'open')
+  const canClose = connected
 
   const pushFeed = (tag: string, body: string) => {
     feedN.current += 1
@@ -354,8 +365,10 @@ export function NetworkLongPollingWsSseLab() {
   const tearDown = () => {
     abortRef.current?.abort()
     abortRef.current = null
-    esRef.current?.close()
-    esRef.current = null
+    if (esRef.current) {
+      esRef.current.close()
+      esRef.current = null
+    }
     if (wsRef.current) {
       wsRef.current.onopen = null
       wsRef.current.onmessage = null
@@ -379,12 +392,18 @@ export function NetworkLongPollingWsSseLab() {
     feedN.current = 0
     setMeta('ожидание')
     setHint(null)
+    setConn('closed')
+  }
+
+  const bumpSession = () => {
+    sessionRef.current += 1
+    return sessionRef.current
   }
 
   const selectPattern = (next: Pattern) => {
     tearDown()
-    runId.current += 1
-    setBusy(false)
+    bumpSession()
+    roomRef.current = newRoomId()
     setPattern(next)
     setCaseId(CASES[next][0]!.id)
     clear()
@@ -393,28 +412,32 @@ export function NetworkLongPollingWsSseLab() {
 
   const selectCase = (next: CaseId) => {
     tearDown()
-    runId.current += 1
-    setBusy(false)
+    bumpSession()
+    roomRef.current = newRoomId()
     setCaseId(next)
     clear()
     resetViz()
   }
 
-  const runLongPoll = async () => {
-    const id = ++runId.current
+  const openLongPoll = async () => {
+    const sid = bumpSession()
     const mode = caseId === 'timeout' ? 'timeout' : 'event'
+    const room = roomRef.current
     const ac = new AbortController()
     abortRef.current = ac
+    setConn('connecting')
     setPhase('open')
-    setMeta(`GET …/long-poll?mode=${mode}`)
+    setMeta(`GET long-poll · ${mode}`)
+    setConn('waiting')
     setPhase('wait')
+    log('info', `long-poll open · room ${room.slice(0, 8)}…`)
 
     try {
-      const res = await fetch(apiUrl(`/api/lab/realtime/long-poll?mode=${mode}`), {
-        headers: { Accept: 'application/json' },
-        signal: ac.signal,
-      })
-      if (id !== runId.current) return
+      const res = await fetch(
+        apiUrl(`/api/lab/realtime/long-poll?room=${encodeURIComponent(room)}&mode=${mode}`),
+        { headers: { Accept: 'application/json' }, signal: ac.signal },
+      )
+      if (sid !== sessionRef.current) return
       const body = (await res.json()) as {
         events?: unknown[]
         reason?: string
@@ -422,135 +445,137 @@ export function NetworkLongPollingWsSseLab() {
       }
       setPhase('data')
       const held = body.heldMs ?? '—'
-      if (mode === 'timeout') {
+      if (mode === 'timeout' || body.reason === 'timeout') {
         pushFeed('timeout', `events: [] · held ${held}ms`)
         setMeta(`200 · timeout · ${held}ms`)
-        log('warn', `long-poll timeout · held ${held}ms`)
-        setHint('пустой ответ — цикл откроет следующий GET')
-      } else {
-        pushFeed('event', JSON.stringify(body.events?.[0] ?? body))
+        log('warn', `timeout · held ${held}ms`)
+        setHint('hold без события — следующий цикл снова Открыть')
+      } else if (body.events?.length) {
+        pushFeed('event', JSON.stringify(body.events[0]))
         setMeta(`200 · event · held ${held}ms`)
-        log('ok', `long-poll event · held ${held}ms`)
-        setHint('событие пришло после hold, не коротким polling')
+        log('ok', `event · held ${held}ms`)
+        setHint('publish разбудил висящий GET')
+      } else {
+        pushFeed('idle', body.reason ?? 'empty')
+        setMeta(`200 · ${body.reason ?? 'empty'}`)
+        log('warn', body.reason ?? 'empty')
+        setHint('poll закрыт без события')
       }
       setPhase('done')
+      setConn('closed')
+      abortRef.current = null
     } catch (e) {
-      if (ac.signal.aborted || id !== runId.current) return
+      if (ac.signal.aborted || sid !== sessionRef.current) {
+        if (sid === sessionRef.current) {
+          setConn('closed')
+          setPhase('idle')
+          setMeta('закрыто')
+          log('info', 'long-poll aborted')
+        }
+        return
+      }
       const msg = e instanceof Error ? e.message : String(e)
       setPhase('err')
+      setConn('closed')
       setMeta('ошибка сети')
       log('err', msg)
       setHint('API недоступен — поднимите assessment-server')
-    } finally {
-      if (id === runId.current) setBusy(false)
     }
   }
 
-  const runSse = () => {
-    const id = ++runId.current
+  const openSse = () => {
+    const sid = bumpSession()
     const mode = caseId === 'drop' ? 'drop' : 'stream'
-    const url = apiUrl(`/api/lab/realtime/sse?mode=${mode}`)
+    const room = roomRef.current
+    const url = apiUrl(
+      `/api/lab/realtime/sse?room=${encodeURIComponent(room)}&mode=${mode}`,
+    )
+    setConn('connecting')
     setPhase('open')
-    setMeta(`EventSource · mode=${mode}`)
+    setMeta(`EventSource · ${mode}`)
 
     const es = new EventSource(url)
     esRef.current = es
     let got = 0
-    let finished = false
-
-    const finishOk = (hintText: string, logMsg: string) => {
-      if (finished || id !== runId.current) return
-      finished = true
-      setPhase('done')
-      log(mode === 'drop' ? 'warn' : 'ok', logMsg)
-      setHint(hintText)
-      setBusy(false)
-      es.close()
-      esRef.current = null
-    }
 
     es.addEventListener('open', () => {
-      if (id !== runId.current) return
+      if (sid !== sessionRef.current) return
+      setConn(mode === 'drop' ? 'connecting' : 'open')
       setPhase('wait')
       setMeta('stream open')
+      log('ok', `sse open · ${mode}`)
     })
 
     const onPayload = (tag: string, data: string) => {
-      if (id !== runId.current) return
+      if (sid !== sessionRef.current) return
       got += 1
       setPhase('data')
       pushFeed(tag, data)
       setMeta(`${tag} · #${got}`)
-      if (tag === 'done' || (mode === 'drop' && tag === 'ping')) {
-        finishOk(
-          mode === 'drop' ? 'поток оборван после одного кадра' : 'три tick и done в одном ответе',
-          mode === 'drop' ? 'sse drop after ping' : `sse stream · ${got} frames`,
-        )
+      if (mode === 'stream' && tag !== 'hello') {
+        setConn('open')
+        setHint('кадр в живом потоке')
+      }
+      if (mode === 'drop' && (tag === 'ping' || tag === 'hello')) {
+        /* wait for close */
       }
     }
 
-    es.addEventListener('tick', (e) => onPayload('tick', String((e as MessageEvent).data)))
+    es.addEventListener('hello', (e) => onPayload('hello', String((e as MessageEvent).data)))
+    es.addEventListener('event', (e) => onPayload('event', String((e as MessageEvent).data)))
     es.addEventListener('ping', (e) => onPayload('ping', String((e as MessageEvent).data)))
-    es.addEventListener('done', (e) => onPayload('done', String((e as MessageEvent).data)))
+    es.addEventListener('tick', (e) => onPayload('tick', String((e as MessageEvent).data)))
     es.onmessage = (e) => onPayload('message', String(e.data))
 
     es.onerror = () => {
-      if (id !== runId.current || finished) return
-      if (mode === 'drop' && got > 0) {
-        finishOk('поток оборван — EventSource ушёл бы в reconnect', 'sse connection closed')
+      if (sid !== sessionRef.current) return
+      if (mode === 'drop') {
+        setPhase('done')
+        setConn('closed')
+        setMeta('stream dropped')
+        log('warn', 'sse drop / close')
+        setHint('поток оборван — типичный сигнал к reconnect')
+        es.close()
+        esRef.current = null
         return
       }
       if (got === 0) {
-        finished = true
         setPhase('err')
+        setConn('closed')
         setMeta('SSE error')
         log('err', 'EventSource failed')
         setHint('API недоступен или CORS/прокси режет stream')
-        setBusy(false)
         es.close()
         esRef.current = null
       }
     }
   }
 
-  const runWs = () => {
-    const id = ++runId.current
+  const openWs = () => {
+    const sid = bumpSession()
     const mode = caseId === 'push' ? 'push' : 'echo'
-    const url = apiWsUrl(`/api/lab/realtime/ws?mode=${mode}`)
+    const room = roomRef.current
+    const url = apiWsUrl(
+      `/api/lab/realtime/ws?room=${encodeURIComponent(room)}&mode=${mode}`,
+    )
+    setConn('connecting')
     setPhase('open')
-    setMeta(`WS · mode=${mode}`)
+    setMeta(`WS · ${mode}`)
 
     const ws = new WebSocket(url)
     wsRef.current = ws
-    let finished = false
-
-    const finish = (ok: boolean, hintText: string, logMsg: string) => {
-      if (finished || id !== runId.current) return
-      finished = true
-      setPhase(ok ? 'done' : 'err')
-      log(ok ? 'ok' : 'err', logMsg)
-      setHint(hintText)
-      setBusy(false)
-      try {
-        ws.close()
-      } catch {
-        /* ignore */
-      }
-      wsRef.current = null
-    }
 
     ws.onopen = () => {
-      if (id !== runId.current) return
+      if (sid !== sessionRef.current) return
+      setConn('open')
       setPhase('wait')
       setMeta('OPEN')
-      if (mode === 'echo') {
-        ws.send(JSON.stringify({ type: 'ping', from: 'lab' }))
-        pushFeed('send', '{"type":"ping"}')
-      }
+      log('ok', `ws open · ${mode}`)
+      setHint(mode === 'echo' ? 'можно слать по сокету' : 'publish через POST /event')
     }
 
     ws.onmessage = (e) => {
-      if (id !== runId.current) return
+      if (sid !== sessionRef.current) return
       setPhase('data')
       const text = String(e.data)
       let tag = 'msg'
@@ -562,43 +587,115 @@ export function NetworkLongPollingWsSseLab() {
       }
       pushFeed(tag, text)
       setMeta(`← ${tag}`)
-      if (mode === 'echo' && tag === 'echo') {
-        finish(true, 'клиент → сервер → echo на том же сокете', 'ws echo ok')
-      }
-      if (mode === 'push' && tag === 'done') {
-        finish(true, 'сервер пушил без исходящих от клиента', 'ws server push done')
+      if (tag === 'echo' || tag === 'event') {
+        setHint(tag === 'echo' ? 'echo на том же сокете' : 'server push в room')
+        log('ok', tag)
       }
     }
 
     ws.onerror = () => {
-      if (id !== runId.current || finished) return
-      finish(false, 'WebSocket не открылся — проверьте API и ws-прокси', 'ws error')
+      if (sid !== sessionRef.current) return
+      setPhase('err')
+      setConn('closed')
+      setMeta('ws error')
+      log('err', 'WebSocket error')
+      setHint('проверьте API и ws-прокси')
     }
 
     ws.onclose = () => {
-      if (id !== runId.current || finished) return
-      if (mode === 'push') {
-        finish(true, 'сервер закрыл канал после push', 'ws closed after push')
-        return
-      }
-      finish(false, 'сокет закрыт до echo', 'ws closed early')
+      if (sid !== sessionRef.current) return
+      setConn('closed')
+      setPhase((prev) => (prev === 'err' ? prev : 'done'))
+      setMeta('CLOSED')
+      log('info', 'ws closed')
+      wsRef.current = null
     }
   }
 
-  const run = () => {
-    tearDown()
+  const openConn = () => {
+    if (!canOpen) return
     clear()
-    resetViz()
-    setBusy(true)
-    if (pattern === 'longPoll') void runLongPoll()
-    else if (pattern === 'sse') runSse()
-    else runWs()
+    setFeed([])
+    feedN.current = 0
+    setHint(null)
+    if (pattern === 'longPoll') void openLongPoll()
+    else if (pattern === 'sse') openSse()
+    else openWs()
+  }
+
+  const sendEvent = async () => {
+    if (!canSend) return
+    const room = roomRef.current
+
+    if (pattern === 'ws' && caseId === 'echo') {
+      const ws = wsRef.current
+      if (!ws || ws.readyState !== WebSocket.OPEN) return
+      const payload = { type: 'ping', from: 'lab', n: feedN.current + 1 }
+      ws.send(JSON.stringify(payload))
+      pushFeed('send', JSON.stringify(payload))
+      setMeta('→ ping')
+      log('info', 'ws.send ping')
+      return
+    }
+
+    try {
+      const res = await fetch(apiUrl('/api/lab/realtime/event'), {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          room,
+          payload: { type: 'lab', note: 'manual event', via: pattern },
+        }),
+      })
+      const body = (await res.json()) as {
+        ok?: boolean
+        delivered?: { longPoll?: number; sse?: number; ws?: number }
+        id?: number
+      }
+      if (!res.ok || !body.ok) {
+        log('err', `publish ${res.status}`)
+        setHint('publish не принят')
+        return
+      }
+      const d = body.delivered
+      log(
+        'ok',
+        `publish #${body.id ?? '—'} · lp ${d?.longPoll ?? 0} / sse ${d?.sse ?? 0} / ws ${d?.ws ?? 0}`,
+      )
+      if (pattern === 'longPoll') {
+        setMeta('publish → waiter')
+      } else if (pattern === 'sse') {
+        setMeta('publish → stream')
+      } else {
+        setMeta('publish → socket')
+      }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e)
+      log('err', msg)
+      setHint('API недоступен')
+    }
+  }
+
+  const closeConn = () => {
+    if (!canClose) return
+    const sid = bumpSession()
+    tearDown()
+    if (sid) {
+      setConn('closed')
+      setPhase('done')
+      setMeta('закрыто')
+      log('info', 'connection closed')
+      setHint('канал закрыт вручную')
+    }
   }
 
   const reset = () => {
     tearDown()
-    runId.current += 1
-    setBusy(false)
+    bumpSession()
+    roomRef.current = newRoomId()
     clear()
     setPattern('longPoll')
     setCaseId('event')
@@ -607,7 +704,7 @@ export function NetworkLongPollingWsSseLab() {
 
   const problem = (
     <div className={shell.panel}>
-      <PatternSwitch value={pattern} disabled={busy} onChange={selectPattern} />
+      <PatternSwitch value={pattern} disabled={connected} onChange={selectPattern} />
 
       <div className={shell.row}>
         {CASES[pattern].map((c) => (
@@ -616,7 +713,7 @@ export function NetworkLongPollingWsSseLab() {
             variant="ghost"
             size="sm"
             active={caseId === c.id}
-            disabled={busy}
+            disabled={connected}
             onClick={() => selectCase(c.id)}
           >
             {c.label}
@@ -625,10 +722,16 @@ export function NetworkLongPollingWsSseLab() {
       </div>
 
       <div className={shell.row}>
-        <LabButton variant="primary" disabled={busy} onClick={run}>
-          Запустить
+        <LabButton variant="primary" disabled={!canOpen} onClick={openConn}>
+          Открыть соединение
         </LabButton>
-        <LabButton variant="secondary" disabled={busy} onClick={reset}>
+        <LabButton variant="secondary" disabled={!canSend} onClick={() => void sendEvent()}>
+          Отправить событие
+        </LabButton>
+        <LabButton variant="secondary" disabled={!canClose} onClick={closeConn}>
+          Закрыть соединение
+        </LabButton>
+        <LabButton variant="ghost" onClick={reset}>
           Сброс
         </LabButton>
       </div>
@@ -662,7 +765,7 @@ export function NetworkLongPollingWsSseLab() {
   return (
     <JsLabShell
       title="Long-poll · SSE · WebSocket"
-      lead="Живые hold HTTP, event-stream и duplex WS на assessment-api."
+      lead="Управление живым соединением: open / publish / close на assessment-api."
       problem={problem}
       code={code}
     />
