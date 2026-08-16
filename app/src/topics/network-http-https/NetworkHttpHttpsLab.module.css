@@ -1,0 +1,146 @@
+.flow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem 0.35rem;
+  min-height: 3.4rem;
+}
+
+.arrow {
+  flex: 0 0 auto;
+  color: var(--text-faint);
+  font-size: var(--lab-font-ui);
+  transition:
+    color 0.4s ease,
+    opacity 0.4s ease;
+}
+
+.arrowActive {
+  color: var(--accent-bright);
+}
+
+.arrowErr {
+  color: var(--danger);
+}
+
+/* HTTP/2: queue vs multiplex lanes */
+.h2Layout {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  min-height: 7.5rem;
+}
+
+.h2Conn {
+  align-self: flex-start;
+  min-width: 9rem;
+}
+
+.h2Lanes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding-left: 0.75rem;
+  border-left: 1px dashed color-mix(in srgb, var(--border) 80%, transparent);
+}
+
+.h2Lane {
+  display: grid;
+  grid-template-columns: 4.5rem 1fr;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.h2LaneLabel {
+  color: var(--muted);
+  font-size: var(--lab-font-meta);
+}
+
+.h2Bars {
+  display: flex;
+  gap: 0.2rem;
+  align-items: center;
+  min-height: 1.6rem;
+}
+
+.h2Bar {
+  height: 0.85rem;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--border) 70%, transparent);
+  transition:
+    background 0.4s ease,
+    opacity 0.4s ease,
+    transform 0.4s ease;
+  opacity: 0.35;
+}
+
+.h2BarWide {
+  width: 42%;
+}
+
+.h2BarMid {
+  width: 28%;
+}
+
+.h2BarShort {
+  width: 18%;
+}
+
+.h2BarActive {
+  background: color-mix(in srgb, var(--accent) 55%, var(--bg-elevated));
+  opacity: 1;
+}
+
+.h2BarOk {
+  background: color-mix(in srgb, var(--ok) 50%, var(--bg-elevated));
+  opacity: 1;
+}
+
+.h2BarWait {
+  opacity: 0.22;
+}
+
+.h2BarBlocked {
+  background: color-mix(in srgb, var(--warn) 45%, var(--bg-elevated));
+  opacity: 0.85;
+}
+
+/* HTTPS: stack layers */
+.tlsStack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-height: 7rem;
+  max-width: 18rem;
+}
+
+.tlsLayer {
+  transition:
+    opacity 0.4s ease,
+    border-color 0.4s ease;
+}
+
+.tlsDim {
+  opacity: 0.4;
+}
+
+.tlsWarn {
+  border-color: color-mix(in srgb, var(--warn) 55%, var(--border));
+  color: var(--warn);
+}
+
+.codePane {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+  gap: 0.55rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .arrow,
+  .h2Bar,
+  .tlsLayer {
+    transition: none;
+  }
+}

@@ -241,6 +241,12 @@
 }
 
 @media (max-width: 860px) {
+  .title {
+    white-space: normal;
+  }
+}
+
+@media (max-width: 640px) {
   .sidebar {
     width: 100%;
     min-width: 0;
@@ -248,9 +254,5 @@
     max-height: 42vh;
     border-right: 0;
     border-bottom: 1px solid var(--border);
-  }
-
-  .title {
-    white-space: normal;
   }
 }

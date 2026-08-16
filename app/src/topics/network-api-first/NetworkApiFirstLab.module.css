@@ -1,0 +1,109 @@
+.scheme {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 0.35rem 0.55rem;
+  align-items: stretch;
+  min-height: 11rem;
+}
+
+.schemeTop,
+.schemeOut {
+  grid-column: 1 / -1;
+  justify-self: center;
+  width: min(100%, 14rem);
+}
+
+.schemeFork {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 0.25rem 0.4rem;
+  align-items: center;
+  text-align: center;
+  color: var(--muted);
+  font-size: var(--lab-font-meta);
+  user-select: none;
+}
+
+.schemeForkPass,
+.schemeForkFail {
+  transition: color 0.4s ease, opacity 0.4s ease;
+}
+
+.schemeForkPassActive {
+  color: var(--ok);
+}
+
+.schemeForkFailActive {
+  color: var(--warn);
+}
+
+.schemeForkIdle {
+  opacity: 0.45;
+}
+
+.schemeBranch {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.schemeBranchArrow {
+  color: var(--muted);
+  font-size: var(--lab-font-meta);
+  text-align: center;
+  user-select: none;
+  line-height: 1;
+}
+
+.looseRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 0.35rem 0.4rem;
+  align-items: center;
+  min-height: 7.5rem;
+}
+
+.looseArrow {
+  color: var(--muted);
+  font-size: var(--lab-font-meta);
+  user-select: none;
+  transition: color 0.4s ease, opacity 0.4s ease;
+}
+
+.looseArrowActive {
+  color: var(--accent-bright);
+}
+
+.looseArrowIdle {
+  opacity: 0.4;
+}
+
+.dim {
+  opacity: 0.42;
+}
+
+.pathOff {
+  opacity: 0.28;
+}
+
+.codePane {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+  gap: 0.55rem;
+}
+
+@media (max-width: 640px) {
+  .looseRow {
+    grid-template-columns: 1fr;
+    justify-items: stretch;
+  }
+
+  .looseArrow {
+    transform: rotate(90deg);
+    justify-self: center;
+  }
+}

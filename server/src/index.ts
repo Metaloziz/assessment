@@ -4,6 +4,8 @@ import { env } from './env.js'
 import { healthRoutes } from './routes/health.js'
 import { demoRoutes } from './routes/demo.js'
 import { corsLabRoutes } from './routes/corsLab.js'
+import { httpLabRoutes } from './routes/httpLab.js'
+import { apiFirstLabRoutes } from './routes/apiFirstLab.js'
 import { dbLabRoutes } from './routes/dbLab.js'
 import { cacheLabRoutes } from './routes/cacheLab.js'
 import { workersLabRoutes } from './routes/workersLab.js'
@@ -21,6 +23,8 @@ await app.register(cors, {
 await app.register(healthRoutes)
 await app.register(demoRoutes)
 await app.register(corsLabRoutes)
+await app.register(httpLabRoutes)
+await app.register(apiFirstLabRoutes)
 await app.register(dbLabRoutes)
 await app.register(cacheLabRoutes)
 await app.register(workersLabRoutes)

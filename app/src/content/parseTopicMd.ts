@@ -101,7 +101,9 @@ export function parseTopicMd(id: string, raw: string, order: number): TopicDetai
     id === '07-cors' ||
     id === '244-nodejs-db-async-config' ||
     id === '245-nodejs-cache-crud' ||
-    id === '246-nodejs-worker-threads'
+    id === '246-nodejs-worker-threads' ||
+    id === '251-network-api-first' ||
+    id === '250-network-http-https'
 
   return {
     id,
@@ -237,6 +239,8 @@ export function parseTopicMd(id: string, raw: string, order: number): TopicDetai
       id === '244-nodejs-db-async-config' ||
       id === '245-nodejs-cache-crud' ||
       id === '246-nodejs-worker-threads' ||
+      id === '250-network-http-https' ||
+      id === '251-network-api-first' ||
       id === '259-software-incremental-iterative-spiral',
     groupId: meta.groupId,
     groupTitle,

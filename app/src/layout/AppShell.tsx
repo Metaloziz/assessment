@@ -9,6 +9,9 @@ import styles from './AppShell.module.css'
 
 gsap.registerPlugin(useGSAP)
 
+/** Phone stack (column + vh cap). Keep side-by-side above this — 860px still fits a dock. */
+const MOBILE_LAYOUT_MQ = '(max-width: 640px)'
+
 function readSidebarWidthPx(): number {
   const raw = getComputedStyle(document.documentElement).getPropertyValue('--sidebar-width').trim()
   const parsed = Number.parseFloat(raw)
@@ -108,7 +111,7 @@ export function AppShell() {
       if (!dock || !topics || !lab || !main || !workspace) return
 
       const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-      const mobile = window.matchMedia('(max-width: 860px)').matches
+      const mobile = window.matchMedia(MOBILE_LAYOUT_MQ).matches
       const duration = reduced ? 0 : 0.48
       const ease = 'power3.inOut'
       const workspaceW = workspace.getBoundingClientRect().width || window.innerWidth
@@ -297,7 +300,7 @@ export function AppShell() {
 
     const sync = () => {
       if (draggingRef.current) return
-      const mobile = window.matchMedia('(max-width: 860px)').matches
+      const mobile = window.matchMedia(MOBILE_LAYOUT_MQ).matches
       const workspaceW = workspace.getBoundingClientRect().width || window.innerWidth
       const { labOpen: lab, sidebarOpen: side, theoryOpen: theory, labShare: share } =
         useLayoutStore.getState()

@@ -255,7 +255,10 @@
     max-width: none;
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
+}
 
+/* Sync with MOBILE_LAYOUT_MQ in AppShell.tsx — stack only on phones */
+@media (max-width: 640px) {
   .workspace {
     flex-direction: column;
   }
