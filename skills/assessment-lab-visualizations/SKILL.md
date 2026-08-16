@@ -49,7 +49,8 @@ description: >-
 | Error boundaries | **живой** cabinet + fallback (`react-error-boundaries`) |
 | Factory | каталог / штамп продукта |
 | Prototype | оригинал vs clone |
-| Proxy / кэш | обёртка + hit/miss |
+| Proxy / кэш | обёртка + hit/miss; при развилке — **fork-схема** (см. ниже) |
+| Cache-aside / ветвление после решения | **развилка** hit ↙ / miss ↘ → общий ответ (`nodejs-cache-crud`) |
 | Singleton | два call-site → один чип |
 | Adapter | переводчик между контрактами |
 | Chain | вертикальный стек, пакет падает |
@@ -63,7 +64,25 @@ description: >-
 
 CorsLab — эталон **live-API**, не шаблон любой схемы.  
 Эталон **живого механизма (React/DOM)**: `app/src/topics/react-portals/ReactPortalsLab.tsx`, `app/src/topics/react-error-boundaries/ReactErrorBoundariesLab.tsx`.  
-Эталон **живого UI-образца**: `app/src/topics/layout-design-system/LayoutDesignSystemLab.tsx`.
+Эталон **живого UI-образца**: `app/src/topics/layout-design-system/LayoutDesignSystemLab.tsx`.  
+Эталон **развилки событий** (не вертикальный стек): `app/src/topics/nodejs-cache-crud/NodejsCacheCrudLab.tsx`.
+
+### Развилка событий (не стек блоков)
+
+Если механизм — **решение с двумя (и более) путями** (hit/miss, ok/err после проверки, early return vs продолжение, ветка после `if`), **не** рисовать привычную колонку `A → B → C → D`. Глаз должен видеть **разветвление**, а не очередную «последовательность из каждой лабы».
+
+Эталон: **Кеширование и CRUD** — `lab → cache`, затем **hit ↙** / **miss ↘**, ветки сходятся в общий ответ; для линейной мутации (UPDATE → invalidate) — отдельный горизонтальный ряд, не тот же fork.
+
+Правила:
+
+1. Общий узел решения сверху (cache / guard / router), под ним **две колонки** путей + подписи веток (`hit` / `miss`).
+2. Активный кейс подсвечивает **свою** ветку; чужую приглушать (`opacity`), не прятать — контраст виден.
+3. Ответ / итог — **один** узел снизу (или справа после линейного write), куда сходятся пути.
+4. Линейный сценарий без развилки (чистый пайплайн UPDATE → del) — горизонтальный ряд `→`, не вертикальный стек «как у всех».
+5. Не копировать fork «для красоты», если ветвления нет — тогда метафора из таблицы выше.
+
+Плохо: четыре одинаковых блока друг под другом «handler → cache → БД → ответ» и для hit, и для miss.  
+Хорошо: развилка после cache; на hit БД серая «не трогаем», на miss — SELECT → set.
 
 ### Живой механизм (не подменять узлами)
 
@@ -102,6 +121,7 @@ CorsLab — эталон **live-API**, не шаблон любой схемы.
 - `app/src/topics/layout-design-system/` — живые primary на экранах (контракт vs дрейф)
 - `app/src/topics/react-portals/` — живой `createPortal` + clip
 - `app/src/topics/react-error-boundaries/` — живой cabinet + fallback
+- `app/src/topics/nodejs-cache-crud/` — **развилка** hit/miss + горизонтальный write (не вертикальный стек)
 
 Новые live-API / живой-механизм лабы переиспользуют **тот же** язык токенов и панелей: `LabVizPanel` / `LabNode` / `labVizStyles` из `app/src/components/lab/LabViz.tsx`. Не копировать блок `.viz` в CSS топика. UI-look и живой механизм — тот же `LabVizPanel`, но содержимое = сцена/контролы, не обязанность `LabNode`.
 
@@ -142,6 +162,7 @@ CorsLab — эталон **live-API**, не шаблон любой схемы.
 - **Абстрактные `LabNode`-слои** вместо живого эффекта, если механизм можно показать тем же API/DOM (portal, clip, boundary, live request)
 - **Абстрактные `LabNode`-слои** вместо живых контролов, если тема про визуальный look / дизайн-систему / типографику / contrast
 - Горизонтальный CORS-поток для темы, которая не про пайплайн запроса
+- **Вертикальный стек** `A → B → C → D` там, где есть **разветвление** (hit/miss и т.п.) — вместо fork-схемы как в `nodejs-cache-crud`
 - Оверлеи-бейджи, фиолетовый glow «из коробки AI»
 - Огромный `font-size` в SVG (например `15` при `r=8`)
 - Свой палитровый «бренд» лабы в обход токенов темы (антипример look — только внутри схемы-демо)

@@ -132,6 +132,7 @@ import { NodejsModulesGlobalsLab } from '../topics/nodejs-modules-globals/Nodejs
 import { NodejsRoutingStaticLab } from '../topics/nodejs-routing-static/NodejsRoutingStaticLab'
 import { NodejsDbAsyncConfigLab } from '../topics/nodejs-db-async-config/NodejsDbAsyncConfigLab'
 import { NodejsCacheCrudLab } from '../topics/nodejs-cache-crud/NodejsCacheCrudLab'
+import { NodejsWorkerThreadsLab } from '../topics/nodejs-worker-threads/NodejsWorkerThreadsLab'
 import { LAB_DOCK_ID, useLayoutStore } from '../store/layout'
 import styles from './TopicPage.module.css'
 
@@ -229,6 +230,7 @@ function TopicLab({ topicId }: { topicId: string; topic: TopicDetail }) {
   if (topicId === '243-nodejs-routing-static') return <NodejsRoutingStaticLab />
   if (topicId === '244-nodejs-db-async-config') return <NodejsDbAsyncConfigLab />
   if (topicId === '245-nodejs-cache-crud') return <NodejsCacheCrudLab />
+  if (topicId === '246-nodejs-worker-threads') return <NodejsWorkerThreadsLab />
   if (topicId === '259-software-incremental-iterative-spiral')
     return <IncrementalIterativeSpiralLab />
   if (topicId === '31-git-switch') return <GitSwitchLab />

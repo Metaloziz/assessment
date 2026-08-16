@@ -6,6 +6,7 @@ import { demoRoutes } from './routes/demo.js'
 import { corsLabRoutes } from './routes/corsLab.js'
 import { dbLabRoutes } from './routes/dbLab.js'
 import { cacheLabRoutes } from './routes/cacheLab.js'
+import { workersLabRoutes } from './routes/workersLab.js'
 import { sqlClient } from './db.js'
 
 const app = Fastify({ logger: true })
@@ -22,6 +23,7 @@ await app.register(demoRoutes)
 await app.register(corsLabRoutes)
 await app.register(dbLabRoutes)
 await app.register(cacheLabRoutes)
+await app.register(workersLabRoutes)
 
 const shutdown = async () => {
   await app.close()

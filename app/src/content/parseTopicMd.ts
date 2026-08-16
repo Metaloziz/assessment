@@ -100,7 +100,8 @@ export function parseTopicMd(id: string, raw: string, order: number): TopicDetai
   const hasApi =
     id === '07-cors' ||
     id === '244-nodejs-db-async-config' ||
-    id === '245-nodejs-cache-crud'
+    id === '245-nodejs-cache-crud' ||
+    id === '246-nodejs-worker-threads'
 
   return {
     id,
@@ -235,6 +236,7 @@ export function parseTopicMd(id: string, raw: string, order: number): TopicDetai
       id === '243-nodejs-routing-static' ||
       id === '244-nodejs-db-async-config' ||
       id === '245-nodejs-cache-crud' ||
+      id === '246-nodejs-worker-threads' ||
       id === '259-software-incremental-iterative-spiral',
     groupId: meta.groupId,
     groupTitle,

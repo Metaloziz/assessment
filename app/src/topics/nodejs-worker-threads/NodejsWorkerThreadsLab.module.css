@@ -1,0 +1,58 @@
+.scheme {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 0.35rem 0.55rem;
+  align-items: stretch;
+  min-height: 12rem;
+}
+
+.schemeTop,
+.schemeMid,
+.schemeOut {
+  grid-column: 1 / -1;
+  justify-self: center;
+  width: min(100%, 16rem);
+}
+
+.schemeFork {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 0.25rem 0.4rem;
+  align-items: center;
+  text-align: center;
+  color: var(--muted);
+  font-size: var(--lab-font-meta);
+  user-select: none;
+}
+
+.forkLabel {
+  transition: color 0.4s ease, opacity 0.4s ease;
+}
+
+.forkActive {
+  color: var(--accent-bright);
+}
+
+.forkIdle {
+  opacity: 0.45;
+}
+
+.schemeBranch {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.dim {
+  opacity: 0.42;
+}
+
+.codePane {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+  gap: 0.55rem;
+}
