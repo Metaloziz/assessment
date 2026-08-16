@@ -10,13 +10,24 @@ import {
 import { LabLogView } from '../../components/lab/LabLogView'
 import { useLabLog } from '../../components/lab/useLabLog'
 import { LabVizPanel, labVizStyles } from '../../components/lab/LabViz'
+import { apiJson } from '../../lib/apiBase'
 import styles from './NodejsCacheCrudLab.module.css'
 
 const TOPIC_ID = '245-nodejs-cache-crud'
 const STEP = 0.6
+const ITEM_ID = 1
 
 type CaseId = 'miss' | 'hit' | 'write'
 type Phase = 'idle' | 'a' | 'b' | 'c' | 'done'
+
+type LivePayload = {
+  path: string
+  latencyMs?: number
+  summary: string
+  ok: boolean
+  source?: 'cache' | 'db'
+  invalidated?: boolean
+}
 
 const CASES: Array<{ id: CaseId; label: string }> = [
   { id: 'miss', label: 'cache miss' },
@@ -26,164 +37,125 @@ const CASES: Array<{ id: CaseId; label: string }> = [
 
 const PAIN = (
   <>
-    Чтения идут через кеш перед БД; после мутации ключ сбрасывают, иначе клиент
-    получит устаревший снимок.
+    Живой cache-aside на Render: чтения идут через in-process Map перед Postgres; после{' '}
+    <code>PUT</code> ключ сбрасывают, иначе клиент получит устаревший снимок.
   </>
 )
 
 const CASE_BRIEF: Record<CaseId, ReactNode> = {
   miss: (
     <>
-      <code>GET item:42</code> — промах, <code>SELECT</code> в БД, затем{' '}
-      <code>cache.set</code>.
+      Сброс ключа → живой <code>GET /api/lab/cache/item</code> — промах,{' '}
+      <code>SELECT</code>, затем <code>cache.set</code> (<code>source: db</code>).
     </>
   ),
   hit: (
     <>
-      Тот же ключ уже в кеше — ответ сразу, пул БД не трогают.
+      Прогрев кеша → повторный <code>GET</code> — ответ из Map, БД не трогают (
+      <code>source: cache</code>).
     </>
   ),
   write: (
     <>
-      <code>UPDATE</code> в БД, затем <code>cache.del</code> — следующий Read снова
-      через хранилище.
+      Живой <code>PUT /api/lab/cache/item</code> — <code>UPDATE</code> в{' '}
+      <code>lab_items</code> и <code>cache.del</code>.
     </>
   ),
 }
 
 const CODE_INTRO =
-  'Пул к БД, cache-aside на Read и сброс ключа после Update.'
+  'Учебные роуты `/api/lab/cache/*`: пул к Postgres, Map как кеш, invalidate после PUT.'
 
 const CODE_SNIPPETS: Record<CaseId, InteractiveSnippet[]> = {
   miss: [
     {
-      id: 'db-pool',
-      label: 'db.js',
-      note: 'Один пул на процесс, строка из env.',
+      id: 'cache-get-miss',
+      label: 'routes/cacheLab.ts · GET',
+      note: 'Miss: БД → заполнение Map.',
       executable: false,
-      languageLabel: 'js',
-      code: `import pg from 'pg';
+      languageLabel: 'ts',
+      code: `// GET /api/lab/cache/item?id=1
+const key = \`item:\${id}\`;
+const cached = itemCache.get(key);
+if (cached) return { source: 'cache', item: cached };
 
-// ═══════════════════════════════════════════
-// POOL ← переиспользование соединений
-// ═══════════════════════════════════════════
-export const pool = new pg.Pool({
-  connectionString: process.env.DATABASE_URL, // ← env
-  max: 10,
-});
-
-export function query(text, params) {
-  return pool.query(text, params);
-}
+const rows = await db.execute(sql\`
+  SELECT id, title FROM lab_items WHERE id = \${id}
+\`); // ← miss → DB
+const item = rows[0];
+itemCache.set(key, item); // ← fill
+return { ok: true, source: 'db', item };
 `,
     },
     {
-      id: 'get-miss',
-      label: 'items.js',
-      note: 'Miss: БД → заполнение кеша.',
+      id: 'del-key',
+      label: 'routes/cacheLab.ts · DEL key',
+      note: 'Перед miss-кейсом сбрасываем ключ.',
       executable: false,
-      languageLabel: 'js',
-      code: `import { query } from './db.js';
-import { cache } from './cache.js';
-
-export async function getItem(id) {
-  const key = \`item:\${id}\`;
-  const hit = await cache.get(key);
-  if (hit) return hit;
-
-  const { rows } = await query(
-    'SELECT id, title FROM items WHERE id = $1',
-    [id],
-  ); // ← miss → DB
-  const row = rows[0] ?? null;
-  if (row) await cache.set(key, row, { ttlSec: 60 }); // ← fill
-  return row;
-}
+      languageLabel: 'ts',
+      code: `// DELETE /api/lab/cache/key?id=1
+itemCache.delete(\`item:\${id}\`); // ← cold key
+return { ok: true, deleted: true };
 `,
     },
   ],
   hit: [
     {
       id: 'cache-map',
-      label: 'cache.js',
-      note: 'Простой in-process слой с тем же контрактом, что Redis.',
+      label: 'routes/cacheLab.ts · Map',
+      note: 'In-process слой с тем же контрактом, что Redis.',
       executable: false,
-      languageLabel: 'js',
-      code: `const store = new Map();
+      languageLabel: 'ts',
+      code: `const itemCache = new Map(); // ← lab stand
 
-export const cache = {
-  async get(key) {
-    return store.get(key) ?? null; // ← hit | null
-  },
-  async set(key, value, _opts) {
-    store.set(key, value);
-  },
-  async del(key) {
-    store.delete(key);
-  },
-};
+// hit: ранний return без query
+const cached = itemCache.get(\`item:\${id}\`);
+if (cached) {
+  return { ok: true, source: 'cache', item: cached }; // ← без DB
+}
 `,
     },
     {
       id: 'get-hit',
-      label: 'items.js',
-      note: 'Hit: ранний return без query.',
+      label: 'routes/cacheLab.ts · GET',
+      note: 'Повторный GET после прогрева.',
       executable: false,
-      languageLabel: 'js',
-      code: `import { cache } from './cache.js';
-import { query } from './db.js';
-
-export async function getItem(id) {
-  const key = \`item:\${id}\`;
-  const cached = await cache.get(key);
-  if (cached) return cached; // ← hit, без DB
-
-  const { rows } = await query(
-    'SELECT id, title FROM items WHERE id = $1',
-    [id],
-  );
-  const row = rows[0] ?? null;
-  if (row) await cache.set(key, row, { ttlSec: 60 });
-  return row;
-}
+      languageLabel: 'ts',
+      code: `// 1) GET — miss → set
+// 2) GET — hit из Map
+return {
+  ok: true,
+  source: 'cache', // ← второй запрос
+  latencyMs,
+  item: { id: 1, title: 'widget' },
+};
 `,
     },
   ],
   write: [
     {
       id: 'update-item',
-      label: 'items.js',
+      label: 'routes/cacheLab.ts · PUT',
       note: 'После UPDATE ключ кеша удаляют.',
       executable: false,
-      languageLabel: 'js',
-      code: `import { query } from './db.js';
-import { cache } from './cache.js';
-
-export async function updateItem(id, title) {
-  await query(
-    'UPDATE items SET title = $1 WHERE id = $2',
-    [title, id],
-  ); // ← CRUD Update
-  await cache.del(\`item:\${id}\`); // ← invalidate
-}
+      languageLabel: 'ts',
+      code: `// PUT /api/lab/cache/item  { id, title }
+await db.execute(sql\`
+  INSERT INTO lab_items (id, title) VALUES (\${id}, \${title})
+  ON CONFLICT (id) DO UPDATE SET title = EXCLUDED.title
+\`); // ← CRUD Update
+itemCache.delete(\`item:\${id}\`); // ← invalidate
+return { ok: true, invalidated: true, item: { id, title } };
 `,
     },
     {
-      id: 'route-put',
-      label: 'routes.js',
-      note: 'HTTP PUT вызывает update и отдаёт 200.',
+      id: 'pool-env',
+      label: 'db.ts · pool',
+      note: 'Один пул на процесс, строка из env.',
       executable: false,
-      languageLabel: 'js',
-      code: `import { updateItem, getItem } from './items.js';
-
-export async function putItem(req, res) {
-  const id = Number(req.params.id);
-  const { title } = req.body;
-  await updateItem(id, title); // ← DB + del
-  const fresh = await getItem(id); // ← miss → новый title
-  res.writeHead(200, { 'Content-Type': 'application/json' });
-  res.end(JSON.stringify(fresh));
-}
+      languageLabel: 'ts',
+      code: `// connectionString из DATABASE_URL (Render)
+export const db = drizzle(sqlClient); // ← пул процесса
 `,
     },
   ],
@@ -194,26 +166,6 @@ function reducedMotion() {
     typeof window !== 'undefined' &&
     window.matchMedia('(prefers-reduced-motion: reduce)').matches
   )
-}
-
-function playTimeline(
-  tlRef: MutableRefObject<gsap.core.Timeline | null>,
-  steps: Array<() => void>,
-  motion: ((tl: gsap.core.Timeline) => void) | undefined,
-  onDone: () => void,
-) {
-  tlRef.current?.kill()
-  if (reducedMotion()) {
-    steps.forEach((s) => s())
-    onDone()
-    return
-  }
-  const tl = gsap.timeline({ onComplete: onDone })
-  tlRef.current = tl
-  steps.forEach((step, i) => {
-    tl.call(step, undefined, i * STEP)
-  })
-  motion?.(tl)
 }
 
 function nodeCls(...parts: Array<string | false | undefined>) {
@@ -250,14 +202,16 @@ function CaseSwitch({
 type VizProps = {
   caseId: CaseId
   phase: Phase
+  live: LivePayload | null
   focusRef: MutableRefObject<HTMLDivElement | null>
 }
 
-function CacheCrudViz({ caseId, phase, focusRef }: VizProps) {
+function CacheCrudViz({ caseId, phase, live, focusRef }: VizProps) {
   const aOn = phase !== 'idle'
   const bOn = phase === 'b' || phase === 'c' || phase === 'done'
   const cOn = phase === 'c' || phase === 'done'
   const doneOn = phase === 'done'
+  const bad = doneOn && live != null && !live.ok
 
   const title =
     caseId === 'miss'
@@ -270,119 +224,226 @@ function CacheCrudViz({ caseId, phase, focusRef }: VizProps) {
     ? phase === 'idle'
       ? 'ожидание'
       : phase === 'a'
-        ? 'запрос принят'
+        ? 'fetch…'
         : phase === 'b'
           ? caseId === 'write'
-            ? 'UPDATE в БД…'
-            : 'смотрим кеш…'
+            ? 'UPDATE…'
+            : 'cache.get…'
           : caseId === 'miss'
-            ? 'читаем БД…'
+            ? 'SELECT + set…'
             : caseId === 'hit'
-              ? 'отдаём из кеша…'
-              : 'сбрасываем ключ…'
-    : caseId === 'miss'
-      ? '200 · после fill'
-      : caseId === 'hit'
-        ? '200 · без DB'
-        : '200 · ключ сброшен'
+              ? 'hit → ответ…'
+              : 'cache.del…'
+    : live
+      ? `${live.ok ? 'ok' : 'err'} · ${live.latencyMs ?? '—'} ms`
+      : 'done'
+
+  if (caseId === 'write') {
+    const labOn = aOn && !doneOn
+    const dbOn = bOn && !doneOn
+    const delOn = cOn && !doneOn
+    const outSub = !doneOn ? 'ещё нет' : (live?.summary ?? '—')
+
+    return (
+      <LabVizPanel title={title} meta={meta}>
+        <div className={styles.writeRow}>
+          <div
+            className={nodeCls(
+              labOn && labVizStyles.nodeActive,
+              doneOn && styles.dim,
+            )}
+          >
+            <span className={labVizStyles.nodeLabel}>lab</span>
+            <span className={labVizStyles.nodeSub}>PUT …/cache/item</span>
+          </div>
+          <span
+            className={`${styles.writeArrow}${bOn ? ` ${styles.writeArrowActive}` : ` ${styles.writeArrowIdle}`}`}
+            aria-hidden
+          >
+            →
+          </span>
+          <div
+            className={nodeCls(
+              dbOn && labVizStyles.nodeActive,
+              doneOn && !bad && labVizStyles.nodeOk,
+              !bOn && styles.dim,
+            )}
+          >
+            <span className={labVizStyles.nodeLabel}>БД · lab_items</span>
+            <span className={labVizStyles.nodeSub}>
+              {!bOn ? '—' : doneOn ? 'UPDATE ok' : 'UPDATE…'}
+            </span>
+          </div>
+          <span
+            className={`${styles.writeArrow}${cOn ? ` ${styles.writeArrowActive}` : ` ${styles.writeArrowIdle}`}`}
+            aria-hidden
+          >
+            →
+          </span>
+          <div
+            className={nodeCls(
+              delOn && labVizStyles.nodeActive,
+              doneOn && !bad && labVizStyles.nodeErr,
+              !cOn && styles.dim,
+            )}
+          >
+            <span className={labVizStyles.nodeLabel}>cache · Map</span>
+            <span className={labVizStyles.nodeSub}>
+              {!cOn ? 'item:1' : doneOn ? 'DEL · пусто' : 'del…'}
+            </span>
+          </div>
+          <span
+            className={`${styles.writeArrow}${doneOn && !bad ? ` ${styles.writeArrowActive}` : ` ${styles.writeArrowIdle}`}`}
+            aria-hidden
+          >
+            →
+          </span>
+          <div
+            ref={focusRef}
+            className={nodeCls(
+              doneOn && !bad && labVizStyles.nodeOk,
+              doneOn && !bad && labVizStyles.nodeActive,
+              doneOn && bad && labVizStyles.nodeErr,
+              !doneOn && styles.dim,
+            )}
+          >
+            <span className={labVizStyles.nodeLabel}>ответ</span>
+            <span className={labVizStyles.nodeSub}>{outSub}</span>
+          </div>
+        </div>
+      </LabVizPanel>
+    )
+  }
+
+  const isHit = caseId === 'hit'
+  const hitPath =
+    isHit && (bOn || doneOn)
+  const missPath =
+    !isHit && (bOn || doneOn)
+  const hitStrong = isHit && (cOn || doneOn)
+  const missStrong = !isHit && (cOn || doneOn)
+  const outSub = !doneOn ? 'ещё нет' : (live?.summary ?? '—')
 
   const cacheSub = !bOn
-    ? 'item:42'
-    : caseId === 'hit'
-      ? doneOn || cOn
-        ? 'HIT · { title }'
-        : 'get…'
-      : caseId === 'miss'
-        ? doneOn
-          ? 'SET после DB'
-          : bOn && !cOn
-            ? 'MISS'
-            : 'set…'
-        : doneOn
-          ? 'DEL · пусто'
-          : cOn
-            ? 'del…'
-            : 'ещё полный'
-
-  const dbSub = !cOn && caseId !== 'hit'
-    ? caseId === 'write' && bOn
-      ? 'UPDATE…'
-      : 'ещё нет'
-    : caseId === 'hit'
+    ? 'item:1 · get?'
+    : isHit
       ? doneOn
-        ? 'не вызывали'
-        : '—'
-      : caseId === 'miss'
-        ? doneOn
-          ? 'SELECT ok'
-          : 'SELECT…'
-        : doneOn
-          ? 'UPDATE ok'
-          : 'UPDATE…'
-
-  const dbActive =
-    (caseId === 'miss' && (phase === 'c' || doneOn)) ||
-    (caseId === 'write' && (phase === 'b' || phase === 'c' || doneOn))
-  const dbOk = doneOn && caseId !== 'hit'
-
-  const cacheActive =
-    (caseId === 'hit' && (bOn || doneOn)) ||
-    (caseId === 'miss' && (bOn || doneOn)) ||
-    (caseId === 'write' && (cOn || doneOn))
-  const cacheOk = doneOn && caseId !== 'write'
-  const cacheWarn = doneOn && caseId === 'write'
-
-  const outSub = !doneOn
-    ? 'ещё нет'
-    : caseId === 'write'
-      ? '{ title: new }'
-      : '{ id: 42, title }'
+        ? live?.source === 'cache'
+          ? 'HIT'
+          : (live?.summary ?? '—')
+        : 'HIT?'
+      : doneOn
+        ? live?.source === 'db'
+          ? 'MISS → set'
+          : (live?.summary ?? '—')
+        : bOn && !cOn
+          ? 'MISS'
+          : 'set…'
 
   return (
     <LabVizPanel title={title} meta={meta}>
-      <div className={styles.stage}>
+      <div className={styles.scheme}>
         <div
-          className={nodeCls(
+          className={`${styles.schemeTop} ${nodeCls(
             aOn && !doneOn && labVizStyles.nodeActive,
             doneOn && styles.dim,
-          )}
+          )}`}
         >
-          <span className={labVizStyles.nodeLabel}>handler</span>
-          <span className={labVizStyles.nodeSub}>
-            {caseId === 'write' ? 'PUT /items/42' : 'GET /items/42'}
-          </span>
+          <span className={labVizStyles.nodeLabel}>lab</span>
+          <span className={labVizStyles.nodeSub}>GET …/cache/item</span>
         </div>
-        <span className={styles.flowArrow}>↓</span>
+
         <div
-          className={nodeCls(
-            cacheActive && !doneOn && labVizStyles.nodeActive,
-            cacheOk && labVizStyles.nodeOk,
-            cacheWarn && labVizStyles.nodeErr,
+          className={`${styles.schemeMid} ${nodeCls(
+            bOn && !doneOn && labVizStyles.nodeActive,
+            doneOn && !bad && labVizStyles.nodeOk,
             !bOn && styles.dim,
-          )}
+          )}`}
         >
-          <span className={labVizStyles.nodeLabel}>cache</span>
+          <span className={labVizStyles.nodeLabel}>cache · Map</span>
           <span className={labVizStyles.nodeSub}>{cacheSub}</span>
         </div>
-        <span className={styles.flowArrow}>↓</span>
-        <div
-          className={nodeCls(
-            dbActive && !doneOn && labVizStyles.nodeActive,
-            dbOk && labVizStyles.nodeOk,
-            (caseId === 'hit' || !dbActive) && styles.dim,
-          )}
-        >
-          <span className={labVizStyles.nodeLabel}>БД · pool</span>
-          <span className={labVizStyles.nodeSub}>{dbSub}</span>
+
+        <div className={styles.schemeFork} aria-hidden>
+          <span
+            className={`${styles.schemeForkHit}${hitPath ? ` ${styles.schemeForkHitActive}` : ` ${styles.schemeForkIdle}`}`}
+          >
+            ↙ hit
+          </span>
+          <span />
+          <span
+            className={`${styles.schemeForkMiss}${missPath ? ` ${styles.schemeForkMissActive}` : ` ${styles.schemeForkIdle}`}`}
+          >
+            miss ↘
+          </span>
         </div>
-        <span className={styles.flowArrow}>↓</span>
+
+        <div
+          className={`${styles.schemeBranch}${!hitPath && bOn ? ` ${styles.pathOff}` : !bOn ? ` ${styles.dim}` : ''}`}
+        >
+          <div
+            className={nodeCls(
+              hitStrong && !doneOn && labVizStyles.nodeActive,
+              doneOn && isHit && !bad && labVizStyles.nodeOk,
+              (!hitPath || !bOn) && styles.dim,
+            )}
+          >
+            <span className={labVizStyles.nodeLabel}>без БД</span>
+            <span className={labVizStyles.nodeSub}>
+              {isHit && doneOn ? 'ранний return' : '—'}
+            </span>
+          </div>
+        </div>
+
+        <span className={styles.schemeBranchArrow} aria-hidden>
+          {doneOn ? '↓' : ''}
+        </span>
+
+        <div
+          className={`${styles.schemeBranch}${!missPath && bOn ? ` ${styles.pathOff}` : !bOn ? ` ${styles.dim}` : ''}`}
+        >
+          <div
+            className={nodeCls(
+              missStrong && !doneOn && labVizStyles.nodeActive,
+              doneOn && !isHit && !bad && labVizStyles.nodeOk,
+              (!missPath || !bOn) && styles.dim,
+            )}
+          >
+            <span className={labVizStyles.nodeLabel}>БД · lab_items</span>
+            <span className={labVizStyles.nodeSub}>
+              {!missPath
+                ? 'не трогаем'
+                : doneOn
+                  ? 'SELECT ok'
+                  : cOn
+                    ? 'SELECT…'
+                    : '—'}
+            </span>
+          </div>
+          <span className={styles.schemeBranchArrow} aria-hidden>
+            ↓
+          </span>
+          <div
+            className={nodeCls(
+              missStrong && doneOn && !bad && labVizStyles.nodeOk,
+              (!missPath || !doneOn) && styles.dim,
+            )}
+          >
+            <span className={labVizStyles.nodeLabel}>cache.set</span>
+            <span className={labVizStyles.nodeSub}>
+              {!isHit && doneOn ? 'fill Map' : '—'}
+            </span>
+          </div>
+        </div>
+
         <div
           ref={focusRef}
-          className={nodeCls(
-            doneOn && labVizStyles.nodeOk,
-            doneOn && labVizStyles.nodeActive,
+          className={`${styles.schemeOut} ${nodeCls(
+            doneOn && !bad && labVizStyles.nodeOk,
+            doneOn && !bad && labVizStyles.nodeActive,
+            doneOn && bad && labVizStyles.nodeErr,
             !doneOn && styles.dim,
-          )}
+          )}`}
         >
           <span className={labVizStyles.nodeLabel}>ответ</span>
           <span className={labVizStyles.nodeSub}>{outSub}</span>
@@ -392,83 +453,145 @@ function CacheCrudViz({ caseId, phase, focusRef }: VizProps) {
   )
 }
 
+async function fetchLive(caseId: CaseId): Promise<LivePayload> {
+  if (caseId === 'miss') {
+    await apiJson(`/api/lab/cache/key?id=${ITEM_ID}`, { method: 'DELETE' })
+    const data = await apiJson<{
+      ok: boolean
+      source?: 'cache' | 'db'
+      latencyMs?: number
+      item?: { id?: number; title?: string }
+    }>(`/api/lab/cache/item?id=${ITEM_ID}`)
+    return {
+      path: '/api/lab/cache/item',
+      ok: data.ok && data.source === 'db',
+      source: data.source,
+      latencyMs: data.latencyMs,
+      summary: `${data.source ?? '?'} · ${data.item?.title ?? '—'}`,
+    }
+  }
+
+  if (caseId === 'hit') {
+    await apiJson(`/api/lab/cache/item?id=${ITEM_ID}`)
+    const data = await apiJson<{
+      ok: boolean
+      source?: 'cache' | 'db'
+      latencyMs?: number
+      item?: { id?: number; title?: string }
+    }>(`/api/lab/cache/item?id=${ITEM_ID}`)
+    return {
+      path: '/api/lab/cache/item',
+      ok: data.ok && data.source === 'cache',
+      source: data.source,
+      latencyMs: data.latencyMs,
+      summary: `${data.source ?? '?'} · ${data.item?.title ?? '—'}`,
+    }
+  }
+
+  const title = `live-${Date.now().toString(36).slice(-4)}`
+  const data = await apiJson<{
+    ok: boolean
+    invalidated?: boolean
+    latencyMs?: number
+    item?: { id?: number; title?: string }
+  }>('/api/lab/cache/item', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id: ITEM_ID, title }),
+  })
+  return {
+    path: 'PUT /api/lab/cache/item',
+    ok: data.ok && Boolean(data.invalidated),
+    invalidated: data.invalidated,
+    latencyMs: data.latencyMs,
+    summary: `del · ${data.item?.title ?? title}`,
+  }
+}
+
 export function NodejsCacheCrudLab() {
   const { lines, log, clear } = useLabLog()
   const [caseId, setCaseId] = useState<CaseId>('miss')
   const [phase, setPhase] = useState<Phase>('idle')
   const [hint, setHint] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
-  const tlRef = useRef<gsap.core.Timeline | null>(null)
+  const [live, setLive] = useState<LivePayload | null>(null)
   const focusRef = useRef<HTMLDivElement | null>(null)
 
   const resetViz = () => {
     setPhase('idle')
     setHint(null)
+    setLive(null)
     if (focusRef.current)
       gsap.set(focusRef.current, { clearProps: 'transform,opacity' })
   }
 
   const selectCase = (next: CaseId) => {
-    tlRef.current?.kill()
     setBusy(false)
     setCaseId(next)
     clear()
     resetViz()
   }
 
+  const finishLive = (payload: LivePayload, hintText: string) => {
+    setLive(payload)
+    setPhase('done')
+    if (payload.ok) {
+      log('ok', `${payload.path} · ${payload.summary}`)
+      setHint(hintText)
+    } else {
+      log('err', `${payload.path} · ${payload.summary}`)
+      setHint(hintText)
+    }
+  }
+
+  const runLive = async () => {
+    setPhase('a')
+    try {
+      if (caseId === 'write') {
+        setPhase('b')
+        await new Promise((r) => setTimeout(r, reducedMotion() ? 0 : STEP * 300))
+        setPhase('c')
+        const payload = await fetchLive(caseId)
+        finishLive(payload, 'UPDATE в lab_items и cache.del — следующий Read снова через БД')
+      } else if (caseId === 'miss') {
+        setPhase('b')
+        await new Promise((r) => setTimeout(r, reducedMotion() ? 0 : STEP * 250))
+        setPhase('c')
+        const payload = await fetchLive(caseId)
+        finishLive(payload, 'miss: SELECT lab_items + fill Map')
+      } else {
+        setPhase('b')
+        const payload = await fetchLive(caseId)
+        setPhase('c')
+        await new Promise((r) => setTimeout(r, reducedMotion() ? 0 : STEP * 250))
+        finishLive(payload, 'hit: повторный GET закрыт кешем без query')
+      }
+      if (focusRef.current && !reducedMotion()) {
+        gsap.fromTo(
+          focusRef.current,
+          { scale: 0.94, opacity: 0.45 },
+          { scale: 1, opacity: 1, duration: 0.35, ease: 'power2.inOut' },
+        )
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err)
+      finishLive(
+        { path: 'API', ok: false, summary: message },
+        'API недоступен — дождитесь деплоя Render или поднимите server',
+      )
+    } finally {
+      setBusy(false)
+    }
+  }
+
   const run = () => {
     clear()
     resetViz()
     setBusy(true)
-
-    const steps: Array<() => void> =
-      caseId === 'hit'
-        ? [
-            () => setPhase('a'),
-            () => setPhase('b'),
-            () => {
-              setPhase('done')
-              log('ok', 'hit · без query')
-              setHint('повторный Read закрыт кешем')
-            },
-          ]
-        : caseId === 'miss'
-          ? [
-              () => setPhase('a'),
-              () => setPhase('b'),
-              () => setPhase('c'),
-              () => {
-                setPhase('done')
-                log('ok', 'miss · SELECT + set')
-                setHint('после fill следующий запрос может дать hit')
-              },
-            ]
-          : [
-              () => setPhase('a'),
-              () => setPhase('b'),
-              () => setPhase('c'),
-              () => {
-                setPhase('done')
-                log('ok', 'UPDATE + cache.del')
-                setHint('без del клиент видел бы старый title')
-              },
-            ]
-
-    playTimeline(
-      tlRef,
-      steps,
-      (tl) => {
-        if (!focusRef.current) return
-        const at = (steps.length - 1) * STEP
-        gsap.set(focusRef.current, { scale: 0.94, opacity: 0.45 })
-        tl.to(focusRef.current, { scale: 1, opacity: 1 }, at)
-      },
-      () => setBusy(false),
-    )
+    void runLive()
   }
 
   const reset = () => {
-    tlRef.current?.kill()
     setBusy(false)
     clear()
     setCaseId('miss')
@@ -491,7 +614,7 @@ export function NodejsCacheCrudLab() {
       <p className={shell.pain}>{PAIN}</p>
       <p className={shell.hint}>{CASE_BRIEF[caseId]}</p>
 
-      <CacheCrudViz caseId={caseId} phase={phase} focusRef={focusRef} />
+      <CacheCrudViz caseId={caseId} phase={phase} live={live} focusRef={focusRef} />
 
       {hint ? <p className={shell.hint}>Итог: {hint}</p> : null}
       <LabLogView lines={lines} />
@@ -513,7 +636,7 @@ export function NodejsCacheCrudLab() {
   return (
     <JsLabShell
       title="Кеш и CRUD"
-      lead="Пул к БД, cache-aside на чтении и сброс ключа после записи."
+      lead="Живой cache-aside: пул к Postgres, Map на чтении и сброс ключа после PUT."
       problem={problem}
       code={code}
     />

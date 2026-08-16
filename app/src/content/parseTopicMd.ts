@@ -97,7 +97,10 @@ export function parseTopicMd(id: string, raw: string, order: number): TopicDetai
     TOPIC_GROUPS.find((g) => g.id === meta.groupId)?.title ?? 'Прочее'
 
   /** Темы с лабой против живого `assessment-api` (не симуляция). */
-  const hasApi = id === '07-cors' || id === '244-nodejs-db-async-config'
+  const hasApi =
+    id === '07-cors' ||
+    id === '244-nodejs-db-async-config' ||
+    id === '245-nodejs-cache-crud'
 
   return {
     id,
