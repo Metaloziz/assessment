@@ -1,4 +1,4 @@
-/** Base URL for API. Empty in local dev → same origin + Vite `/api` proxy. */
+/** Base URL for API. From `VITE_API_BASE_URL` (dev: `.env.development` → Render). Empty → same origin + Vite `/api` proxy. */
 export function apiUrl(path: string): string {
   const base = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, '') ?? ''
   const normalized = path.startsWith('/') ? path : `/${path}`

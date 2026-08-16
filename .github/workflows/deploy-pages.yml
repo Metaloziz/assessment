@@ -2,7 +2,7 @@ name: Deploy GitHub Pages
 
 on:
   push:
-    branches: [master, main, cursor/interview-prep-topics]
+    branches: [master, main]
   workflow_dispatch:
 
 permissions:
@@ -30,7 +30,7 @@ jobs:
       - run: npm ci
       - name: Build
         env:
-          # Repo → Settings → Secrets → Actions → VITE_API_BASE_URL=https://assessment-api.onrender.com
+          # Repo → Settings → Secrets → Actions → VITE_API_BASE_URL=https://assessment-api-fm0e.onrender.com
           VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
         run: npm run build
       - uses: actions/upload-pages-artifact@v3

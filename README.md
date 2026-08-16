@@ -29,15 +29,13 @@ Smoke: в шапке **API** или `/#/dev/api-smoke` → `/api/health`, `/api/
 
 ### Разработка фронта против боевого API
 
+По умолчанию `app/.env.development` указывает на Render API — `npm run dev` ходит туда без локального `server`.
+
 ```bash
 cd app
-cp ../.env.example .env.local   # или создайте app/.env.local
-# VITE_API_BASE_URL=https://<your-api>
 npm install
 npm run dev
 ```
-
-Без `VITE_API_BASE_URL` Vite проксирует `/api` на `localhost:3000` (нужен локальный `server`).
 
 ### Опционально: локальный API + локальная БД
 
@@ -47,7 +45,9 @@ npm run dev
 cp .env.example .env          # DATABASE_URL на localhost
 docker compose up -d          # Postgres; файл docker-compose.yml — опциональный
 cd server && npm install && npm run dev
-cd ../app && npm run dev      # без VITE_API_BASE_URL → proxy на :3000
+# app/.env.local:
+#   VITE_API_BASE_URL=
+cd ../app && npm run dev      # пустой base → Vite proxy на :3000
 ```
 
 ## Приложение (`app/`)

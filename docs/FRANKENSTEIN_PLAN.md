@@ -6,7 +6,7 @@
 
 | | |
 |--|--|
-| Ветка | `cursor/interview-prep-topics` |
+| Ветка | `main` |
 | API | https://assessment-api-fm0e.onrender.com (**Live**) |
 | БД | Render `assessment-db` (**Available**) |
 | Smoke | `health` / `echo` / `db-ping` — **ok** (2026-08-12) |
