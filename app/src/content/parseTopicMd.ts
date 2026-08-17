@@ -124,6 +124,8 @@ export function parseTopicMd(id: string, raw: string, order: number): TopicDetai
       id === '31-git-switch' ||
       id === '32-git-restore' ||
       id === '34-git-lfs' ||
+      id === '52-apo' ||
+      id === '55-legacy-code-approaches' ||
       id === '56-dead-code-tools' ||
       id === '57-cookies' ||
       id === '65-service-workers' ||
@@ -258,6 +260,7 @@ export function parseTopicMd(id: string, raw: string, order: number): TopicDetai
       id === '256-software-solid' ||
       id === '257-software-mvc-mvp-mvvm' ||
       id === '259-software-incremental-iterative-spiral' ||
+      id === '53-bduf' ||
       id === '26-lazy-loading-critical-path' ||
       id === '27-server-performance-metrics',
     groupId: meta.groupId,

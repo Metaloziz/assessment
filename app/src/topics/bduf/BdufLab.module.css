@@ -1,0 +1,46 @@
+.lanes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.laneLabel {
+  margin: 0;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.flow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 0.45rem 0.35rem;
+  min-height: 2.8rem;
+}
+
+.tile {
+  flex: 1 1 5rem;
+  min-width: 4.8rem;
+}
+
+.docStack {
+  border-style: dashed;
+  color: var(--text);
+  background: color-mix(in srgb, var(--warn) 10%, var(--node-idle-bg));
+}
+
+.docWarn {
+  border-color: var(--warn);
+  background: color-mix(in srgb, var(--warn) 18%, var(--node-idle-bg));
+}
+
+.productEmpty {
+  opacity: 0.55;
+  border-style: dotted;
+}
+
+.productDone {
+  border-style: solid;
+}

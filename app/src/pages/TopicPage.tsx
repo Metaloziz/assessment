@@ -16,6 +16,8 @@ import { GitSwitchLab } from '../topics/git-switch/GitSwitchLab'
 import { GitRestoreLab } from '../topics/git-restore/GitRestoreLab'
 import { GitLfsLab } from '../topics/git-lfs/GitLfsLab'
 import { DeadCodeLab } from '../topics/dead-code/DeadCodeLab'
+import { LegacyCodeApproachesLab } from '../topics/legacy-code-approaches/LegacyCodeApproachesLab'
+import { ApoLab } from '../topics/apo/ApoLab'
 import { CookiesLab } from '../topics/cookies/CookiesLab'
 import { ServiceWorkersLab } from '../topics/service-workers/ServiceWorkersLab'
 import { WebApisLab } from '../topics/web-apis/WebApisLab'
@@ -85,6 +87,7 @@ import { SqlInjectionLab } from '../topics/sql-injection/SqlInjectionLab'
 import { CsrfLab } from '../topics/csrf/CsrfLab'
 import { ClientPerformanceMetricsLab } from '../topics/client-performance-metrics/ClientPerformanceMetricsLab'
 import { IncrementalIterativeSpiralLab } from '../topics/software-incremental-iterative-spiral/IncrementalIterativeSpiralLab'
+import { BdufLab } from '../topics/bduf/BdufLab'
 import { SoftwareMvcMvpMvvmLab } from '../topics/software-mvc-mvp-mvvm/SoftwareMvcMvpMvvmLab'
 import { SoftwareSolidLab } from '../topics/software-solid/SoftwareSolidLab'
 import { PatternsFactoryProxyAdapterLab } from '../topics/patterns-factory-prototype-proxy-singleton-adapter/PatternsFactoryProxyAdapterLab'
@@ -262,6 +265,7 @@ function TopicLab({ topicId }: { topicId: string; topic: TopicDetail }) {
   if (topicId === '257-software-mvc-mvp-mvvm') return <SoftwareMvcMvpMvvmLab />
   if (topicId === '259-software-incremental-iterative-spiral')
     return <IncrementalIterativeSpiralLab />
+  if (topicId === '53-bduf') return <BdufLab />
   if (topicId === '16-git-amend-fixup-revert-cherry-pick-stash') return <GitAmendFixupLab />
   if (topicId === '17-git-reset-tag-log-diff-reflog') return <GitResetTagLogDiffReflogLab />
   if (topicId === '33-git-grep') return <GitGrepLab />
@@ -271,6 +275,8 @@ function TopicLab({ topicId }: { topicId: string; topic: TopicDetail }) {
   if (topicId === '31-git-switch') return <GitSwitchLab />
   if (topicId === '32-git-restore') return <GitRestoreLab />
   if (topicId === '34-git-lfs') return <GitLfsLab />
+  if (topicId === '52-apo') return <ApoLab />
+  if (topicId === '55-legacy-code-approaches') return <LegacyCodeApproachesLab />
   if (topicId === '56-dead-code-tools') return <DeadCodeLab />
   if (topicId === '57-cookies') return <CookiesLab />
   if (topicId === '65-service-workers') return <ServiceWorkersLab />

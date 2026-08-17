@@ -1,0 +1,113 @@
+.scheme {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 0.35rem 0.55rem;
+  align-items: stretch;
+  min-height: 11rem;
+}
+
+.schemeTop,
+.schemeOut {
+  grid-column: 1 / -1;
+  justify-self: center;
+  width: min(100%, 14rem);
+}
+
+.schemeFork {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 0.25rem 0.4rem;
+  align-items: center;
+  text-align: center;
+  color: var(--muted);
+  font-size: var(--lab-font-meta);
+  user-select: none;
+}
+
+.schemeForkLeft,
+.schemeForkRight {
+  transition: color 0.4s ease, opacity 0.4s ease;
+}
+
+.schemeForkLeftActive {
+  color: var(--accent-bright);
+}
+
+.schemeForkRightActive {
+  color: var(--ok);
+}
+
+.schemeForkIdle {
+  opacity: 0.45;
+}
+
+.schemeBranch {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.schemeBranchArrow {
+  color: var(--muted);
+  font-size: var(--lab-font-meta);
+  text-align: center;
+  user-select: none;
+  line-height: 1;
+}
+
+.pathOff {
+  opacity: 0.35;
+}
+
+.dim {
+  opacity: 0.5;
+}
+
+.nodeWarn {
+  border-color: color-mix(in srgb, var(--warn) 55%, transparent);
+}
+
+.flameBar {
+  display: flex;
+  height: 0.45rem;
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 0.35rem;
+  background: color-mix(in srgb, var(--muted) 25%, transparent);
+}
+
+.flameFetch {
+  background: var(--accent-bright);
+}
+
+.flameSort {
+  background: var(--warn);
+}
+
+.flameCache {
+  background: var(--ok);
+}
+
+.flameLegend {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-top: 0.4rem;
+  font-size: var(--lab-font-meta);
+  color: var(--muted);
+}
+
+.flameLegendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.flameDot {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 1px;
+  flex-shrink: 0;
+}
