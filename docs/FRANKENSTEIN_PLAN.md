@@ -148,10 +148,9 @@ sequenceDiagram
 | Тема | Нужно | Зачем |
 |------|-------|-------|
 | `27-server-performance-metrics` | оба | fast/slow/db endpoints, latency, RPS |
-| `15-bundle-cdn` | API | Cache-Control / ETag / сжатие на ответе |
 | `14-client-performance-metrics` | API (+DB опц.) | RUM: Lab vs Field, хранение samples |
 
-Не в списке: `25-preload…`, `26-lazy…` — браузер; `24` — лабу убираем.
+Не в списке: `25-preload…`, `26-lazy…`, `15-bundle-cdn` — браузер / узлы на фронте; `24` — лабу убираем.
 
 ### Безопасность
 

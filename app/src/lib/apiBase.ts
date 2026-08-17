@@ -1,6 +1,10 @@
-/** Base URL for API. From `VITE_API_BASE_URL` (dev: `.env.development` → Render). Empty → same origin + Vite `/api` proxy. */
+/** Render API — remote-first default for `npm run dev` when env is unset. */
+const DEV_API_BASE_URL = 'https://assessment-api-fm0e.onrender.com'
+
+/** Base URL for API. From `VITE_API_BASE_URL` (dev: `.env.development` → Render). Empty in prod → same origin. */
 export function apiUrl(path: string): string {
-  const base = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, '') ?? ''
+  const fromEnv = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.trim()
+  const base = (fromEnv || (import.meta.env.DEV ? DEV_API_BASE_URL : '')).replace(/\/$/, '')
   const normalized = path.startsWith('/') ? path : `/${path}`
   return `${base}${normalized}`
 }

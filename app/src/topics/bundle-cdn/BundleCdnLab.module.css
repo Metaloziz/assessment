@@ -1,0 +1,251 @@
+.flow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem 0.35rem;
+  min-height: 3.4rem;
+}
+
+.arrow {
+  flex: 0 0 auto;
+  color: var(--text-faint);
+  font-size: var(--lab-font-ui);
+  transition:
+    color 0.4s ease,
+    opacity 0.4s ease;
+}
+
+.arrowActive {
+  color: var(--accent-bright);
+}
+
+.arrowOk {
+  color: var(--ok);
+}
+
+/* Build: monolith vs split chunks */
+.buildLayout {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  min-height: 6.5rem;
+}
+
+.buildRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.chunk {
+  min-width: 4.5rem;
+  padding: 0.45rem 0.55rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg-elevated) 88%, transparent);
+  transition:
+    border-color 0.4s ease,
+    opacity 0.4s ease,
+    transform 0.4s ease;
+}
+
+.chunkLabel {
+  display: block;
+  color: var(--text);
+  font-size: var(--lab-font-ui);
+  font-weight: 600;
+}
+
+.chunkSub {
+  display: block;
+  margin-top: 0.15rem;
+  color: var(--muted);
+  font-size: var(--lab-font-meta);
+}
+
+.chunkIdle {
+  opacity: 0.35;
+}
+
+.chunkActive {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
+  opacity: 1;
+}
+
+.chunkOk {
+  border-color: color-mix(in srgb, var(--ok) 50%, var(--border));
+  opacity: 1;
+}
+
+.chunkWarn {
+  border-color: color-mix(in srgb, var(--warn) 50%, var(--border));
+  opacity: 1;
+}
+
+.chunkWide {
+  min-width: 9rem;
+}
+
+/* CDN: fork hit/miss + headers */
+.cdnScheme {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 0.35rem 0.55rem;
+  align-items: stretch;
+  min-height: 10rem;
+}
+
+.cdnTop,
+.cdnOut {
+  grid-column: 1 / -1;
+  justify-self: center;
+  width: min(100%, 14rem);
+}
+
+.cdnFork {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 0.25rem 0.4rem;
+  align-items: center;
+  text-align: center;
+  color: var(--muted);
+  font-size: var(--lab-font-meta);
+  user-select: none;
+}
+
+.cdnForkHit,
+.cdnForkMiss {
+  transition:
+    color 0.4s ease,
+    opacity 0.4s ease;
+}
+
+.cdnForkHitActive {
+  color: var(--ok);
+}
+
+.cdnForkMissActive {
+  color: var(--accent-bright);
+}
+
+.cdnForkIdle {
+  opacity: 0.45;
+}
+
+.cdnBranch {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.cdnBranchArrow {
+  color: var(--muted);
+  font-size: var(--lab-font-meta);
+  text-align: center;
+  user-select: none;
+  line-height: 1;
+}
+
+.pathOff {
+  opacity: 0.28;
+}
+
+/* gzip: wire vs raw bars */
+.compressRow {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  min-height: 5.5rem;
+}
+
+.compressLane {
+  display: grid;
+  grid-template-columns: 4.5rem 1fr auto;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.compressLabel {
+  color: var(--muted);
+  font-size: var(--lab-font-meta);
+}
+
+.compressBar {
+  height: 0.85rem;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--border) 70%, transparent);
+  transition:
+    width 0.55s ease,
+    background 0.4s ease,
+    opacity 0.4s ease;
+  opacity: 0.35;
+}
+
+.compressBarActive {
+  background: color-mix(in srgb, var(--accent) 55%, var(--bg-elevated));
+  opacity: 1;
+}
+
+.compressBarOk {
+  background: color-mix(in srgb, var(--ok) 50%, var(--bg-elevated));
+  opacity: 1;
+}
+
+.compressMeta {
+  color: var(--text);
+  font-size: var(--lab-font-meta);
+  font-family: var(--font-mono, ui-monospace, monospace);
+  white-space: nowrap;
+}
+
+.headers {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-top: 0.55rem;
+  padding-top: 0.55rem;
+  border-top: 1px dashed color-mix(in srgb, var(--border) 75%, transparent);
+}
+
+.headerRow {
+  display: grid;
+  grid-template-columns: 7.5rem 1fr;
+  gap: 0.35rem;
+  align-items: baseline;
+  font-size: var(--lab-font-meta);
+}
+
+.headerKey {
+  color: var(--muted);
+}
+
+.headerVal {
+  color: var(--text);
+  font-family: var(--font-mono, ui-monospace, monospace);
+  word-break: break-all;
+}
+
+.headerValOk {
+  color: var(--ok);
+}
+
+.codePane {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+  gap: 0.55rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .arrow,
+  .chunk,
+  .compressBar,
+  .cdnForkHit,
+  .cdnForkMiss {
+    transition: none;
+  }
+}

@@ -101,6 +101,7 @@ export function parseTopicMd(id: string, raw: string, order: number): TopicDetai
     id === '07-cors' ||
     id === '244-nodejs-db-async-config' ||
     id === '245-nodejs-cache-crud' ||
+    id === '27-server-performance-metrics' ||
     id === '246-nodejs-worker-threads' ||
     id === '251-network-api-first' ||
     id === '250-network-http-https' ||
@@ -181,6 +182,8 @@ export function parseTopicMd(id: string, raw: string, order: number): TopicDetai
       id === '11-xss' ||
       id === '12-sql-injection' ||
       id === '13-csrf' ||
+      id === '14-client-performance-metrics' ||
+      id === '15-bundle-cdn' ||
       id === '159-patterns-factory-prototype-proxy-singleton-adapter' ||
       id === '160-patterns-chain-abstract-factory-strategy-decorator' ||
       id === '161-patterns-mediator-composite-memento' ||
@@ -247,7 +250,9 @@ export function parseTopicMd(id: string, raw: string, order: number): TopicDetai
       id === '254-network-tcpip-transport-link' ||
       id === '256-software-solid' ||
       id === '257-software-mvc-mvp-mvvm' ||
-      id === '259-software-incremental-iterative-spiral',
+      id === '259-software-incremental-iterative-spiral' ||
+      id === '26-lazy-loading-critical-path' ||
+      id === '27-server-performance-metrics',
     groupId: meta.groupId,
     groupTitle,
     level: meta.level,

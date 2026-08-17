@@ -57,6 +57,9 @@ import { AlgorithmsComplexityNotationsLab } from '../topics/algorithms-complexit
 import { ProjectLoadersPluginsSemverLab } from '../topics/project-loaders-plugins-semver/ProjectLoadersPluginsSemverLab'
 import { ProjectScriptsHmrTreeshakeLab } from '../topics/project-scripts-hmr-treeshake/ProjectScriptsHmrTreeshakeLab'
 import { ProjectProdDevPluginsLab } from '../topics/project-prod-dev-plugins/ProjectProdDevPluginsLab'
+import { LazyLoadingCriticalPathLab } from '../topics/lazy-loading-critical-path/LazyLoadingCriticalPathLab'
+import { BundleCdnLab } from '../topics/bundle-cdn/BundleCdnLab'
+import { ServerPerformanceMetricsLab } from '../topics/server-performance-metrics/ServerPerformanceMetricsLab'
 import { ProjectHotColdLab } from '../topics/project-hot-cold/ProjectHotColdLab'
 import { ProjectBundlersLab } from '../topics/project-bundlers/ProjectBundlersLab'
 import { ProjectFederationLab } from '../topics/project-federation/ProjectFederationLab'
@@ -73,6 +76,7 @@ import { CspLab } from '../topics/csp/CspLab'
 import { XssLab } from '../topics/xss/XssLab'
 import { SqlInjectionLab } from '../topics/sql-injection/SqlInjectionLab'
 import { CsrfLab } from '../topics/csrf/CsrfLab'
+import { ClientPerformanceMetricsLab } from '../topics/client-performance-metrics/ClientPerformanceMetricsLab'
 import { IncrementalIterativeSpiralLab } from '../topics/software-incremental-iterative-spiral/IncrementalIterativeSpiralLab'
 import { SoftwareMvcMvpMvvmLab } from '../topics/software-mvc-mvp-mvvm/SoftwareMvcMvpMvvmLab'
 import { SoftwareSolidLab } from '../topics/software-solid/SoftwareSolidLab'
@@ -157,6 +161,9 @@ function TopicLab({ topicId }: { topicId: string; topic: TopicDetail }) {
   if (topicId === '138-project-loaders-plugins-semver') return <ProjectLoadersPluginsSemverLab />
   if (topicId === '139-project-scripts-hmr-treeshake') return <ProjectScriptsHmrTreeshakeLab />
   if (topicId === '140-project-prod-dev-plugins') return <ProjectProdDevPluginsLab />
+  if (topicId === '26-lazy-loading-critical-path') return <LazyLoadingCriticalPathLab />
+  if (topicId === '15-bundle-cdn') return <BundleCdnLab />
+  if (topicId === '27-server-performance-metrics') return <ServerPerformanceMetricsLab />
   if (topicId === '03-build-hot-cold') return <ProjectHotColdLab />
   if (topicId === '04-bundlers-gulp-rollup') return <ProjectBundlersLab />
   if (topicId === '05-module-federation-babel-postcss') return <ProjectFederationLab />
@@ -174,6 +181,7 @@ function TopicLab({ topicId }: { topicId: string; topic: TopicDetail }) {
   if (topicId === '11-xss') return <XssLab />
   if (topicId === '12-sql-injection') return <SqlInjectionLab />
   if (topicId === '13-csrf') return <CsrfLab />
+  if (topicId === '14-client-performance-metrics') return <ClientPerformanceMetricsLab />
   if (topicId === '159-patterns-factory-prototype-proxy-singleton-adapter')
     return <PatternsFactoryProxyAdapterLab />
   if (topicId === '160-patterns-chain-abstract-factory-strategy-decorator')
