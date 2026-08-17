@@ -96,13 +96,6 @@ export function TopicSidebar() {
 
   return (
     <aside className={styles.sidebar}>
-      <div className={styles.brand}>
-        <div className={styles.brandMark}>AP</div>
-        <div className={styles.brandText}>
-          <div className={styles.brandTitle}>Assessment Prep</div>
-        </div>
-      </div>
-
       <div className={styles.progress}>
         <div className={styles.progressRow}>
           <span>

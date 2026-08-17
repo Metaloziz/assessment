@@ -5,6 +5,7 @@ import { useGSAP } from '@gsap/react'
 import { TopicSidebar } from './TopicSidebar'
 import { useTopicViewUrlSync } from '../hooks/useTopicViewUrl'
 import { LAB_DOCK_ID, useLayoutStore } from '../store/layout'
+import { useProgressStore } from '../store/progress'
 import styles from './AppShell.module.css'
 
 gsap.registerPlugin(useGSAP)
@@ -39,6 +40,11 @@ export function AppShell() {
   const setLabOpen = useLayoutStore((s) => s.setLabOpen)
   const setTheoryOpen = useLayoutStore((s) => s.setTheoryOpen)
   const setLabShare = useLayoutStore((s) => s.setLabShare)
+  const loadProgress = useProgressStore((s) => s.loadProgress)
+
+  useEffect(() => {
+    void loadProgress()
+  }, [loadProgress])
 
   const theoryHidden = !theoryOpen
 

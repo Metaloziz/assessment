@@ -244,6 +244,9 @@ export function parseTopicMd(id: string, raw: string, order: number): TopicDetai
       id === '251-network-api-first' ||
       id === '252-network-long-polling-ws-sse' ||
       id === '253-network-tcpip-internet-app' ||
+      id === '254-network-tcpip-transport-link' ||
+      id === '256-software-solid' ||
+      id === '257-software-mvc-mvp-mvvm' ||
       id === '259-software-incremental-iterative-spiral',
     groupId: meta.groupId,
     groupTitle,

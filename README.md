@@ -79,7 +79,7 @@ npm run preview
 В Settings → Pages выберите **GitHub Actions**. После пуша сайт будет на:
 `https://metaloziz.github.io/assessment/`
 
-Прогресс чекбоксов хранится в `localStorage` (`assessment-progress`).
+Прогресс чекбоксов хранится в Postgres через API (`GET/PUT /api/progress`).
 
 ## Сервер (`server/`)
 

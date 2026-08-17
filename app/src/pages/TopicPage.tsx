@@ -74,6 +74,8 @@ import { XssLab } from '../topics/xss/XssLab'
 import { SqlInjectionLab } from '../topics/sql-injection/SqlInjectionLab'
 import { CsrfLab } from '../topics/csrf/CsrfLab'
 import { IncrementalIterativeSpiralLab } from '../topics/software-incremental-iterative-spiral/IncrementalIterativeSpiralLab'
+import { SoftwareMvcMvpMvvmLab } from '../topics/software-mvc-mvp-mvvm/SoftwareMvcMvpMvvmLab'
+import { SoftwareSolidLab } from '../topics/software-solid/SoftwareSolidLab'
 import { PatternsFactoryProxyAdapterLab } from '../topics/patterns-factory-prototype-proxy-singleton-adapter/PatternsFactoryProxyAdapterLab'
 import { PatternsChainStrategyDecoratorLab } from '../topics/patterns-chain-abstract-factory-strategy-decorator/PatternsChainStrategyDecoratorLab'
 import { PatternsMediatorCompositeMementoLab } from '../topics/patterns-mediator-composite-memento/PatternsMediatorCompositeMementoLab'
@@ -136,6 +138,7 @@ import { NodejsWorkerThreadsLab } from '../topics/nodejs-worker-threads/NodejsWo
 import { NetworkApiFirstLab } from '../topics/network-api-first/NetworkApiFirstLab'
 import { NetworkHttpHttpsLab } from '../topics/network-http-https/NetworkHttpHttpsLab'
 import { NetworkTcpipInternetAppLab } from '../topics/network-tcpip-internet-app/NetworkTcpipInternetAppLab'
+import { NetworkTcpipTransportLinkLab } from '../topics/network-tcpip-transport-link/NetworkTcpipTransportLinkLab'
 import { NetworkLongPollingWsSseLab } from '../topics/network-long-polling-ws-sse/NetworkLongPollingWsSseLab'
 import { LAB_DOCK_ID, useLayoutStore } from '../store/layout'
 import styles from './TopicPage.module.css'
@@ -239,6 +242,9 @@ function TopicLab({ topicId }: { topicId: string; topic: TopicDetail }) {
   if (topicId === '251-network-api-first') return <NetworkApiFirstLab />
   if (topicId === '252-network-long-polling-ws-sse') return <NetworkLongPollingWsSseLab />
   if (topicId === '253-network-tcpip-internet-app') return <NetworkTcpipInternetAppLab />
+  if (topicId === '254-network-tcpip-transport-link') return <NetworkTcpipTransportLinkLab />
+  if (topicId === '256-software-solid') return <SoftwareSolidLab />
+  if (topicId === '257-software-mvc-mvp-mvvm') return <SoftwareMvcMvpMvvmLab />
   if (topicId === '259-software-incremental-iterative-spiral')
     return <IncrementalIterativeSpiralLab />
   if (topicId === '31-git-switch') return <GitSwitchLab />

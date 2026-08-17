@@ -10,48 +10,8 @@
   font-size: var(--lab-font-ui);
 }
 
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 0.55rem;
-  padding: 0.35rem 0.35rem 0.55rem 0.55rem;
-  margin: 0 0.15rem;
-}
-
-.brandText {
-  flex: 1;
-  min-width: 0;
-}
-
-.brandMark {
-  width: 1.65rem;
-  height: 1.65rem;
-  border-radius: var(--radius-sm);
-  display: grid;
-  place-items: center;
-  background: var(--bg-elevated);
-  color: var(--text);
-  font-family: var(--font-sans);
-  font-size: var(--font-size-ui-sm);
-  font-weight: var(--font-weight-semibold);
-  flex-shrink: 0;
-}
-
-.brandTitle {
-  font-size: var(--lab-font-ui);
-  font-weight: var(--font-weight-semibold);
-  color: var(--text);
-  letter-spacing: -0.01em;
-}
-
-.brandSub {
-  font-size: var(--font-size-ui-sm);
-  color: var(--text-faint);
-  margin-top: 0.05rem;
-}
-
 .progress {
-  padding: 0.15rem 0.65rem 0.4rem;
+  padding: 0.55rem 0.65rem 0.4rem;
 }
 
 .progressRow {
