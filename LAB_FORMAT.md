@@ -160,7 +160,18 @@ export const Modal = ({ open, children }: Props) => {
 
 ### Редактор
 
-`fill` / `fillAvailable` по умолчанию `true`: высота по контенту, потолок — свободное место в доке. Выключать только по явной просьбе.
+Редактор **заполняет** свободное место в доке вкладки «Код»; при переполнении — скролл **внутри** CodeMirror, не сжатый viewport.
+
+**Flex-цепочка** (все звенья обязательны):
+
+1. `JsLabShell` — `fill={true}` (дефолт)
+2. `LabTabs` — `.panel` с `flex: 1; min-height: 0`
+3. `shell.codePane` — [`JsLabShell.module.css`](app/src/components/lab/JsLabShell.module.css): `flex: 1; min-height: 0`
+4. `InteractiveCodePanel` — `rootFill` + `fillAvailable` (дефолт `true`)
+
+Если ghost-табы + `InteractiveCodePanel` — обёртка **`shell.codePane`**, не локальный `.codePane` без `flex: 1`. Выключать `fill` / `fillAvailable` — только по явной просьбе.
+
+**Сниппеты:** стремиться уложить эталон в ~15–25 строк без внутреннего скролла; длинный scroll допустим у намеренно полного файла. Крошечный редактор при коротком коде — баг layout, не повод урезать сниппет.
 
 ---
 

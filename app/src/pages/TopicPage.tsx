@@ -6,8 +6,15 @@ import type { TopicDetail } from '../content'
 import { MarkdownSections } from '../components/MarkdownSections'
 import { CodeBlock } from '../components/CodeBlock'
 import { ImmutabilityLab } from '../topics/immutability/ImmutabilityLab'
+import { GitResetTagLogDiffReflogLab } from '../topics/git-reset-tag-log-diff-reflog/GitResetTagLogDiffReflogLab'
+import { GitAmendFixupLab } from '../topics/git-amend-fixup/GitAmendFixupLab'
+import { GitGrepLab } from '../topics/git-grep/GitGrepLab'
+import { GitBisectLab } from '../topics/git-bisect/GitBisectLab'
+import { GitFlowGithubGitlabLab } from '../topics/git-flow-github-gitlab/GitFlowGithubGitlabLab'
+import { GitHooksLab } from '../topics/git-hooks/GitHooksLab'
 import { GitSwitchLab } from '../topics/git-switch/GitSwitchLab'
 import { GitRestoreLab } from '../topics/git-restore/GitRestoreLab'
+import { GitLfsLab } from '../topics/git-lfs/GitLfsLab'
 import { DeadCodeLab } from '../topics/dead-code/DeadCodeLab'
 import { CookiesLab } from '../topics/cookies/CookiesLab'
 import { ServiceWorkersLab } from '../topics/service-workers/ServiceWorkersLab'
@@ -255,8 +262,15 @@ function TopicLab({ topicId }: { topicId: string; topic: TopicDetail }) {
   if (topicId === '257-software-mvc-mvp-mvvm') return <SoftwareMvcMvpMvvmLab />
   if (topicId === '259-software-incremental-iterative-spiral')
     return <IncrementalIterativeSpiralLab />
+  if (topicId === '16-git-amend-fixup-revert-cherry-pick-stash') return <GitAmendFixupLab />
+  if (topicId === '17-git-reset-tag-log-diff-reflog') return <GitResetTagLogDiffReflogLab />
+  if (topicId === '33-git-grep') return <GitGrepLab />
+  if (topicId === '20-git-bisect') return <GitBisectLab />
+  if (topicId === '18-git-flow-github-gitlab') return <GitFlowGithubGitlabLab />
+  if (topicId === '19-git-hooks') return <GitHooksLab />
   if (topicId === '31-git-switch') return <GitSwitchLab />
   if (topicId === '32-git-restore') return <GitRestoreLab />
+  if (topicId === '34-git-lfs') return <GitLfsLab />
   if (topicId === '56-dead-code-tools') return <DeadCodeLab />
   if (topicId === '57-cookies') return <CookiesLab />
   if (topicId === '65-service-workers') return <ServiceWorkersLab />

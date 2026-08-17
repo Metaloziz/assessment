@@ -89,6 +89,15 @@
   align-items: flex-end;
 }
 
+/** Обёртка вкладки «Код»: ghost-табы + InteractiveCodePanel на всю высоту дока. */
+.codePane {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+  gap: 0.55rem;
+}
+
 .hint {
   margin: 0;
   color: var(--text-muted);

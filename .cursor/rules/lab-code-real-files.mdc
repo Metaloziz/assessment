@@ -9,4 +9,5 @@ alwaysApply: false
 Следуй [`skills/write-assessment-labs/SKILL.md`](../../skills/write-assessment-labs/SKILL.md) (§ «Вкладка Код») и [`LAB_FORMAT.md`](../../LAB_FORMAT.md).
 
 Кратко: реальные файлы + `// ← …` в коде; `executable: false` для Node; без мета-фраз в `intro`/`lead`/`pain`.  
+Высота «Код»: `shell.codePane` + `fillAvailable`; сниппеты — без лишнего скролла (~15–25 строк).  
 Группа React: стрелочные компоненты React + TS (`export const X = (…) =>`), эталон — `react-error-boundaries`.

@@ -31,8 +31,8 @@ type Props = {
   intro?: string
   snippets: InteractiveSnippet[]
   /**
-   * Cap editor by free dock space (pair with JsLabShell fill).
-   * Height follows content; only grows until code fits, then caps and scrolls inside.
+   * Заполняет редактор свободным местом в доке (пара с JsLabShell fill).
+   * minHeight и maxHeight = измеренная высота дока; при длинном файле — скролл внутри CodeMirror.
    * Default on for all InteractiveCodePanel labs.
    */
   fillAvailable?: boolean
@@ -117,7 +117,6 @@ function runUserCode(source: string): ConsoleLine[] {
 }
 
 const editorExtensions = [javascript(), ...cursorCodeMirrorExtensions]
-const PREFERRED_EDITOR_PX = 176 // ~11rem
 const HARD_MIN_EDITOR_PX = 72 // при низком viewport (DevTools снизу) можно сжаться
 
 /** Render `code` backticks like theory inline highlights. */
@@ -322,7 +321,7 @@ export function InteractiveCodePanel({
           height="auto"
           minHeight={
             fillAvailable && maxEditorPx != null
-              ? `${Math.min(PREFERRED_EDITOR_PX, maxEditorPx)}px`
+              ? `${maxEditorPx}px`
               : '11rem'
           }
           maxHeight={

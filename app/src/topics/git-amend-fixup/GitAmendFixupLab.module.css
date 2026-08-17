@@ -1,0 +1,153 @@
+.historyRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.25rem;
+  min-height: 4.5rem;
+}
+
+.branchLabel {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-right: 0.35rem;
+  min-width: 3.5rem;
+}
+
+.arrow {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  user-select: none;
+}
+
+.commit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  min-width: 3.2rem;
+  transition:
+    border-color 0.4s ease,
+    box-shadow 0.4s ease,
+    opacity 0.4s ease,
+    transform 0.4s ease;
+}
+
+.commitActive {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+.commitOk {
+  border-color: var(--ok);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--ok) 30%, transparent);
+}
+
+.commitWarn {
+  border-color: var(--warn);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--warn) 35%, transparent);
+}
+
+.commitErr {
+  border-color: var(--danger);
+  opacity: 0.55;
+}
+
+.commitGhost {
+  opacity: 0.4;
+  border-style: dashed;
+}
+
+.commitLabel {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.commitHash {
+  font-size: 0.65rem;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  color: var(--text-muted);
+}
+
+.stashStack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px dashed var(--border);
+}
+
+.stashTitle {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.stashItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.55rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--accent) 8%, var(--bg-elevated));
+  font-size: 0.75rem;
+  transition:
+    border-color 0.4s ease,
+    opacity 0.4s ease;
+}
+
+.stashItemActive {
+  border-color: var(--accent);
+}
+
+.worktree {
+  margin-top: 0.65rem;
+  padding: 0.45rem 0.6rem;
+  border-radius: var(--radius-sm);
+  border: 1px dashed var(--border);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  transition:
+    border-color 0.4s ease,
+    color 0.4s ease;
+}
+
+.worktreeDirty {
+  border-color: var(--warn);
+  color: var(--text);
+}
+
+.worktreeClean {
+  border-color: var(--ok);
+  color: color-mix(in srgb, var(--ok) 80%, var(--text));
+}
+
+.diverge {
+  margin-top: 0.65rem;
+  padding: 0.45rem 0.55rem;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--warn) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--warn) 40%, transparent);
+  font-size: 0.74rem;
+  color: var(--text);
+}
+
+.legend {
+  margin-top: 0.55rem;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.patternRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}

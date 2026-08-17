@@ -1,0 +1,283 @@
+/* ── repo tree + hits ── */
+
+.repoRoot {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.queryBar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.55rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.02);
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-mono);
+}
+
+.queryLabel {
+  color: var(--text-faint);
+}
+
+.queryText {
+  color: var(--accent-bright);
+}
+
+.fileRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.45rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--bg-panel);
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-mono);
+  transition:
+    border-color 0.4s,
+    box-shadow 0.4s,
+    opacity 0.4s;
+}
+
+.fileRowMuted {
+  opacity: 0.42;
+}
+
+.fileRowScan {
+  border-color: rgba(129, 161, 193, 0.35);
+}
+
+.fileRowHit {
+  border-color: var(--ok);
+  box-shadow: 0 0 0 2px rgba(137, 209, 133, 0.12);
+}
+
+.fileRowNoise {
+  border-color: var(--warn);
+  box-shadow: 0 0 0 2px rgba(235, 203, 139, 0.12);
+}
+
+.fileRowSkip {
+  opacity: 0.38;
+  border-style: dashed;
+}
+
+.filePath {
+  color: var(--text-muted);
+  min-width: 9rem;
+  flex-shrink: 0;
+}
+
+.fileTag {
+  font-size: var(--lab-font-meta);
+  color: var(--text-faint);
+  padding: 0.05rem 0.35rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border-soft);
+}
+
+.fileTagIgnored {
+  color: var(--warn);
+  border-color: rgba(235, 203, 139, 0.35);
+}
+
+.fileTagUntracked {
+  color: var(--text-faint);
+}
+
+.fileLine {
+  color: var(--text-faint);
+  flex: 1;
+  line-height: var(--lab-line);
+}
+
+.fileLineHit {
+  color: var(--ok);
+}
+
+.fileLineDim {
+  opacity: 0.55;
+}
+
+.summaryRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-top: 0.35rem;
+}
+
+.summaryChip {
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-meta);
+  padding: 0.2rem 0.45rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+
+.summaryOk {
+  border-color: rgba(137, 209, 133, 0.45);
+  color: var(--ok);
+}
+
+.summaryWarn {
+  border-color: rgba(235, 203, 139, 0.45);
+  color: var(--warn);
+}
+
+/* ── revision (branches) ── */
+
+.branchRow {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.55rem;
+}
+
+.branchChip {
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-mono);
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--bg-panel);
+  color: var(--text-muted);
+  transition:
+    border-color 0.4s,
+    box-shadow 0.4s,
+    opacity 0.4s;
+}
+
+.branchActive {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-glow);
+  color: var(--text);
+}
+
+.branchGhost {
+  opacity: 0.45;
+}
+
+.revisionArrow {
+  color: var(--text-faint);
+}
+
+.revisionFile {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-panel);
+  overflow: hidden;
+  transition:
+    border-color 0.4s,
+    box-shadow 0.4s;
+}
+
+.revisionFileActive {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-glow);
+}
+
+.revisionHead {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.3rem 0.5rem;
+  border-bottom: 1px solid var(--border-soft);
+  background: rgba(255, 255, 255, 0.02);
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-ui);
+}
+
+.revisionCode {
+  margin: 0;
+  padding: 0.45rem 0.5rem;
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-mono);
+  line-height: var(--lab-line);
+  color: var(--text-muted);
+  white-space: pre-wrap;
+}
+
+.revisionMark {
+  background: rgba(137, 209, 133, 0.18);
+  color: var(--ok);
+  border-radius: 2px;
+  padding: 0 0.1rem;
+}
+
+.revisionNote {
+  margin-top: 0.45rem;
+  font-size: var(--lab-font-body);
+  color: var(--text-muted);
+  line-height: var(--lab-line);
+}
+
+/* ── index vs worktree ── */
+
+.layerPair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.45rem;
+}
+
+@media (max-width: 520px) {
+  .layerPair {
+    grid-template-columns: 1fr;
+  }
+}
+
+.layerBox {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-panel);
+  overflow: hidden;
+  transition:
+    border-color 0.4s,
+    box-shadow 0.4s,
+    opacity 0.4s;
+}
+
+.layerBoxActive {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-glow);
+}
+
+.layerBoxMuted {
+  opacity: 0.45;
+}
+
+.layerHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.3rem 0.5rem;
+  border-bottom: 1px solid var(--border-soft);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.layerTitle {
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-ui);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text);
+}
+
+.layerHint {
+  font-size: var(--lab-font-mono);
+  color: var(--text-faint);
+}
+
+.layerCode {
+  margin: 0;
+  padding: 0.45rem 0.5rem;
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-mono);
+  line-height: var(--lab-line);
+  color: var(--text-muted);
+  white-space: pre-wrap;
+}

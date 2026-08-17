@@ -1,0 +1,180 @@
+.commandBar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.55rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.02);
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-mono);
+  margin-bottom: 0.55rem;
+}
+
+.commandLabel {
+  color: var(--text-faint);
+}
+
+.commandText {
+  color: var(--accent-bright);
+}
+
+.rangeRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.45rem;
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-meta);
+}
+
+.rangeBound {
+  padding: 0.15rem 0.4rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border);
+}
+
+.rangeGood {
+  border-color: rgba(137, 209, 133, 0.45);
+  color: var(--ok);
+}
+
+.rangeBad {
+  border-color: rgba(224, 108, 117, 0.45);
+  color: var(--danger);
+}
+
+.rangeMid {
+  color: var(--text-faint);
+}
+
+.timeline {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 0.35rem;
+}
+
+.commitRow {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--bg-panel);
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-mono);
+  transition:
+    border-color 0.4s,
+    box-shadow 0.4s,
+    opacity 0.4s,
+    transform 0.4s;
+}
+
+.commitRowExcluded {
+  opacity: 0.38;
+  border-style: dashed;
+}
+
+.commitRowCurrent {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-glow);
+}
+
+.commitRowGood {
+  border-color: rgba(137, 209, 133, 0.45);
+}
+
+.commitRowBad {
+  border-color: rgba(224, 108, 117, 0.45);
+}
+
+.commitRowSkip {
+  border-color: rgba(235, 203, 139, 0.45);
+  opacity: 0.55;
+}
+
+.commitRowFirstBad {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 2px rgba(224, 108, 117, 0.15);
+}
+
+.commitHash {
+  color: var(--text-faint);
+  min-width: 3.5rem;
+}
+
+.commitLabel {
+  flex: 1;
+  color: var(--text-muted);
+}
+
+.commitTag {
+  font-size: var(--lab-font-meta);
+  padding: 0.05rem 0.35rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border-soft);
+  color: var(--text-faint);
+}
+
+.tagGood {
+  color: var(--ok);
+  border-color: rgba(137, 209, 133, 0.35);
+}
+
+.tagBad {
+  color: var(--danger);
+  border-color: rgba(224, 108, 117, 0.35);
+}
+
+.tagSkip {
+  color: var(--warn);
+  border-color: rgba(235, 203, 139, 0.35);
+}
+
+.tagCurrent {
+  color: var(--accent-bright);
+  border-color: rgba(129, 161, 193, 0.45);
+}
+
+.testBox {
+  margin-top: 0.45rem;
+  padding: 0.4rem 0.55rem;
+  border-radius: var(--radius);
+  border: 1px dashed var(--border);
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-mono);
+  color: var(--text-muted);
+  transition:
+    border-color 0.4s,
+    color 0.4s;
+}
+
+.testPass {
+  border-color: rgba(137, 209, 133, 0.45);
+  color: var(--ok);
+}
+
+.testFail {
+  border-color: rgba(224, 108, 117, 0.45);
+  color: var(--danger);
+}
+
+.testSkip {
+  border-color: rgba(235, 203, 139, 0.45);
+  color: var(--warn);
+}
+
+.caption {
+  margin-top: 0.45rem;
+  font-size: var(--lab-font-body);
+  color: var(--text-muted);
+  line-height: var(--lab-line);
+}
+
+.stepHint {
+  font-size: var(--lab-font-meta);
+  color: var(--text-faint);
+  margin-top: 0.25rem;
+}

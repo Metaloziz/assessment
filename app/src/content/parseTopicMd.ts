@@ -115,8 +115,15 @@ export function parseTopicMd(id: string, raw: string, order: number): TopicDetai
     hasApi,
     hasLab:
       id === '01-immutability-js' ||
+      id === '17-git-reset-tag-log-diff-reflog' ||
+      id === '16-git-amend-fixup-revert-cherry-pick-stash' ||
+      id === '33-git-grep' ||
+      id === '20-git-bisect' ||
+      id === '18-git-flow-github-gitlab' ||
+      id === '19-git-hooks' ||
       id === '31-git-switch' ||
       id === '32-git-restore' ||
+      id === '34-git-lfs' ||
       id === '56-dead-code-tools' ||
       id === '57-cookies' ||
       id === '65-service-workers' ||

@@ -1,0 +1,211 @@
+/* ── commit graph ── */
+
+.graphRow {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.65rem;
+}
+
+.commit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--bg-panel);
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-mono);
+  transition:
+    border-color 0.4s,
+    box-shadow 0.4s,
+    opacity 0.4s;
+}
+
+.commitHead {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-glow);
+}
+
+.commitGhost {
+  opacity: 0.45;
+  border-style: dashed;
+}
+
+.commitTag {
+  border-color: var(--ok);
+}
+
+.tagChip {
+  font-size: var(--lab-font-meta);
+  color: var(--ok);
+  letter-spacing: 0.03em;
+}
+
+.commitMsg {
+  color: var(--text-muted);
+  max-width: 5.5rem;
+  text-align: center;
+  line-height: 1.25;
+}
+
+.commitHash {
+  color: var(--text-faint);
+  font-size: var(--lab-font-meta);
+}
+
+.graphArrow {
+  color: var(--text-faint);
+  font-size: var(--lab-font-ui);
+}
+
+.branchLabel {
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-meta);
+  color: var(--accent-bright);
+  margin-left: 0.25rem;
+}
+
+/* ── three layers (reset / diff) ── */
+
+.layers {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.layer {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-panel);
+  overflow: hidden;
+  transition:
+    border-color 0.4s,
+    box-shadow 0.4s;
+}
+
+.layerActive {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-glow);
+}
+
+.layerHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.3rem 0.5rem;
+  border-bottom: 1px solid var(--border-soft);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.layerTitle {
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-ui);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text);
+}
+
+.layerHint {
+  font-size: var(--lab-font-mono);
+  color: var(--text-faint);
+}
+
+.layerCode {
+  margin: 0;
+  padding: 0.45rem 0.5rem;
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-mono);
+  line-height: var(--lab-line);
+  color: var(--text-muted);
+  white-space: pre-wrap;
+}
+
+.diffArrowRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0;
+}
+
+.diffArrow {
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-ui);
+  color: var(--text-faint);
+  padding: 0.15rem 0.45rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid transparent;
+  transition:
+    color 0.4s,
+    border-color 0.4s,
+    background 0.4s;
+}
+
+.diffArrowActive {
+  color: var(--accent-bright);
+  border-color: rgba(129, 161, 193, 0.45);
+  background: var(--accent-glow);
+}
+
+/* ── reflog ── */
+
+.reflogList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.reflogEntry {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.55rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--bg-panel);
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-mono);
+  transition:
+    border-color 0.4s,
+    box-shadow 0.4s,
+    opacity 0.4s;
+}
+
+.reflogActive {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-glow);
+}
+
+.reflogTarget {
+  border-color: var(--ok);
+  box-shadow: 0 0 0 2px rgba(137, 209, 133, 0.15);
+}
+
+.reflogGhost {
+  opacity: 0.5;
+}
+
+.reflogIdx {
+  color: var(--accent-bright);
+  min-width: 4.5rem;
+}
+
+.reflogAction {
+  color: var(--text-muted);
+  flex: 1;
+}
+
+.reflogHash {
+  color: var(--text-faint);
+}
+
+.reflogNote {
+  margin-top: 0.5rem;
+  font-size: var(--lab-font-body);
+  color: var(--text-muted);
+  line-height: var(--lab-line);
+}
