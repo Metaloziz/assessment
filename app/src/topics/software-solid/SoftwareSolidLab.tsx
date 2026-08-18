@@ -12,17 +12,21 @@ import styles from './SoftwareSolidLab.module.css'
 const TOPIC_ID = '256-software-solid'
 const STEP = 0.65
 
-type Principle = 'srp' | 'ocp' | 'lsp' | 'isp' | 'dip'
+type Principle = 'srp' | 'ocp' | 'lsp' | 'isp' | 'dip' | 'cohesion' | 'coupling'
 type SrpCase = 'god' | 'split'
 type OcpCase = 'sw' | 'plugin'
 type LspCase = 'square' | 'shape'
 type IspCase = 'fat' | 'thin'
 type DipCase = 'concrete' | 'invert'
-type CaseId = SrpCase | OcpCase | LspCase | IspCase | DipCase
+type CohesionCase = 'junk' | 'one'
+type CouplingCase = 'tight' | 'loose'
+type CaseId = SrpCase | OcpCase | LspCase | IspCase | DipCase | CohesionCase | CouplingCase
 
 type Phase = 'idle' | 'hit' | 'apply' | 'done'
 
 const PRINCIPLES: Array<{ id: Principle; label: string }> = [
+  { id: 'cohesion', label: 'Связность' },
+  { id: 'coupling', label: 'Зацепление' },
   { id: 'srp', label: 'SRP' },
   { id: 'ocp', label: 'OCP' },
   { id: 'lsp', label: 'LSP' },
@@ -31,6 +35,14 @@ const PRINCIPLES: Array<{ id: Principle; label: string }> = [
 ]
 
 const CASES: Record<Principle, Array<{ id: CaseId; label: string }>> = {
+  cohesion: [
+    { id: 'junk', label: 'Свалка' },
+    { id: 'one', label: 'Одно дело' },
+  ],
+  coupling: [
+    { id: 'tight', label: 'Знает внутренности' },
+    { id: 'loose', label: 'Узкий вызов' },
+  ],
   srp: [
     { id: 'god', label: 'Бог-модуль' },
     { id: 'split', label: 'Два модуля' },
@@ -54,6 +66,8 @@ const CASES: Record<Principle, Array<{ id: CaseId; label: string }>> = {
 }
 
 const CODE_INTRO: Record<Principle, string> = {
+  cohesion: 'Связность: в одном файле — вещи одного повода. НДС не должен жить рядом с cron.',
+  coupling: 'Зацепление: заказ зовёт `loadOrder`, а не пишет SQL Postgres и не трогает поля PdfKit.',
   srp: 'SRP: смена НДС не должна трогать PDF. Цена и счёт — в разных файлах.',
   ocp: 'OCP: новый Paypal — новый объект с `pay`. Старый `checkout` не правят.',
   lsp: 'LSP: код ждал площадь 20, а «квадрат как прямоугольник» дал сюрприз. Честный договор — `area()`.',
@@ -62,6 +76,113 @@ const CODE_INTRO: Record<Principle, string> = {
 }
 
 const CODE_SNIPPETS: Record<Principle, InteractiveSnippet[]> = {
+  cohesion: [
+    {
+      id: 'order-stuff',
+      label: 'src/orders/orderStuff.ts',
+      note: 'Четыре разных повода в одном файле: налог, макет, письмо, cron.',
+      executable: false,
+      languageLabel: 'ts',
+      code: `type Item = { price: number };
+
+// ═══════════════════════════════════════════
+// JUNK ← свалка: вещи не про одно дело
+// ═══════════════════════════════════════════
+export function quoteWithVat(items: Item[], vat = 0.2) {
+  const net = items.reduce((s, i) => s + i.price, 0);
+  return net * (1 + vat); // ← НДС
+}
+
+export function invoicePdf(id: string, total: number) {
+  return \`%PDF \${id} \${total}\`; // ← макет счёта
+}
+
+export function sendShippedMail(to: string) {
+  return \`mail \${to}\`; // ← письмо
+}
+
+export function nightlyCleanup() {
+  /* cron */ // ← четвёртый повод менять этот файл
+}`,
+    },
+    {
+      id: 'price-cohesion',
+      label: 'src/orders/pricePolicy.ts',
+      note: 'Ставка, сумма и округление — одно дело: деньги.',
+      executable: false,
+      languageLabel: 'ts',
+      code: `type Item = { price: number };
+
+export const VAT = 0.2;
+
+function netSum(items: Item[]) {
+  return items.reduce((s, i) => s + i.price, 0);
+}
+
+function roundMoney(n: number) {
+  return Math.round(n * 100) / 100;
+}
+
+// ═══════════════════════════════════════════
+// ONE ← всё в файле про цену
+// ═══════════════════════════════════════════
+export function quoteWithVat(items: Item[], vat = VAT) {
+  return roundMoney(netSum(items) * (1 + vat)); // ← только деньги
+}
+
+// invoicePdf и mail живут в других файлах`,
+    },
+  ],
+  coupling: [
+    {
+      id: 'invoice-tight',
+      label: 'src/orders/invoiceTight.ts',
+      note: 'Заказ сам пишет SQL и трогает поля рендерера — знает чужие внутренности.',
+      executable: false,
+      languageLabel: 'ts',
+      code: `import { pool } from '../db/pgPool';
+import { PdfDocument } from 'pdfkit';
+
+// ═══════════════════════════════════════════
+// TIGHT ← заказ знает SQL и поля PdfKit
+// ═══════════════════════════════════════════
+export async function invoice(orderId: string) {
+  const { rows } = await pool.query(
+    'select total from orders where id = $1',
+    [orderId],
+  ); // ← SQL чужого модуля
+  const doc = new PdfDocument();
+  doc.x = 40; // ← поле рендерера
+  doc.text(String(rows[0].total));
+  return doc;
+}
+
+// смена драйвера базы правит этот файл`,
+    },
+    {
+      id: 'invoice-ports',
+      label: 'src/orders/invoicePorts.ts',
+      note: 'Заказ зовёт `loadOrder` и `render` — не знает SQL и поля PdfKit.',
+      executable: false,
+      languageLabel: 'ts',
+      code: `type Store = { loadOrder: (id: string) => Promise<{ total: number }> };
+type Invoices = { render: (total: number) => string };
+
+// ═══════════════════════════════════════════
+// LOOSE ← только узкие вызовы
+// ═══════════════════════════════════════════
+export function createInvoicing(store: Store, invoices: Invoices) {
+  return {
+    async invoice(orderId: string) {
+      const order = await store.loadOrder(orderId); // ← не SQL
+      return invoices.render(order.total); // ← не doc.x
+    },
+  };
+}
+
+// Postgres и PdfKit стыкуют снаружи, заказ их не импортирует`,
+    },
+  ],
   srp: [
     {
       id: 'god-order',
@@ -650,7 +771,156 @@ function DipViz({ phase, caseId, packetRef }: VizProps & { caseId: DipCase }) {
   )
 }
 
+function CohesionViz({ phase, caseId, packetRef }: VizProps & { caseId: CohesionCase }) {
+  const one = caseId === 'one'
+  const hit = phase !== 'idle'
+  const apply = phase === 'apply' || phase === 'done'
+  const done = phase === 'done'
+
+  const chip = (label: string, sub: string, kind: 'hit' | 'skip' | 'ok') => (
+    <div
+      className={nodeCls(
+        styles.chip,
+        kind === 'hit' && apply && styles.nodeWarn,
+        kind === 'hit' && done && styles.nodeWarn,
+        kind === 'ok' && apply && labVizStyles.nodeActive,
+        kind === 'ok' && done && labVizStyles.nodeOk,
+        kind === 'skip' && styles.nodeSkipped,
+      )}
+    >
+      <span className={labVizStyles.nodeLabel}>{label}</span>
+      <span className={labVizStyles.nodeSub}>{sub}</span>
+    </div>
+  )
+
+  return (
+    <LabVizPanel title="Что в файле" meta={one ? 'только деньги' : 'четыре разных дела'}>
+      <div className={styles.srpCol}>
+        <div
+          ref={packetRef}
+          className={nodeCls(styles.change, hit && labVizStyles.nodeActive, done && labVizStyles.nodeOk)}
+        >
+          <span className={labVizStyles.nodeLabel}>изменение</span>
+          <span className={labVizStyles.nodeSub}>ставка НДС</span>
+        </div>
+        <div className={`${styles.arrow} ${apply ? styles.arrowActive : ''}`}>↓</div>
+        {one ? (
+          <div className={styles.cohesionRow}>
+            <div className={`${styles.moduleBox} ${apply ? styles.moduleBoxOk : ''}`}>
+              <span className={styles.moduleName}>pricePolicy.ts</span>
+              <div className={styles.chips}>
+                {chip('ставка', 'VAT', 'ok')}
+                {chip('quote', 'цена', 'ok')}
+                {chip('округление', 'деньги', 'ok')}
+              </div>
+            </div>
+            <div className={`${styles.moduleBox} ${styles.nodeSkipped}`}>
+              <span className={styles.moduleName}>invoicePdf.ts</span>
+              <div className={styles.chips}>{chip('макет', 'не трогаем', 'skip')}</div>
+            </div>
+          </div>
+        ) : (
+          <div className={`${styles.moduleBox} ${done ? styles.moduleBoxWarn : apply ? styles.moduleBoxActive : ''}`}>
+            <span className={styles.moduleName}>orderStuff.ts</span>
+            <div className={styles.chips}>
+              {chip('НДС', 'налог', 'hit')}
+              {chip('PDF', 'макет', 'hit')}
+              {chip('письмо', 'почта', 'hit')}
+              {chip('cron', 'ночью', 'hit')}
+            </div>
+          </div>
+        )}
+      </div>
+    </LabVizPanel>
+  )
+}
+
+function CouplingViz({ phase, caseId, packetRef }: VizProps & { caseId: CouplingCase }) {
+  const loose = caseId === 'loose'
+  const hit = phase !== 'idle'
+  const apply = phase === 'apply' || phase === 'done'
+  const done = phase === 'done'
+  const orderWarn = !loose && done
+
+  return (
+    <LabVizPanel title="Кто знает соседа" meta={loose ? 'узкий вызов' : 'SQL и поля рендерера'}>
+      <div className={styles.couplingNet}>
+        <div
+          ref={packetRef}
+          className={nodeCls(
+            styles.change,
+            styles.couplingChange,
+            hit && labVizStyles.nodeActive,
+            done && labVizStyles.nodeOk,
+          )}
+        >
+          <span className={labVizStyles.nodeLabel}>изменение</span>
+          <span className={labVizStyles.nodeSub}>SQL Postgres</span>
+        </div>
+        <div className={`${styles.arrow} ${styles.couplingChange} ${apply ? styles.arrowActive : ''}`}>↓</div>
+        <div
+          className={nodeCls(
+            styles.couplingHub,
+            apply && labVizStyles.nodeActive,
+            done && (loose ? labVizStyles.nodeOk : styles.nodeWarn),
+          )}
+        >
+          <span className={labVizStyles.nodeLabel}>заказ</span>
+          <span className={labVizStyles.nodeSub}>
+            {loose ? 'loadOrder / render' : done ? 'знает SQL и doc.x' : 'сам ходит в базу'}
+          </span>
+        </div>
+        <div className={styles.couplingLinks}>
+          <span className={apply ? (loose ? styles.forkOk : styles.forkOn) : styles.forkIdle}>
+            {loose ? '→ loadOrder' : '→ SQL'}
+          </span>
+          <span className={apply ? (loose ? styles.forkOk : styles.forkOn) : styles.forkIdle}>
+            {loose ? '→ render' : '→ doc.x'}
+          </span>
+        </div>
+        <div className={styles.couplingDeps}>
+          {loose ? (
+            <>
+              <div className={nodeCls(apply && labVizStyles.nodeActive, done && labVizStyles.nodeOk)}>
+                <span className={labVizStyles.nodeLabel}>Store</span>
+                <span className={labVizStyles.nodeSub}>{done ? 'спрятал SQL' : 'договор'}</span>
+              </div>
+              <div className={nodeCls(styles.nodeSkipped)}>
+                <span className={labVizStyles.nodeLabel}>счёт</span>
+                <span className={labVizStyles.nodeSub}>поля PdfKit не видны</span>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className={nodeCls(apply && labVizStyles.nodeActive, orderWarn && styles.nodeWarn)}>
+                <span className={labVizStyles.nodeLabel}>Postgres</span>
+                <span className={labVizStyles.nodeSub}>{done ? 'SQL внутри заказа' : 'база'}</span>
+              </div>
+              <div className={nodeCls(apply && styles.nodeWarn, done && styles.nodeWarn)}>
+                <span className={labVizStyles.nodeLabel}>PdfKit</span>
+                <span className={labVizStyles.nodeSub}>{done ? 'поля снаружи' : 'рендерер'}</span>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </LabVizPanel>
+  )
+}
+
 const PAIN: Record<Principle, ReactNode> = {
+  cohesion: (
+    <>
+      Связность — про то, что лежит в одном файле. Вещи одного повода лучше держать вместе; свалка
+      хелперов открывается по любому поводу.
+    </>
+  ),
+  coupling: (
+    <>
+      Зацепление — сколько чужих внутренностей знает модуль. Узкий вызов вроде <code>loadOrder</code>{' '}
+      не тащит SQL соседа в заказ.
+    </>
+  ),
   srp: (
     <>
       Если в одном файле и цена с НДС, и PDF счёта, смена налога трогает лишнее. Лучше: один файл —
@@ -683,6 +953,27 @@ const PAIN: Record<Principle, ReactNode> = {
 }
 
 const CASE_BRIEF: Record<CaseId, ReactNode> = {
+  junk: (
+    <>
+      НДС, PDF, письмо и cron лежат в одном <code>orderStuff.ts</code> — правка налога открывает весь
+      файл.
+    </>
+  ),
+  one: (
+    <>
+      В <code>pricePolicy.ts</code> только деньги; макет счёта в другом файле и не трогается.
+    </>
+  ),
+  tight: (
+    <>
+      Заказ сам пишет SQL и ставит <code>doc.x</code> — смена базы правит этот же файл.
+    </>
+  ),
+  loose: (
+    <>
+      Заказ зовёт <code>loadOrder</code> и <code>render</code>; SQL и поля PdfKit остаются снаружи.
+    </>
+  ),
   god: <>НДС правит <code>OrderService</code>, где рядом лежит PDF — два дела в одном файле.</>,
   split: (
     <>
@@ -734,6 +1025,10 @@ const CASE_BRIEF: Record<CaseId, ReactNode> = {
 }
 
 const HINT: Record<CaseId, ReactNode> = {
+  junk: <>Итог: четыре дела в одном файле — налог задел почту и cron.</>,
+  one: <>Итог: правка НДС осталась в цене; макет счёта цел.</>,
+  tight: <>Итог: SQL жил в заказе — смена базы открыла тот же файл.</>,
+  loose: <>Итог: заказ не знает SQL; Postgres спрятан за <code>loadOrder</code>.</>,
   god: <>Итог: один файл на два дела — налог задел и PDF.</>,
   split: <>Итог: правка НДС осталась в цене; макет счёта цел.</>,
   sw: <>Итог: новый Paypal снова открыл старый <code>pay</code>.</>,
@@ -748,8 +1043,8 @@ const HINT: Record<CaseId, ReactNode> = {
 
 export function SoftwareSolidLab() {
   const { lines, log, clear } = useLabLog()
-  const [principle, setPrinciple] = useState<Principle>('srp')
-  const [caseId, setCaseId] = useState<CaseId>('god')
+  const [principle, setPrinciple] = useState<Principle>('cohesion')
+  const [caseId, setCaseId] = useState<CaseId>('junk')
   const [phase, setPhase] = useState<Phase>('idle')
   const [hint, setHint] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -786,6 +1081,10 @@ export function SoftwareSolidLab() {
     setBusy(true)
 
     const receipts: Record<CaseId, { kind: 'ok' | 'warn' | 'err'; text: string }> = {
+      junk: { kind: 'warn', text: 'НДС → orderStuff.ts (налог + PDF + почта + cron)' },
+      one: { kind: 'ok', text: 'НДС → pricePolicy.ts; invoicePdf не тронут' },
+      tight: { kind: 'warn', text: 'SQL Postgres → заказ (знает запрос и doc.x)' },
+      loose: { kind: 'ok', text: 'SQL спрятан за loadOrder; заказ не трогали' },
       god: { kind: 'warn', text: 'НДС → OrderService (цена + PDF)' },
       split: { kind: 'ok', text: 'НДС → PricePolicy; InvoicePdf не тронут' },
       sw: { kind: 'warn', text: 'Paypal → правка switch в checkout' },
@@ -819,8 +1118,8 @@ export function SoftwareSolidLab() {
     tlRef.current?.kill()
     setBusy(false)
     clear()
-    setPrinciple('srp')
-    setCaseId('god')
+    setPrinciple('cohesion')
+    setCaseId('junk')
     resetViz()
   }
 
@@ -855,6 +1154,12 @@ export function SoftwareSolidLab() {
       <p className={shell.pain}>{PAIN[principle]}</p>
       <p className={shell.hint}>{CASE_BRIEF[caseId]}</p>
 
+      {principle === 'cohesion' ? (
+        <CohesionViz phase={phase} caseId={caseId as CohesionCase} packetRef={packetRef} />
+      ) : null}
+      {principle === 'coupling' ? (
+        <CouplingViz phase={phase} caseId={caseId as CouplingCase} packetRef={packetRef} />
+      ) : null}
       {principle === 'srp' ? (
         <SrpViz phase={phase} caseId={caseId as SrpCase} packetRef={packetRef} />
       ) : null}
@@ -877,7 +1182,7 @@ export function SoftwareSolidLab() {
   )
 
   const code = (
-    <div className={styles.codePane}>
+    <div className={shell.codePane}>
       <PrincipleSwitch value={principle} onChange={selectPrinciple} />
       <InteractiveCodePanel
         key={principle}
@@ -890,8 +1195,8 @@ export function SoftwareSolidLab() {
 
   return (
     <JsLabShell
-      title="SOLID"
-      lead="Пять правил проще: один повод на файл, новое рядом, без сюрпризов при подмене, только нужные методы, договор вместо базы."
+      title="SOLID, Cohesion и Coupling"
+      lead="Сначала два вопроса: что лежит в одном файле и кто знает чужие внутренности. Буквы SOLID — короткие правила, как к этому прийти."
       problem={problem}
       code={code}
     />

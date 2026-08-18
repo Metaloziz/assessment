@@ -2,56 +2,52 @@ import { useRef, useState, type MutableRefObject, type ReactNode } from 'react'
 import gsap from 'gsap'
 import { JsLabShell } from '../../components/lab/JsLabShell'
 import { LabButton } from '../../components/lab/LabButton'
+import { LabBadge } from '../../components/lab/LabBadge'
+import { LabField, LabInput } from '../../components/lab/LabField'
 import shell from '../../components/lab/JsLabShell.module.css'
 import { InteractiveCodePanel, type InteractiveSnippet } from '../../components/lab/InteractiveCodePanel'
 import { LabLogView } from '../../components/lab/LabLogView'
 import { useLabLog } from '../../components/lab/useLabLog'
-import { LabNode, LabVizPanel, type LabNodeState } from '../../components/lab/LabViz'
+import { LabVizPanel, labVizStyles } from '../../components/lab/LabViz'
 import styles from './SoftwareMvcMvpMvvmLab.module.css'
 
 const TOPIC_ID = '257-software-mvc-mvp-mvvm'
 const STEP_MS = 0.6
+const DEFAULT_NAME = 'Анна '
 
-type Pattern = 'mvc' | 'mvp' | 'mvvm'
+type Pattern = 'mvc' | 'mvvm'
 type MvcCase = 'ctrl' | 'mvcLeak'
-type MvpCase = 'passive' | 'knows'
 type MvvmCase = 'bind' | 'direct'
-type CaseId = MvcCase | MvpCase | MvvmCase
+type CaseId = MvcCase | MvvmCase
 type Phase = 'idle' | 'view' | 'mid' | 'model' | 'done'
 
 const PATTERNS: Array<{ id: Pattern; label: string }> = [
   { id: 'mvc', label: 'MVC' },
-  { id: 'mvp', label: 'MVP' },
   { id: 'mvvm', label: 'MVVM' },
 ]
 
 const CASES: Record<Pattern, Array<{ id: CaseId; label: string }>> = {
   mvc: [
-    { id: 'ctrl', label: 'Через Controller' },
-    { id: 'mvcLeak', label: 'View → Model' },
-  ],
-  mvp: [
-    { id: 'passive', label: 'Passive View' },
-    { id: 'knows', label: 'View знает Model' },
+    { id: 'ctrl', label: 'Через контроллер' },
+    { id: 'mvcLeak', label: 'Экран сам пишет' },
   ],
   mvvm: [
-    { id: 'bind', label: 'Binding' },
-    { id: 'direct', label: 'View → Model' },
+    { id: 'bind', label: 'Через ViewModel' },
+    { id: 'direct', label: 'Экран сам пишет' },
   ],
 }
 
 const CODE_INTRO: Record<Pattern, string> = {
-  mvc: '`Controller.save` меняет Model; View подписан на `subscribe` и читает `getName`.',
-  mvp: '`Presenter.onSave` меняет Model и зовёт `view.setName`; View модель не импортирует.',
-  mvvm: 'View биндится к `name` и команде `save` у ViewModel; Model трогает только VM.',
+  mvc: 'Контроллер пишет имя в `Model`. Экран подписан через `subscribe` и сам подставляет значение в поле.',
+  mvvm: 'Экран приклеен к `vm.name` и команде `vm.save`. `Model` трогает только ViewModel.',
 }
 
 const CODE_SNIPPETS: Record<Pattern, InteractiveSnippet[]> = {
   mvc: [
     {
-      id: 'profile-mvc',
-      label: 'src/profile/mvc.ts',
-      note: '`View` знает `Model` через `subscribe`; пишет только `Controller`.',
+      id: 'profile-model',
+      label: 'src/profile/model.ts',
+      note: '`subscribe` — экран узнаёт, что имя изменилось. Писать сюда должен контроллер.',
       executable: false,
       languageLabel: 'ts',
       code: `type Listener = () => void;
@@ -63,19 +59,29 @@ export function createProfileModel(initial = '') {
     getName: () => name,
     setName(next: string) {
       name = next;
-      for (const fn of listeners) fn(); // ← notify View
+      for (const fn of listeners) fn(); // ← сказать экрану
     },
     subscribe(fn: Listener) {
       listeners.add(fn);
       return () => listeners.delete(fn);
     },
   };
-}
+}`,
+    },
+    {
+      id: 'profile-controller',
+      label: 'src/profile/controller.ts',
+      note: '`save` пишет в модель. Экран только читает `getName` по подписке.',
+      executable: false,
+      languageLabel: 'ts',
+      code: `import { createProfileModel } from './model';
+
+type Model = ReturnType<typeof createProfileModel>;
 
 // ═══════════════════════════════════════════
-// CONTROLLER ← жест Save, не render
+// CONTROLLER ← клик Save, не рисует экран
 // ═══════════════════════════════════════════
-export function createProfileController(model: ReturnType<typeof createProfileModel>) {
+export function createProfileController(model: Model) {
   return {
     save(raw: string) {
       model.setName(raw.trim()); // ← пишет Controller
@@ -85,11 +91,11 @@ export function createProfileController(model: ReturnType<typeof createProfileMo
 
 export function bindProfileView(
   input: HTMLInputElement,
-  model: ReturnType<typeof createProfileModel>,
+  model: Model,
   controller: ReturnType<typeof createProfileController>,
 ) {
   model.subscribe(() => {
-    input.value = model.getName(); // ← View читает Model
+    input.value = model.getName(); // ← экран читает Model
   });
   input.form?.addEventListener('submit', (e) => {
     e.preventDefault();
@@ -98,84 +104,49 @@ export function bindProfileView(
 }`,
     },
   ],
-  mvp: [
-    {
-      id: 'profile-mvp',
-      label: 'src/profile/mvp.ts',
-      note: '`View` пассивный: только `onSave` и `setName`. Model он не видит.',
-      executable: false,
-      languageLabel: 'ts',
-      code: `type ProfileView = {
-  setName: (value: string) => void;
-  onSave: (handler: (raw: string) => void) => void;
-};
-
-export function createProfileModel(initial = '') {
-  let name = initial;
-  return {
-    getName: () => name,
-    setName(next: string) {
-      name = next;
-    },
-  };
-}
-
-// ═══════════════════════════════════════════
-// PRESENTER ← пишет Model и рисует View
-// ═══════════════════════════════════════════
-export function createProfilePresenter(
-  view: ProfileView,
-  model: ReturnType<typeof createProfileModel>,
-) {
-  view.onSave((raw) => {
-    model.setName(raw.trim());
-    view.setName(model.getName()); // ← Presenter → View
-  });
-}
-
-// View не импортирует model — только setName / onSave`,
-    },
-  ],
   mvvm: [
     {
-      id: 'profile-mvvm',
-      label: 'src/profile/mvvm.ts',
-      note: 'Bind к `name` и команде `save`; `Model` меняет только ViewModel.',
+      id: 'profile-model-mvvm',
+      label: 'src/profile/model.ts',
+      note: 'Модель ничего не знает про экран. Её трогает только ViewModel.',
       executable: false,
       languageLabel: 'ts',
-      code: `type NameProp = {
-  get: () => string;
-  subscribe: (fn: (value: string) => void) => () => void;
-};
-
-export function createProfileModel(initial = '') {
+      code: `export function createProfileModel(initial = '') {
   let name = initial;
   return {
     getName: () => name,
     setName(next: string) {
-      name = next;
+      name = next; // ← без notify: экран сюда не подписан
     },
   };
-}
+}`,
+    },
+    {
+      id: 'profile-viewmodel',
+      label: 'src/profile/viewModel.ts',
+      note: 'Поле биндится к `name`. Кнопка зовёт команду `save`, не модель.',
+      executable: false,
+      languageLabel: 'ts',
+      code: `import { createProfileModel } from './model';
 
-function observable(initial: string): NameProp & { set: (v: string) => void } {
+function observable(initial: string) {
   let value = initial;
-  const listeners = new Set<(v: string) => void>();
+  const fns = new Set<(v: string) => void>();
   return {
     get: () => value,
-    set(next) {
+    set(next: string) {
       value = next;
-      for (const fn of listeners) fn(value);
+      for (const fn of fns) fn(value); // ← сказать полю
     },
-    subscribe(fn) {
-      listeners.add(fn);
-      return () => listeners.delete(fn);
+    subscribe(fn: (v: string) => void) {
+      fns.add(fn);
+      return () => fns.delete(fn);
     },
   };
 }
 
 // ═══════════════════════════════════════════
-// VIEWMODEL ← свойства и команда, не виджет
+// VIEWMODEL ← свойство name и команда save
 // ═══════════════════════════════════════════
 export function createProfileViewModel(model: ReturnType<typeof createProfileModel>) {
   const name = observable(model.getName());
@@ -183,19 +154,12 @@ export function createProfileViewModel(model: ReturnType<typeof createProfileMod
     name, // ← bind
     save(raw: string) {
       model.setName(raw.trim());
-      name.set(model.getName()); // ← VM, не View
+      name.set(model.getName()); // ← VM, не экран
     },
   };
 }
 
-export function bindName(input: HTMLInputElement, prop: NameProp) {
-  input.value = prop.get();
-  prop.subscribe((value) => {
-    input.value = value;
-  });
-}
-
-// form.onsubmit → vm.save(input.value)`,
+// bind(input, vm.name); form.onsubmit = () => vm.save(input.value)`,
     },
   ],
 }
@@ -255,111 +219,181 @@ function playTimeline(
 }
 
 function isLeak(caseId: CaseId) {
-  return caseId === 'mvcLeak' || caseId === 'knows' || caseId === 'direct'
+  return caseId === 'mvcLeak' || caseId === 'direct'
 }
 
-function midLabel(pattern: Pattern) {
-  if (pattern === 'mvc') return 'Controller'
-  if (pattern === 'mvp') return 'Presenter'
-  return 'ViewModel'
+function quote(value: string) {
+  return value ? `«${value}»` : 'пусто'
 }
 
-function nodeState(on: boolean, done: boolean, leak: boolean): LabNodeState {
-  if (done && leak) return 'idle'
-  if (done) return 'ok'
-  if (on) return 'active'
-  return 'idle'
+function layerClass(args: { hot: boolean; ok: boolean; err: boolean; dim?: boolean }) {
+  return [
+    labVizStyles.node,
+    styles.layer,
+    args.hot ? labVizStyles.nodeActive : '',
+    args.ok ? labVizStyles.nodeOk : '',
+    args.err ? labVizStyles.nodeErr : '',
+    args.dim ? styles.dim : '',
+  ]
+    .filter(Boolean)
+    .join(' ')
 }
 
 type VizProps = {
   pattern: Pattern
   caseId: CaseId
   phase: Phase
+  draft: string
+  stored: string
+  shown: string
+  vmName: string
+  busy: boolean
   midRef: MutableRefObject<HTMLDivElement | null>
+  dataRef: MutableRefObject<HTMLDivElement | null>
+  onDraft: (value: string) => void
+  onSave: () => void
 }
 
-function ArchViz({ pattern, caseId, phase, midRef }: VizProps) {
+function ProfileStand({
+  pattern,
+  caseId,
+  phase,
+  draft,
+  stored,
+  shown,
+  vmName,
+  busy,
+  midRef,
+  dataRef,
+  onDraft,
+  onSave,
+}: VizProps) {
   const leak = isLeak(caseId)
   const done = phase === 'done'
-  const viewOn = phase === 'view' || phase === 'mid' || phase === 'model' || done
-  const midOn = !leak && (phase === 'mid' || phase === 'model' || done)
-  const modelOn = phase === 'model' || done
-  const name = done || modelOn ? 'Анна' : ''
-
-  const clickHot = phase === 'view' || (leak && phase === 'model')
+  const viewHot = phase === 'view'
   const midHot = !leak && phase === 'mid'
+  const modelHot = phase === 'model'
   const backHot = !leak && (phase === 'model' || done)
+  const trimmed = draft.trim()
 
-  const viewSub = done
-    ? leak
-      ? 'сам пишет Model'
-      : pattern === 'mvp'
-        ? 'setName("Анна")'
-        : pattern === 'mvvm'
-          ? 'bind name'
-          : 'render ← subscribe'
-    : phase === 'view'
-      ? 'click Save'
-      : 'input'
+  const appClass = [
+    styles.app,
+    viewHot ? styles.appHot : '',
+    done && !leak && shown ? styles.appOk : '',
+    done && leak ? styles.appWarn : '',
+  ]
+    .filter(Boolean)
+    .join(' ')
 
-  const midSub = leak
-    ? 'обойден'
-    : done
-      ? pattern === 'mvc'
-        ? 'save()'
-        : pattern === 'mvp'
-          ? 'onSave + setName'
-          : 'command save'
-      : midOn
-        ? 'save()'
-        : 'ждёт'
+  const midLabel = pattern === 'mvc' ? 'Контроллер' : 'ViewModel'
+  const midRole = pattern === 'mvc' ? 'принял клик' : 'свойства и команда'
 
-  const modelSub = name ? `name="${name}"` : 'name=""'
+  let midBody = 'ждёт клик'
+  if (leak) midBody = 'не звали'
+  else if (phase === 'mid') midBody = `save(${quote(draft)})`
+  else if (phase === 'model' || done) {
+    midBody =
+      pattern === 'mvc'
+        ? `записал ${quote(trimmed)}`
+        : `name: ${quote(vmName || trimmed)}\nкоманда save`
+  }
 
-  const downLabel = leak ? 'setName' : pattern === 'mvp' ? 'onSave' : pattern === 'mvvm' ? 'command' : 'event'
-  const acrossLabel = leak ? '—' : 'set'
-  const backLabel = leak
-    ? `минуя ${midLabel(pattern)}`
+  const dataBody = stored ? `{ name: "${stored}" }` : '{ name: "" }'
+  const dataWho = !stored
+    ? 'ещё пусто'
+    : leak
+      ? 'записал экран'
+      : pattern === 'mvc'
+        ? 'записал контроллер'
+        : 'записал ViewModel'
+
+  const hello = shown ? `Привет, ${shown}` : 'Ещё не сохраняли — приветствие пустое'
+  const meta = leak
+    ? 'экран сам пишет в данные'
     : pattern === 'mvc'
-      ? 'notify'
-      : pattern === 'mvp'
-        ? 'setName'
-        : 'bind'
+      ? phase === 'done'
+        ? 'данные уже есть — экран подписался и обновился'
+        : 'контроллер пишет, экран подписан'
+      : phase === 'done'
+        ? 'поле подтянуло имя из ViewModel'
+        : 'экран приклеен к ViewModel'
+
+  const downLabel = leak ? '↓ сам пишет в данные' : pattern === 'mvvm' ? '↔ bind · команда save' : '↓ клик «Сохранить»'
+  const acrossLabel = leak ? 'минуя слой' : '→ записал'
+  const backLabel =
+    leak && done
+      ? 'приветствие обновил сам экран'
+      : pattern === 'mvc'
+        ? '↑ подписка: экран сам взял имя из данных'
+        : 'поле и приветствие ← bind'
 
   return (
-    <LabVizPanel
-      title="Поле имени"
-      meta={leak ? 'View пишет Model' : `${midLabel(pattern)} в центре`}
-    >
-      <div className={styles.graph}>
-        <LabNode
-          label="View"
-          sub={viewSub}
-          state={nodeState(viewOn && !done, done, leak)}
-          className={done && leak ? styles.nodeWarn : undefined}
-        />
-        <span className={`${styles.edge}${clickHot ? ` ${styles.edgeHot}` : ''}`}>↓ {downLabel}</span>
-        <div className={styles.bottom}>
-          <LabNode
-            ref={midRef}
-            label={leak ? '—' : midLabel(pattern)}
-            sub={midSub}
-            state={leak ? 'idle' : nodeState(midOn && !done, done, false)}
-            className={`${styles.midNode}${leak ? ` ${styles.nodeSkipped}` : ''}`}
-          />
-          <span className={`${styles.edge}${midHot ? ` ${styles.edgeHot}` : ''}`}>
-            {acrossLabel === '—' ? '·' : `→ ${acrossLabel}`}
-          </span>
-          <LabNode
-            label="Model"
-            sub={modelSub}
-            state={nodeState(modelOn && !done, done, leak)}
-            className={done && leak ? styles.nodeWarn : undefined}
-          />
+    <LabVizPanel title="Мини-приложение: профиль" meta={meta}>
+      <div className={styles.stand}>
+        <div className={appClass}>
+          <div className={styles.head}>
+            <span className={styles.brand}>
+              <span className={styles.brandMark} aria-hidden />
+              Профиль
+            </span>
+            <LabBadge tone={done && leak ? 'warn' : done ? 'ok' : viewHot ? 'info' : 'default'}>экран</LabBadge>
+          </div>
+          <div className={styles.formRow}>
+            <LabField label="Имя" className={styles.formField}>
+              <LabInput
+                value={draft}
+                disabled={busy}
+                placeholder="Как к вам обращаться"
+                onChange={(e) => onDraft(e.target.value)}
+              />
+            </LabField>
+            <LabButton variant="primary" size="sm" disabled={busy} onClick={onSave}>
+              Сохранить
+            </LabButton>
+          </div>
+          <p
+            className={`${styles.hello}${shown ? '' : ` ${styles.helloEmpty}`}${done && shown && !leak ? ` ${styles.helloHot}` : ''}`}
+          >
+            {hello}
+          </p>
         </div>
-        <span className={`${styles.edge}${backHot ? ` ${styles.edgeHot}` : ''}`}>
-          {leak ? backLabel : `↑ ${backLabel}`}
-        </span>
+
+        <span className={`${styles.edge}${viewHot || (leak && modelHot) ? ` ${styles.edgeHot}` : ''}`}>{downLabel}</span>
+
+        <div className={styles.layers}>
+          <div
+            ref={midRef}
+            className={layerClass({
+              hot: midHot,
+              ok: done && !leak,
+              err: false,
+              dim: leak,
+            })}
+          >
+            <div className={styles.layerHead}>
+              <span className={styles.layerTitle}>{midLabel}</span>
+              <LabBadge tone={leak ? 'warn' : done && !leak ? 'ok' : 'default'}>{leak ? 'обойден' : midRole}</LabBadge>
+            </div>
+            <p className={styles.layerBody}>{midBody}</p>
+          </div>
+          <span className={`${styles.edge}${midHot || (leak && modelHot) ? ` ${styles.edgeHot}` : ''}`}>{acrossLabel}</span>
+          <div
+            ref={dataRef}
+            className={layerClass({
+              hot: modelHot,
+              ok: done && !leak && Boolean(stored),
+              err: done && leak,
+            })}
+          >
+            <div className={styles.layerHead}>
+              <span className={styles.layerTitle}>Данные</span>
+              <LabBadge tone={done && leak ? 'warn' : stored ? 'ok' : 'default'}>{dataWho}</LabBadge>
+            </div>
+            <p className={styles.layerBody}>{dataBody}</p>
+          </div>
+        </div>
+
+        <span className={`${styles.edge}${backHot || (leak && done) ? ` ${styles.edgeHot}` : ''}`}>{backLabel}</span>
       </div>
     </LabVizPanel>
   )
@@ -368,19 +402,14 @@ function ArchViz({ pattern, caseId, phase, midRef }: VizProps) {
 const PAIN: Record<Pattern, ReactNode> = {
   mvc: (
     <>
-      После клика <code>Controller</code> меняет <code>Model</code>; <code>View</code> подписан на модель и
-      перерисовывается.
-    </>
-  ),
-  mvp: (
-    <>
-      <code>View</code> пассивный: <code>Presenter</code> меняет <code>Model</code> и зовёт{' '}
-      <code>view.setName()</code>.
+      В мини-приложении кнопка «Сохранить» не пишет имя сама: это делает <code>Controller</code>. Приветствие
+      обновляется, потому что экран подписан на <code>Model</code>.
     </>
   ),
   mvvm: (
     <>
-      <code>View</code> биндится к свойствам <code>ViewModel</code>; <code>Model</code> трогает только VM.
+      Поле и кнопка приклеены к <code>ViewModel</code>: команда <code>save</code> пишет данные, свойство{' '}
+      <code>name</code> возвращает имя на экран.
     </>
   ),
 }
@@ -388,33 +417,22 @@ const PAIN: Record<Pattern, ReactNode> = {
 const CASE_BRIEF: Record<CaseId, ReactNode> = {
   ctrl: (
     <>
-      Клик идёт в <code>Controller.save</code>; вид читает имя из <code>Model</code> по{' '}
-      <code>subscribe</code>.
+      Клик идёт в <code>Controller.save</code>; приветствие загорается только после подписки на модель.
     </>
   ),
   mvcLeak: (
     <>
-      <code>View</code> сам зовёт <code>model.setName</code> — <code>Controller</code> обойден.
-    </>
-  ),
-  passive: (
-    <>
-      <code>onSave</code> принимает презентер; вид получает <code>setName</code> и не импортирует модель.
-    </>
-  ),
-  knows: (
-    <>
-      Вид читает и пишет <code>Model</code> сам — <code>Presenter</code> не у дел.
+      Экран сам кладёт имя в данные и сразу рисует приветствие — контроллер так и не вызвали.
     </>
   ),
   bind: (
     <>
-      Поле подписано на <code>vm.name</code>; submit зовёт команду <code>vm.save</code>, не модель.
+      Кнопка зовёт <code>vm.save</code>; поле и приветствие читают <code>vm.name</code>, не модель.
     </>
   ),
   direct: (
     <>
-      Виджет зовёт <code>model.setName</code> напрямую — binding и команда VM не участвуют.
+      Виджет пишет в <code>Model</code> напрямую — <code>ViewModel</code> остаётся пустым.
     </>
   ),
 }
@@ -422,75 +440,90 @@ const CASE_BRIEF: Record<CaseId, ReactNode> = {
 type Frame = {
   phase: Phase
   log?: { kind: 'info' | 'ok' | 'warn'; text: string }
-  hint?: string
+  hint?: ReactNode
+  writeStore?: boolean
+  writeVm?: boolean
+  writeScreen?: boolean
 }
 
-function framesFor(caseId: CaseId): Frame[] {
+function framesFor(caseId: CaseId, raw: string): Frame[] {
+  const name = raw.trim()
+  const label = quote(name)
   if (caseId === 'ctrl') {
     return [
-      { phase: 'view', log: { kind: 'info', text: 'View: click Save' } },
-      { phase: 'mid', log: { kind: 'info', text: 'Controller.save("Анна")' } },
-      { phase: 'model', log: { kind: 'info', text: 'Model.setName' } },
+      { phase: 'view', log: { kind: 'info', text: `Экран: нажали «Сохранить» ${label}` } },
+      { phase: 'mid', log: { kind: 'info', text: `Контроллер принял ${label}` } },
+      { phase: 'model', log: { kind: 'info', text: `Данные: name = ${label}` }, writeStore: true },
       {
         phase: 'done',
-        log: { kind: 'ok', text: 'View.render ← subscribe' },
-        hint: 'View знает Model, пишет только Controller',
+        log: { kind: 'ok', text: 'Приветствие обновилось по подписке' },
+        writeScreen: true,
+        hint: (
+          <>
+            Имя уже лежало в данных; экран сам его прочитал через <code>subscribe</code>.
+          </>
+        ),
       },
     ]
   }
   if (caseId === 'mvcLeak') {
     return [
-      { phase: 'view', log: { kind: 'info', text: 'View: click Save' } },
-      { phase: 'model', log: { kind: 'warn', text: 'View → Model.setName, Controller нет' } },
+      { phase: 'view', log: { kind: 'info', text: `Экран: нажали «Сохранить» ${label}` } },
       {
-        phase: 'done',
-        log: { kind: 'warn', text: 'толстый View' },
-        hint: 'Controller обойден',
+        phase: 'model',
+        log: { kind: 'warn', text: 'Экран сам записал имя в данные' },
+        writeStore: true,
+        writeScreen: true,
       },
-    ]
-  }
-  if (caseId === 'passive') {
-    return [
-      { phase: 'view', log: { kind: 'info', text: 'View: onSave' } },
-      { phase: 'mid', log: { kind: 'info', text: 'Presenter → Model.setName' } },
-      { phase: 'model', log: { kind: 'info', text: 'Presenter.view.setName("Анна")' } },
       {
         phase: 'done',
-        log: { kind: 'ok', text: 'View не импортирует Model' },
-        hint: 'Presenter рисует View',
-      },
-    ]
-  }
-  if (caseId === 'knows') {
-    return [
-      { phase: 'view', log: { kind: 'info', text: 'View: click Save' } },
-      { phase: 'model', log: { kind: 'warn', text: 'View читает и пишет Model' } },
-      {
-        phase: 'done',
-        log: { kind: 'warn', text: 'Presenter не у дел' },
-        hint: 'View знает Model',
+        log: { kind: 'warn', text: 'Контроллер не звали' },
+        hint: (
+          <>
+            Приветствие появилось, но слой посередине обошли — это уже толстый <code>View</code>.
+          </>
+        ),
       },
     ]
   }
   if (caseId === 'bind') {
     return [
-      { phase: 'view', log: { kind: 'info', text: 'View: submit → command' } },
-      { phase: 'mid', log: { kind: 'info', text: 'ViewModel.save("Анна")' } },
-      { phase: 'model', log: { kind: 'info', text: 'VM → Model.setName; name.notify' } },
+      { phase: 'view', log: { kind: 'info', text: 'Экран: кнопка зовёт команду save' } },
+      { phase: 'mid', log: { kind: 'info', text: `ViewModel.save(${label})` } },
+      {
+        phase: 'model',
+        log: { kind: 'info', text: `VM записала данные и свойство name = ${label}` },
+        writeStore: true,
+        writeVm: true,
+      },
       {
         phase: 'done',
-        log: { kind: 'ok', text: 'input ← bind vm.name' },
-        hint: 'команда и свойство на VM',
+        log: { kind: 'ok', text: 'Поле и приветствие подтянули имя по bind' },
+        writeScreen: true,
+        hint: (
+          <>
+            Экран не знает <code>Model</code> — только свойство и команду на <code>ViewModel</code>.
+          </>
+        ),
       },
     ]
   }
   return [
-    { phase: 'view', log: { kind: 'info', text: 'View: click Save' } },
-    { phase: 'model', log: { kind: 'warn', text: 'View → Model.setName, VM нет' } },
+    { phase: 'view', log: { kind: 'info', text: `Экран: нажали «Сохранить» ${label}` } },
+    {
+      phase: 'model',
+      log: { kind: 'warn', text: 'Экран сам записал имя в данные' },
+      writeStore: true,
+      writeScreen: true,
+    },
     {
       phase: 'done',
-      log: { kind: 'warn', text: 'binding не участвует' },
-      hint: 'View лезет в Model',
+      log: { kind: 'warn', text: 'ViewModel не участвует' },
+      hint: (
+        <>
+          Binding не сработал: виджет лезет в <code>Model</code>.
+        </>
+      ),
     },
   ]
 }
@@ -500,24 +533,41 @@ export function SoftwareMvcMvpMvvmLab() {
   const [pattern, setPattern] = useState<Pattern>('mvc')
   const [caseId, setCaseId] = useState<CaseId>('ctrl')
   const [phase, setPhase] = useState<Phase>('idle')
-  const [hint, setHint] = useState<string | null>(null)
+  const [hint, setHint] = useState<ReactNode | null>(null)
   const [busy, setBusy] = useState(false)
   const [frame, setFrame] = useState(-1)
+  const [draft, setDraft] = useState(DEFAULT_NAME)
+  const [stored, setStored] = useState('')
+  const [shown, setShown] = useState('')
+  const [vmName, setVmName] = useState('')
 
   const tlRef = useRef<gsap.core.Timeline | null>(null)
   const midRef = useRef<HTMLDivElement | null>(null)
+  const dataRef = useRef<HTMLDivElement | null>(null)
+  const rawRef = useRef(DEFAULT_NAME)
 
   const resetViz = () => {
     setPhase('idle')
     setHint(null)
     setFrame(-1)
+    setStored('')
+    setShown('')
+    setVmName('')
     if (midRef.current) gsap.set(midRef.current, { clearProps: 'transform,opacity' })
+    if (dataRef.current) gsap.set(dataRef.current, { clearProps: 'transform,opacity' })
   }
 
-  const applyFrame = (item: Frame) => {
+  const applyFrame = (item: Frame, raw: string) => {
+    const name = raw.trim()
     setPhase(item.phase)
     if (item.log) log(item.log.kind, item.log.text)
     if (item.hint) setHint(item.hint)
+    if (item.writeStore) setStored(name)
+    if (item.writeVm) setVmName(name)
+    if (item.writeScreen) {
+      setShown(name)
+      setDraft(name)
+    }
   }
 
   const selectPattern = (next: Pattern) => {
@@ -540,19 +590,22 @@ export function SoftwareMvcMvpMvvmLab() {
   const run = () => {
     clear()
     resetViz()
+    const raw = draft
+    rawRef.current = raw
     setBusy(true)
-    const frames = framesFor(caseId)
+    const frames = framesFor(caseId, raw)
     const leak = isLeak(caseId)
     playTimeline(
       tlRef,
       frames.map((item, i) => () => {
         setFrame(i)
-        applyFrame(item)
+        applyFrame(item, raw)
       }),
       (tl) => {
-        if (!midRef.current || leak) return
-        gsap.set(midRef.current, { scale: 0.92, opacity: 0.5 })
-        tl.to(midRef.current, { scale: 1, opacity: 1 }, STEP_MS)
+        const target = leak ? dataRef.current : midRef.current
+        if (!target) return
+        gsap.set(target, { scale: 0.96, opacity: 0.65 })
+        tl.to(target, { scale: 1, opacity: 1 }, leak ? STEP_MS : STEP_MS)
       },
       () => setBusy(false),
     )
@@ -561,16 +614,22 @@ export function SoftwareMvcMvpMvvmLab() {
   const stepOnce = () => {
     tlRef.current?.kill()
     setBusy(false)
-    const frames = framesFor(caseId)
     const next = frame + 1
-    if (next >= frames.length) return
+    const raw = next === 0 ? draft : rawRef.current
     if (next === 0) {
+      rawRef.current = draft
       clear()
       setHint(null)
+      setStored('')
+      setShown('')
+      setVmName('')
       if (midRef.current) gsap.set(midRef.current, { clearProps: 'transform,opacity' })
+      if (dataRef.current) gsap.set(dataRef.current, { clearProps: 'transform,opacity' })
     }
+    const frames = framesFor(caseId, raw)
+    if (next >= frames.length) return
     setFrame(next)
-    applyFrame(frames[next]!)
+    applyFrame(frames[next]!, raw)
   }
 
   const reset = () => {
@@ -579,10 +638,11 @@ export function SoftwareMvcMvpMvvmLab() {
     clear()
     setPattern('mvc')
     setCaseId('ctrl')
+    setDraft(DEFAULT_NAME)
     resetViz()
   }
 
-  const frames = framesFor(caseId)
+  const frames = framesFor(caseId, rawRef.current)
   const steppedOut = frame >= frames.length - 1 && frame >= 0
 
   const problem = (
@@ -619,19 +679,28 @@ export function SoftwareMvcMvpMvvmLab() {
       <p className={shell.pain}>{PAIN[pattern]}</p>
       <p className={shell.hint}>{CASE_BRIEF[caseId]}</p>
 
-      <ArchViz pattern={pattern} caseId={caseId} phase={phase} midRef={midRef} />
+      <ProfileStand
+        pattern={pattern}
+        caseId={caseId}
+        phase={phase}
+        draft={draft}
+        stored={stored}
+        shown={shown}
+        vmName={vmName}
+        busy={busy}
+        midRef={midRef}
+        dataRef={dataRef}
+        onDraft={setDraft}
+        onSave={run}
+      />
 
-      {hint ? (
-        <p className={shell.hint}>
-          Итог: <code>{hint}</code>
-        </p>
-      ) : null}
+      {hint ? <p className={shell.hint}>Итог: {hint}</p> : null}
       <LabLogView lines={lines} />
     </div>
   )
 
   const code = (
-    <div className={styles.codePane}>
+    <div className={shell.codePane}>
       <PatternSwitch value={pattern} onChange={selectPattern} />
       <InteractiveCodePanel
         key={pattern}
@@ -644,8 +713,8 @@ export function SoftwareMvcMvpMvvmLab() {
 
   return (
     <JsLabShell
-      title="MVC · MVP · MVVM"
-      lead="Переключатель: кто принимает клик и кто обновляет View."
+      title="MVC · MVVM"
+      lead="Мини-приложение «Профиль»: кто принимает «Сохранить» и откуда берётся приветствие."
       problem={problem}
       code={code}
     />

@@ -1,26 +1,91 @@
-.nodeWarn {
-  border-color: color-mix(in srgb, var(--warn) 55%, var(--border));
-  color: var(--warn);
-}
-
-.nodeSkipped {
-  opacity: 0.4;
-}
-
-.graph {
+.app {
   display: flex;
   flex-direction: column;
-  align-items: center;
   gap: 0.45rem;
-  min-height: 8.2rem;
+  padding: 0.65rem 0.7rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--bg) 45%, var(--bg-elevated));
+  transition:
+    border-color 0.4s ease,
+    box-shadow 0.4s ease,
+    background 0.4s ease;
 }
 
-.bottom {
+.appHot {
+  border-color: var(--accent-bright);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent);
+  background: color-mix(in srgb, var(--accent) 10%, var(--bg-elevated));
+}
+
+.appOk {
+  border-color: color-mix(in srgb, var(--ok) 45%, var(--border));
+}
+
+.appWarn {
+  border-color: color-mix(in srgb, var(--warn) 50%, var(--border));
+}
+
+.head {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   gap: 0.5rem;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: var(--lab-font-ui);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text);
+}
+
+.brandMark {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 2px;
+  background: var(--accent);
+}
+
+.formRow {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+.formField {
+  flex: 1;
+  min-width: 0;
+}
+
+.formField :global(input) {
   width: 100%;
+}
+
+.hello {
+  margin: 0.15rem 0 0;
+  font-size: var(--lab-font-ui);
+  line-height: 1.4;
+  color: var(--text);
+  min-height: 1.4em;
+  transition: color 0.4s ease;
+}
+
+.helloEmpty {
+  color: var(--text-faint);
+}
+
+.helloHot {
+  color: var(--log-ok);
+}
+
+.stand {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.4rem;
 }
 
 .edge {
@@ -28,28 +93,76 @@
   font-size: var(--lab-font-meta);
   color: var(--text-faint);
   text-align: center;
-  min-width: 4.5rem;
+  transition: color 0.4s ease, opacity 0.4s ease;
 }
 
 .edgeHot {
   color: var(--accent-bright);
 }
 
-.midNode {
-  text-align: center;
-  min-width: 7rem;
+.layers {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 0.45rem;
+  align-items: stretch;
 }
 
-.codePane {
+.layer {
+  min-width: 0;
+  transition:
+    border-color 0.4s ease,
+    color 0.4s ease,
+    box-shadow 0.4s ease,
+    background 0.4s ease,
+    opacity 0.4s ease;
+}
+
+.layerHead {
   display: flex;
-  flex-direction: column;
-  min-height: 0;
-  flex: 1;
-  gap: 0.55rem;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.35rem;
+  margin-bottom: 0.3rem;
+}
+
+.layerTitle {
+  font-weight: var(--font-weight-semibold);
+}
+
+.layerBody {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-meta);
+  line-height: 1.45;
+  color: inherit;
+  white-space: pre-line;
+}
+
+.dim {
+  opacity: 0.4;
+}
+
+.layers > .edge {
+  align-self: center;
+  min-width: 0;
+}
+
+@media (max-width: 640px) {
+  .layers {
+    grid-template-columns: 1fr;
+    justify-items: stretch;
+  }
+
+  .layers > .edge {
+    justify-self: center;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .midNode {
+  .app,
+  .hello,
+  .edge,
+  .layer {
     transition: none;
   }
 }

@@ -1113,7 +1113,7 @@ export const TOPIC_META: Record<
   },
   "257-software-mvc-mvp-mvvm": {
     groupId: "software",
-    level: "middle",
+    level: "senior",
     sortInGroup: 3,
   },
   "258-software-waterfall-vmodel": {
