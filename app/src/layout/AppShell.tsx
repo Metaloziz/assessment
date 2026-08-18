@@ -11,7 +11,11 @@ import gsap from 'gsap'
 import { useGSAP } from '@gsap/react'
 import { TopicSidebar } from './TopicSidebar'
 import { RESIZER_WIDTH, usePanelLayout } from '../hooks/usePanelLayout'
-import { useTopicViewUrlSync } from '../hooks/useTopicViewUrl'
+import {
+  readDockFromSearch,
+  readHashSearchParams,
+  useTopicViewUrlSync,
+} from '../hooks/useTopicViewUrl'
 import { LAB_DOCK_ID, type PanelId, useLayoutStore } from '../store/layout'
 import { useProgressStore } from '../store/progress'
 import styles from './AppShell.module.css'
@@ -89,7 +93,10 @@ export function AppShell() {
 
   const open = {
     topics: topicsOpen,
-    lab: labOpen && activeHasLab,
+    lab:
+      labOpen &&
+      (activeHasLab ||
+        (onTopicPage && readDockFromSearch(readHashSearchParams()) === 'lab')),
     theory: theoryOpen,
   }
 
@@ -129,13 +136,6 @@ export function AppShell() {
       window.removeEventListener('resize', syncWidth)
     }
   }, [])
-
-  useEffect(() => {
-    if (!activeHasLab && labOpen) {
-      if (onTopicPage) setDock('topics')
-      else setLabOpen(false)
-    }
-  }, [activeHasLab, labOpen, onTopicPage, setDock, setLabOpen])
 
   const toggleTopics = () => {
     const next = !topicsOpen

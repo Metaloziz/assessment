@@ -334,6 +334,7 @@ export function TopicPage() {
   const [error, setError] = useState<string | null>(null)
   const [dockEl, setDockEl] = useState<HTMLElement | null>(null)
   const setActiveHasLab = useLayoutStore((s) => s.setActiveHasLab)
+  const setLabOpen = useLayoutStore((s) => s.setLabOpen)
 
   useEffect(() => {
     setDockEl(document.getElementById(LAB_DOCK_ID))
@@ -350,6 +351,9 @@ export function TopicPage() {
         if (cancelled) return
         setTopic(data)
         setActiveHasLab(data.hasLab)
+        if (!data.hasLab) {
+          setLabOpen(false)
+        }
       })
       .catch((err: unknown) => {
         if (!cancelled) {
@@ -361,7 +365,7 @@ export function TopicPage() {
       cancelled = true
       setActiveHasLab(false)
     }
-  }, [topicId, setActiveHasLab])
+  }, [topicId, setActiveHasLab, setLabOpen])
 
   if (error) {
     return <div className={styles.state}>{error}</div>

@@ -145,6 +145,19 @@ export function useTopicViewUrlSync(enabled: boolean) {
     })
   }, [enabled, params, setTopicsOpen, setLabOpen, setTheoryOpen, patchParams])
 
+  /** Re-apply lab from URL once topic confirms it has a lab (after load reset activeHasLab). */
+  useLayoutEffect(() => {
+    if (!enabled || !activeHasLab) return
+    const view = readViewStateFromSearch(params)
+    if (view.labOpen && !labOpen) {
+      applyingUrl.current = true
+      setLabOpen(true)
+      queueMicrotask(() => {
+        applyingUrl.current = false
+      })
+    }
+  }, [enabled, activeHasLab, params, labOpen, setLabOpen])
+
   useLayoutEffect(() => {
     if (!enabled || applyingUrl.current) return
     if (isEmptySearch(params) && !seededDefault.current) return
