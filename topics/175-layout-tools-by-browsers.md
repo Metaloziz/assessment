@@ -12,13 +12,13 @@
 
 # 3. Суть
 
-> Сначала фиксируют **кого** поддерживаем (аналитика, продукт, Baseline / Browserslist), потом под этот список включают инструменты. Узкая аудитория evergreen — мало трансформов и почти без runtime-polyfill’ов. Широкая или legacy — `@babel/preset-env` / SWC, Autoprefixer, `core-js` или точечные polyfill’ы. Список целей (Browserslist) — вход; набор плагинов и polyfill’ов — выход решения.
+> Сначала фиксируют **кого** поддерживаем (аналитика, продукт, Baseline / Browserlist), потом под этот список включают инструменты. Узкая аудитория evergreen — мало трансформов и почти без runtime-polyfill’ов. Широкая или legacy — `@babel/preset-env` / SWC, Autoprefixer, `core-js` или точечные polyfill’ы. Список целей (Browserlist) — вход; набор плагинов и polyfill’ов — выход решения.
 >
 > Зачем так: каждый лишний слой стоит килобайтов и времени сборки. Тащить IE-era transpile и полный `core-js` в дашборд «только Chrome 120+» — раздутый бандл без выгоды. Обратное — modern-only сборка для публичного сайта с Safari 14 в метриках — сюрпризы в проде.
 >
 > Практика: один контракт целей → инструменты читают его сами (`preset-env`, Autoprefixer). Отдельно решают runtime: `useBuiltIns: 'usage'` / `polyfill.io` / ручные shim’ы только под дыры списка. Для отдельных фич в CSS/JS смотрят Can I Use / MDN и при необходимости `@supports` / feature detect, а не User-Agent.
 >
-> Ловушка: путать «есть Browserslist» с «тулчейн уже правильный». Конфиг целей без согласованных Babel/PostCSS/polyfill даёт рассинхрон. И наоборот: копировать чужой набор плагинов без своего списка браузеров — оптимизация вслепую.
+> Ловушка: путать «есть Browserlist» с «тулчейн уже правильный». Конфиг целей без согласованных Babel/PostCSS/polyfill даёт рассинхрон. И наоборот: копировать чужой набор плагинов без своего списка браузеров — оптимизация вслепую.
 
 ---
 
@@ -26,7 +26,7 @@
 
 - Сначала аудитория → список браузеров; потом — какие слои тулчейна включать.
 - Узкий modern → меньше transpile / префиксов / polyfill; широкий / legacy → больше.
-- Browserslist задаёт **цели**; Babel, Autoprefixer и polyfill’ы — **реакция** на них.
+- Browserlist задаёт **цели**; Babel, Autoprefixer и polyfill’ы — **реакция** на них.
 - Polyfill — runtime; transpile/префиксы — build-time. Это разные слои.
 - Фичу проверяют Can I Use / MDN / `@supports` / feature detect, не парсингом User-Agent.
 - Один и тот же «стандартный» стек плагинов без своих целей почти всегда либо жирный, либо дырявый.
@@ -40,7 +40,7 @@
 Аудитория / аналитика
         │
         ▼
-  Цели (Browserslist / Baseline)
+  Цели (Browserlist / Baseline)
         │
         ▼
   ┌─────────────┬──────────────┬─────────────┐
@@ -60,7 +60,7 @@
 | «defaults» / доля рынка без IE | `preset-env` + Autoprefixer по списку; polyfill точечно |
 | Legacy (старый Safari / IE в контракте) | Тяжёлый transpile, префиксы, `core-js` / явные shim’ы |
 
-Browserslist (тема рядом) — **общий** список. Здесь — **решение**, какие потребители этого списка реально нужны продукту.
+Browserlist (тема рядом) — **общий** список. Здесь — **решение**, какие потребители этого списка реально нужны продукту.
 
 ## Build-time vs runtime
 
@@ -83,7 +83,7 @@ if (/MSIE|Trident/.test(navigator.userAgent)) {
 }
 ```
 
-Хорошо: feature detect (`'ResizeObserver' in window`), `@supports`, или сборка уже под согласованный Browserslist.
+Хорошо: feature detect (`'ResizeObserver' in window`), `@supports`, или сборка уже под согласованный Browserlist.
 
 ## Согласовать стек
 
@@ -96,20 +96,20 @@ if (/MSIE|Trident/.test(navigator.userAgent)) {
     → (опц.) ESLint compat / stylelint
 ```
 
-Свой `targets` только в Babel или только в Autoprefixer — снова рассинхрон CSS и JS (см. лабу Browserslist).
+Свой `targets` только в Babel или только в Autoprefixer — снова рассинхрон CSS и JS (см. лабу Browserlist).
 
 ## Ловушки
 
 - Копировать `useBuiltIns: 'entry'` + полный `core-js` после сужения целей до Chrome last 2 — мёртвый вес.
 - Включать Autoprefixer «на всякий случай» при modern-only и не смотреть, что он реально пишет.
-- Менять Browserslist в CI, но не обновлять `caniuse-lite` — решения по инструментам устаревают вместе с базой.
+- Менять Browserlist в CI, но не обновлять `caniuse-lite` — решения по инструментам устаревают вместе с базой.
 - Подменять продуктовую политику поддержки парсингом User-Agent в рантайме.
 
 ---
 
 # 6. Ссылки
 
-- [Browserslist](https://github.com/browserslist/browserslist)
+- [Browserlist](https://github.com/browserslist/browserslist)
 - [Babel preset-env — targets / browserslist / useBuiltIns](https://babeljs.io/docs/babel-preset-env)
 - [Autoprefixer](https://github.com/postcss/autoprefixer)
 - [Can I Use](https://caniuse.com/)

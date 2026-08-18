@@ -36,6 +36,7 @@ import { LiveCollectionsLab } from '../topics/js-live-collections/LiveCollection
 import { EventDelegationLab } from '../topics/js-event-delegation/EventDelegationLab'
 import { EventThisLab } from '../topics/js-event-this/EventThisLab'
 import { ArrowSyntaxLab } from '../topics/js-arrow-syntax/ArrowSyntaxLab'
+import { ArrowVsClassicLab } from '../topics/js-arrow-vs-classic/ArrowVsClassicLab'
 import { FactoryFunctionsLab } from '../topics/js-factory-functions/FactoryFunctionsLab'
 import { PrototypalInheritanceLab } from '../topics/js-prototypal-inheritance/PrototypalInheritanceLab'
 import { NullPrototypeLab } from '../topics/js-null-prototype/NullPrototypeLab'
@@ -308,6 +309,7 @@ function TopicLab({ topicId }: { topicId: string; topic: TopicDetail }) {
   if (topicId === '99-js-event-delegation') return <EventDelegationLab />
   if (topicId === '100-js-event-this') return <EventThisLab />
   if (topicId === '101-js-arrow-syntax') return <ArrowSyntaxLab />
+  if (topicId === '265-js-arrow-vs-classic') return <ArrowVsClassicLab />
   if (topicId === '102-js-factory-functions') return <FactoryFunctionsLab />
   if (topicId === '103-js-prototypal-inheritance') return <PrototypalInheritanceLab />
   if (topicId === '104-js-null-prototype') return <NullPrototypeLab />

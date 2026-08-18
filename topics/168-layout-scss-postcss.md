@@ -125,5 +125,5 @@ module.exports = {
 - [Sass documentation](https://sass-lang.com/documentation/)
 - [PostCSS](https://postcss.org/)
 - [Autoprefixer](https://github.com/postcss/autoprefixer)
-- [Browserslist](https://github.com/browserslist/browserslist)
+- [Browserlist](https://github.com/browserslist/browserslist)
 - [Using PostCSS with Vite](https://vitejs.dev/guide/features.html#postcss)

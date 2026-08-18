@@ -145,6 +145,7 @@ export function parseTopicMd(id: string, raw: string, order: number): TopicDetai
       id === '99-js-event-delegation' ||
       id === '100-js-event-this' ||
       id === '101-js-arrow-syntax' ||
+      id === '265-js-arrow-vs-classic' ||
       id === '102-js-factory-functions' ||
       id === '103-js-prototypal-inheritance' ||
       id === '104-js-null-prototype' ||

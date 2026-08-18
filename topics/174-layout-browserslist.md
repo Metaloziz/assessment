@@ -1,18 +1,18 @@
 # 1. Тема
 
-**Browserslist**
+**Browserlist**
 
 ---
 
 # 2. Главное в одну фразу
 
-Browserslist — общий список целевых браузеров, чтобы CSS и JavaScript готовились под одних и тех же людей, а не под два разных «минимума».
+Browserlist — общий список целевых браузеров, чтобы CSS и JavaScript готовились под одних и тех же людей, а не под два разных «минимума».
 
 ---
 
 # 3. Суть
 
-> Сборка должна знать, **для каких браузеров** готовить CSS и JavaScript. **Browserslist** — не бандлер и не полифил, а общий список целей: короткие запросы вроде «последние две версии, без мёртвых». По ним смотрят статистику Can I Use (`caniuse-lite`) и получают конкретные версии — Chrome 120, Firefox 121 и так далее.
+> Сборка должна знать, **для каких браузеров** готовить CSS и JavaScript. **Browserlist** — не бандлер и не полифил, а общий список целей: короткие запросы вроде «последние две версии, без мёртвых». По ним смотрят статистику Can I Use (`caniuse-lite`) и получают конкретные версии — Chrome 120, Firefox 121 и так далее.
 >
 > Babel решает, какой синтаксис ещё переписывать. Autoprefixer — какие `-webkit-` оставить. Если каждый пишет цели сам, JS и CSS «живут» в разных браузерах: лишний размер бандла или сюрприз в старом Safari.
 >
@@ -24,7 +24,7 @@ Browserslist — общий список целевых браузеров, чт
 
 # 4. Самое главное запомнить
 
-- Browserslist задаёт **кого** поддерживаем; сам код не транспилирует и префиксы не пишет.
+- Browserlist задаёт **кого** поддерживаем; сам код не транспилирует и префиксы не пишет.
 - Запросы в файле — не готовый список: конкретные версии считает `caniuse-lite`.
 - Один источник: ключ `browserslist` в `package.json` или файл `.browserslistrc`.
 - `@babel/preset-env` без `targets` и Autoprefixer без `overrideBrowserslist` читают тот же файл.
@@ -41,7 +41,7 @@ package.json / .browserslistrc
         запросы: последние версии, доля рынка, не мёртвые
         │
         ▼
-   Browserslist  +  данные Can I Use
+   Browserlist  +  данные Can I Use
         конкретные версии браузеров
        ↙                         ↘
   JS-сборка                   CSS-префиксы
@@ -50,7 +50,7 @@ package.json / .browserslistrc
 
 ## Зачем один список
 
-Инструменты отвечают на один вопрос: «под каких людей готовить код?». Если Babel думает про IE, а Autoprefixer — про свежий Chrome, в одном релизе окажутся тяжёлый JavaScript и «голый» CSS. Один Browserslist — договор команды и CI, а не ещё один плагин в цепочке.
+Инструменты отвечают на один вопрос: «под каких людей готовить код?». Если Babel думает про IE, а Autoprefixer — про свежий Chrome, в одном релизе окажутся тяжёлый JavaScript и «голый» CSS. Один Browserlist — договор команды и CI, а не ещё один плагин в цепочке.
 
 Это про **цели**. Какие слои тулчейна реально включать (transpile, polyfill, префиксы) — тема «Определение инструментов в зависимости от используемых браузеров». Как Autoprefixer стоит в цепочке PostCSS — тема PostCSS.
 
@@ -101,7 +101,7 @@ not IE 11
 
 ## Как подхватывают инструменты
 
-**Babel.** `@babel/preset-env` без своего `targets` берёт Browserslist и решает, какой синтаксис ещё переписать в более старый.
+**Babel.** `@babel/preset-env` без своего `targets` берёт Browserlist и решает, какой синтаксис ещё переписать в более старый.
 
 **Autoprefixer.** Читает тот же конфиг и решает, какие вендорные префиксы ещё нужны.
 
@@ -120,15 +120,15 @@ npx update-browserslist-db
 
 - Несколько конфигов в монорепо без общего корня / `browserslistConfigFile` — пакеты резолвят разное.
 - `defaults` «навсегда»: внутренний дашборд и публичный лендинг с IE в аналитике — разная аудитория.
-- Путать список целей с полифилами: Browserslist говорит **кого**, а `core-js` / точечные shim’ы — **что подставить в рантайме**.
+- Путать список целей с полифилами: Browserlist говорит **кого**, а `core-js` / точечные shim’ы — **что подставить в рантайме**.
 - Не обновлять `caniuse-lite`: запросы те же, версии в списке — прошлогодние.
 
 ---
 
 # 6. Ссылки
 
-- [Browserslist (GitHub)](https://github.com/browserslist/browserslist)
+- [Browserlist (GitHub)](https://github.com/browserslist/browserslist)
 - [browsersl.ist — разобрать query](https://browsersl.ist/)
 - [Babel — preset-env targets / browserslist](https://babeljs.io/docs/babel-preset-env#browserslist-integration)
 - [Autoprefixer](https://github.com/postcss/autoprefixer)
-- [web.dev — Browserslist и Baseline](https://web.dev/blog/browserslist-supports-baseline)
+- [web.dev — Browserlist и Baseline](https://web.dev/blog/browserslist-supports-baseline)
