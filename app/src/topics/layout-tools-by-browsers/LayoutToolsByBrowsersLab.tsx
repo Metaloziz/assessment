@@ -69,7 +69,7 @@ iOS >= 12
   {
     id: 'babel-config',
     label: 'babel.config.js',
-    note: '`preset-env` без своего `targets` читает Browserslist; `useBuiltIns` решает runtime-слой.',
+    note: '`preset-env` без своего `targets` читает Browserlist; `useBuiltIns` решает runtime-слой.',
     executable: false,
     code: `module.exports = {
   presets: [

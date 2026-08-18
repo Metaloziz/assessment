@@ -310,54 +310,59 @@ export const TOPIC_META: Record<
   "99-js-event-delegation": { groupId: "js", level: "middle", sortInGroup: 23 },
   "100-js-event-this": { groupId: "js", level: "middle", sortInGroup: 24 },
   "101-js-arrow-syntax": { groupId: "js", level: "middle", sortInGroup: 25 },
-  "102-js-factory-functions": {
+  "265-js-arrow-vs-classic": {
     groupId: "js",
     level: "middle",
     sortInGroup: 26,
   },
-  "103-js-prototypal-inheritance": {
+  "102-js-factory-functions": {
     groupId: "js",
     level: "middle",
     sortInGroup: 27,
   },
-  "104-js-null-prototype": { groupId: "js", level: "middle", sortInGroup: 28 },
+  "103-js-prototypal-inheritance": {
+    groupId: "js",
+    level: "middle",
+    sortInGroup: 28,
+  },
+  "104-js-null-prototype": { groupId: "js", level: "middle", sortInGroup: 29 },
   "105-js-mutation-observer": {
     groupId: "js",
     level: "middle",
-    sortInGroup: 29,
+    sortInGroup: 30,
   },
-  "106-js-selection-range": { groupId: "js", level: "middle", sortInGroup: 30 },
-  "107-js-iife": { groupId: "js", level: "senior", sortInGroup: 31 },
-  "108-js-currying": { groupId: "js", level: "senior", sortInGroup: 32 },
+  "106-js-selection-range": { groupId: "js", level: "middle", sortInGroup: 31 },
+  "107-js-iife": { groupId: "js", level: "senior", sortInGroup: 32 },
+  "108-js-currying": { groupId: "js", level: "senior", sortInGroup: 33 },
   "109-js-private-static-fields": {
-    groupId: "js",
-    level: "senior",
-    sortInGroup: 33,
-  },
-  "110-js-delegation-pattern": {
     groupId: "js",
     level: "senior",
     sortInGroup: 34,
   },
-  "111-js-v8-gc": { groupId: "js", level: "senior", sortInGroup: 35 },
-  "112-js-v8-pipeline": { groupId: "js", level: "senior", sortInGroup: 36 },
-  "113-js-class-engine": { groupId: "js", level: "senior", sortInGroup: 37 },
-  "114-js-mixins": { groupId: "js", level: "senior", sortInGroup: 38 },
-  "115-js-web-components": { groupId: "js", level: "senior", sortInGroup: 39 },
-  "116-js-v8-optimizations": {
+  "110-js-delegation-pattern": {
     groupId: "js",
     level: "senior",
-    sortInGroup: 40,
+    sortInGroup: 35,
   },
-  "117-js-proto-vs-closure-perf": {
+  "111-js-v8-gc": { groupId: "js", level: "senior", sortInGroup: 36 },
+  "112-js-v8-pipeline": { groupId: "js", level: "senior", sortInGroup: 37 },
+  "113-js-class-engine": { groupId: "js", level: "senior", sortInGroup: 38 },
+  "114-js-mixins": { groupId: "js", level: "senior", sortInGroup: 39 },
+  "115-js-web-components": { groupId: "js", level: "senior", sortInGroup: 40 },
+  "116-js-v8-optimizations": {
     groupId: "js",
     level: "senior",
     sortInGroup: 41,
   },
-  "118-js-webcomponents-css": {
+  "117-js-proto-vs-closure-perf": {
     groupId: "js",
     level: "senior",
     sortInGroup: 42,
+  },
+  "118-js-webcomponents-css": {
+    groupId: "js",
+    level: "senior",
+    sortInGroup: 43,
   },
 
   // Алгоритмы и структуры данных (после JS)

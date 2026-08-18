@@ -1,0 +1,75 @@
+.chainScene {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 10rem;
+}
+
+.chainNode {
+  width: min(100%, 14rem);
+  padding: 0.45rem 0.6rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  transition:
+    border-color 0.4s ease,
+    box-shadow 0.4s ease,
+    opacity 0.4s ease;
+}
+
+.chainNodeActive {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+.chainNodeOk {
+  border-color: var(--ok);
+}
+
+.chainNodeMiss {
+  border-color: var(--warn);
+}
+
+.chainNodeDim {
+  opacity: 0.42;
+}
+
+.chainTitle {
+  font-size: var(--lab-font-meta);
+  color: var(--muted);
+  line-height: 1.2;
+}
+
+.chainProp {
+  font-size: var(--lab-font-body);
+  color: var(--text);
+  font-family: var(--font-mono, ui-monospace, monospace);
+  line-height: 1.35;
+}
+
+.chainLink {
+  font-size: var(--lab-font-meta);
+  color: var(--muted);
+  user-select: none;
+  line-height: 1;
+}
+
+.queryBadge {
+  align-self: stretch;
+  max-width: 14rem;
+  padding: 0.35rem 0.55rem;
+  border-radius: var(--radius-sm);
+  border: 1px dashed var(--border);
+  font-size: var(--lab-font-meta);
+  color: var(--muted);
+  text-align: center;
+}
+
+.queryBadgeActive {
+  border-color: var(--accent-bright);
+  color: var(--text);
+}

@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { buildLabProblemStandUrl } from '../../lib/standUrl'
+import { buildLabStandUrl } from '../../lib/standUrl'
+import type { LabTabId } from './LabTabs'
 import styles from './LabStandLink.module.css'
 
 type Props = {
   topicId: string
+  labTab: LabTabId
 }
 
 function CopyIcon() {
@@ -25,8 +27,8 @@ function CheckIcon() {
   )
 }
 
-export function LabStandLink({ topicId }: Props) {
-  const url = buildLabProblemStandUrl(topicId)
+export function LabStandLink({ topicId, labTab }: Props) {
+  const url = buildLabStandUrl(topicId, labTab)
   const [copied, setCopied] = useState(false)
   const timerRef = useRef<number | null>(null)
 

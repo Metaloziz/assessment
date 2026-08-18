@@ -1,0 +1,102 @@
+.envScene {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  min-height: 9.5rem;
+}
+
+.envRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  justify-content: center;
+  align-items: stretch;
+}
+
+.envCard {
+  flex: 1 1 7.5rem;
+  min-width: 0;
+  max-width: 11rem;
+  padding: 0.45rem 0.55rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  transition:
+    border-color 0.4s ease,
+    box-shadow 0.4s ease,
+    opacity 0.4s ease;
+}
+
+.envCardActive {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+.envCardOk {
+  border-color: var(--ok);
+}
+
+.envCardErr {
+  border-color: var(--warn);
+}
+
+.envCardDim {
+  opacity: 0.42;
+}
+
+.envTitle {
+  font-size: var(--lab-font-meta);
+  color: var(--muted);
+  line-height: 1.2;
+}
+
+.envVar {
+  font-size: var(--lab-font-body);
+  color: var(--text);
+  font-family: var(--font-mono, ui-monospace, monospace);
+}
+
+.envLink {
+  font-size: var(--lab-font-meta);
+  color: var(--muted);
+  text-align: center;
+  user-select: none;
+  line-height: 1;
+}
+
+.envCallbacks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  justify-content: center;
+}
+
+.callbackChip {
+  padding: 0.2rem 0.45rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg-elevated) 80%, var(--accent) 8%);
+  font-size: var(--lab-font-meta);
+  color: var(--text);
+  transition:
+    border-color 0.4s ease,
+    opacity 0.4s ease;
+}
+
+.callbackChipActive {
+  border-color: var(--accent-bright);
+}
+
+.callbackChipDim {
+  opacity: 0.45;
+}
+
+.loopStrip {
+  display: flex;
+  gap: 0.35rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}

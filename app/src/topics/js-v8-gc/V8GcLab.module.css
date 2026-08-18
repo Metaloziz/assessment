@@ -1,0 +1,168 @@
+.graphScene {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 10rem;
+}
+
+.genScene {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  min-height: 10rem;
+}
+
+.nodeRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  justify-content: center;
+  align-items: stretch;
+  width: 100%;
+}
+
+.gcNode {
+  flex: 1 1 6.5rem;
+  min-width: 0;
+  max-width: 10rem;
+  padding: 0.45rem 0.55rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  transition:
+    border-color 0.4s ease,
+    box-shadow 0.4s ease,
+    opacity 0.4s ease;
+}
+
+.gcNodeActive {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+.gcNodeOk {
+  border-color: var(--ok);
+}
+
+.gcNodeWarn {
+  border-color: var(--warn);
+}
+
+.gcNodeErr {
+  border-color: var(--danger);
+}
+
+.gcNodeDim {
+  opacity: 0.42;
+}
+
+.gcTitle {
+  font-size: var(--lab-font-meta);
+  color: var(--muted);
+  line-height: 1.2;
+}
+
+.gcMeta {
+  font-size: var(--lab-font-body);
+  color: var(--text);
+  font-family: var(--font-mono, ui-monospace, monospace);
+  line-height: 1.35;
+}
+
+.gcLink {
+  font-size: var(--lab-font-meta);
+  color: var(--muted);
+  text-align: center;
+  user-select: none;
+  line-height: 1;
+}
+
+.gcLinkBroken {
+  color: var(--warn);
+  text-decoration: line-through;
+}
+
+.genZone {
+  padding: 0.5rem 0.6rem;
+  border-radius: var(--radius-sm);
+  border: 1px dashed var(--border);
+  background: color-mix(in srgb, var(--bg-elevated) 92%, var(--accent) 4%);
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  transition:
+    border-color 0.4s ease,
+    box-shadow 0.4s ease,
+    opacity 0.4s ease;
+}
+
+.genZoneActive {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+.genZoneOk {
+  border-color: var(--ok);
+}
+
+.genZoneWarn {
+  border-color: var(--warn);
+}
+
+.genZoneDim {
+  opacity: 0.45;
+}
+
+.genLabel {
+  font-size: var(--lab-font-meta);
+  color: var(--muted);
+}
+
+.objChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.objChip {
+  padding: 0.18rem 0.4rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  font-size: var(--lab-font-meta);
+  color: var(--text);
+  transition:
+    border-color 0.4s ease,
+    opacity 0.4s ease;
+}
+
+.objChipActive {
+  border-color: var(--accent-bright);
+}
+
+.objChipOk {
+  border-color: var(--ok);
+}
+
+.objChipGone {
+  opacity: 0.25;
+  text-decoration: line-through;
+}
+
+.objChipWarn {
+  border-color: var(--warn);
+}
+
+.objChipDim {
+  opacity: 0.45;
+}
+
+.promoteArrow {
+  align-self: center;
+  font-size: var(--lab-font-meta);
+  color: var(--muted);
+}
