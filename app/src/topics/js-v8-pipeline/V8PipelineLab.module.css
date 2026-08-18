@@ -1,0 +1,311 @@
+/* —— Общие карточки этапов —— */
+.stageCard {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  min-height: 3.4rem;
+  padding: 0.42rem 0.48rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid color-mix(in srgb, var(--border) 88%, var(--accent) 12%);
+  background: linear-gradient(
+    165deg,
+    color-mix(in srgb, var(--bg-elevated) 90%, var(--accent) 10%) 0%,
+    var(--bg-elevated) 100%
+  );
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.18rem;
+  overflow: hidden;
+  transition:
+    border-color 0.4s ease,
+    box-shadow 0.4s ease,
+    opacity 0.4s ease,
+    transform 0.35s ease;
+}
+
+.stageActive {
+  border-color: var(--accent);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent),
+    0 4px 14px color-mix(in srgb, var(--accent) 18%, transparent);
+  transform: translateY(-1px);
+}
+
+.stageOk {
+  border-color: var(--ok);
+}
+
+.stageWarn {
+  border-color: var(--warn);
+}
+
+.stageDim {
+  opacity: 0.42;
+}
+
+.stageLabel {
+  display: block;
+  font-size: var(--lab-font-meta);
+  font-weight: 500;
+  color: var(--text);
+  line-height: 1.25;
+  text-align: center;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  hyphens: auto;
+}
+
+.stageSub {
+  display: block;
+  font-size: var(--lab-font-mono);
+  color: var(--muted);
+  line-height: 1.2;
+  text-align: center;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.stageNote {
+  display: block;
+  font-size: calc(var(--lab-font-meta) * 0.92);
+  color: var(--muted);
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* —— Горизонтальные дорожки —— */
+.trackFlex {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  justify-content: center;
+  gap: 0.2rem 0.12rem;
+  width: 100%;
+}
+
+.trackCell {
+  flex: 1 1 4.75rem;
+  min-width: 4.35rem;
+  max-width: 7.5rem;
+  display: flex;
+}
+
+.trackArrow {
+  flex: 0 0 0.75rem;
+  align-self: center;
+  text-align: center;
+  font-size: calc(var(--lab-font-meta) * 0.88);
+  color: var(--muted);
+  user-select: none;
+  line-height: 1;
+  opacity: 0.75;
+}
+
+.flow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  justify-content: center;
+  gap: 0.2rem 0.12rem;
+  width: 100%;
+  min-height: 5.5rem;
+}
+
+.flow .trackCell {
+  flex: 1 1 5rem;
+  min-width: 4.5rem;
+  max-width: 8rem;
+}
+
+/* —— Конвейер (полный путь) —— */
+.fullSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  width: 100%;
+}
+
+.fullRowLabel {
+  font-size: var(--lab-font-meta);
+  font-weight: 500;
+  color: var(--muted);
+  line-height: 1.2;
+  letter-spacing: 0.02em;
+}
+
+.fullTrackParse {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.32rem;
+  width: 100%;
+}
+
+.fullTrackParse .trackCell {
+  flex: unset;
+  min-width: 0;
+  max-width: none;
+}
+
+.fullTrackRun {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.32rem;
+  width: 100%;
+  max-width: 24rem;
+  margin-inline: auto;
+}
+
+.fullTrackRun .trackCell {
+  flex: unset;
+  min-width: 0;
+  max-width: none;
+}
+
+.fullFnChip {
+  display: inline-block;
+  max-width: 100%;
+  padding: 0.28rem 0.55rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid color-mix(in srgb, var(--border) 80%, var(--accent) 20%);
+  background: color-mix(in srgb, var(--bg-elevated) 82%, var(--accent) 18%);
+  font-size: var(--lab-font-mono);
+  color: var(--text);
+  margin-bottom: 0.2rem;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.fullDeoptRow {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.45rem 0 0.35rem 0.55rem;
+  border-left: 2px dashed color-mix(in srgb, var(--warn) 55%, transparent);
+}
+
+.fullDeoptTrack {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 0.2rem 0.12rem;
+  width: 100%;
+}
+
+.fullDeoptTrack .trackCell {
+  flex: 1 1 5.5rem;
+  min-width: 4.75rem;
+  max-width: 8rem;
+}
+
+.fullDeoptLead {
+  flex: 0 0 100%;
+  font-size: var(--lab-font-meta);
+  color: color-mix(in srgb, var(--warn) 75%, var(--muted));
+  line-height: 1.2;
+  margin-bottom: 0.1rem;
+}
+
+/* —— Карточки функций (pre-parse) —— */
+.fnRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  justify-content: center;
+  min-height: 5.5rem;
+}
+
+.fnCard {
+  box-sizing: border-box;
+  flex: 1 1 9rem;
+  min-width: 0;
+  max-width: 13rem;
+  min-height: 4.5rem;
+  padding: 0.5rem 0.6rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid color-mix(in srgb, var(--border) 88%, var(--accent) 12%);
+  background: linear-gradient(
+    165deg,
+    color-mix(in srgb, var(--bg-elevated) 90%, var(--accent) 10%) 0%,
+    var(--bg-elevated) 100%
+  );
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.22rem;
+  overflow: hidden;
+  transition:
+    border-color 0.4s ease,
+    box-shadow 0.4s ease,
+    opacity 0.4s ease;
+}
+
+.fnCardActive {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+.fnCardOk {
+  border-color: var(--ok);
+}
+
+.fnCardDim {
+  opacity: 0.42;
+}
+
+/* —— JIT deopt-ветка —— */
+.deoptFork {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  min-height: 6rem;
+  width: 100%;
+}
+
+.deoptLead {
+  align-self: center;
+  font-size: var(--lab-font-meta);
+  color: var(--muted);
+  line-height: 1;
+}
+
+.deoptBranches {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  justify-content: center;
+  gap: 0.2rem 0.12rem;
+  width: 100%;
+  max-width: 22rem;
+  margin-inline: auto;
+}
+
+.deoptBranches .trackCell {
+  flex: 1 1 6rem;
+  min-width: 5rem;
+  max-width: 9rem;
+}
+
+@media (max-width: 520px) {
+  .fullTrackParse {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .fullTrackRun {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    max-width: none;
+  }
+
+  .flow .trackCell {
+    flex: 1 1 calc(33% - 0.5rem);
+    min-width: 3.85rem;
+    max-width: none;
+  }
+
+  .trackArrow {
+    flex: 0 0 0.55rem;
+    font-size: 0.75rem;
+  }
+}
