@@ -288,7 +288,7 @@ const A11yLiveViz = ({ caseId, live, cursor, done, refs, cardRefs }: VizProps) =
                 ) : null}
                 {i === 1 && !ok ? (
                   <div
-                    ref={refs.save}
+                    ref={refs.save as MutableRefObject<HTMLDivElement | null>}
                     className={styles.btnDiv}
                     onClick={() => undefined}
                   >
@@ -308,7 +308,7 @@ const A11yLiveViz = ({ caseId, live, cursor, done, refs, cardRefs }: VizProps) =
                 ) : null}
                 {i === 2 && !ok ? (
                   <div
-                    ref={refs.close}
+                    ref={refs.close as MutableRefObject<HTMLDivElement | null>}
                     className={styles.btnDivIcon}
                     tabIndex={brokenJump}
                     onClick={() => undefined}
