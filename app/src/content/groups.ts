@@ -624,20 +624,25 @@ export const TOPIC_META: Record<
   },
   "165-layout-typography": {
     groupId: "layout",
-    level: "junior",
-    sortInGroup: 2,
+    level: "middle",
+    sortInGroup: 4,
   },
   "166-layout-bem": {
     groupId: "layout",
     level: "junior",
-    sortInGroup: 3,
+    sortInGroup: 2,
   },
   "167-layout-pseudo-classes": {
     groupId: "layout",
     level: "junior",
-    sortInGroup: 4,
+    sortInGroup: 3,
   },
   "168-layout-scss-postcss": {
+    groupId: "layout",
+    level: "middle",
+    sortInGroup: 5,
+  },
+  "264-layout-postcss": {
     groupId: "layout",
     level: "middle",
     sortInGroup: 5,

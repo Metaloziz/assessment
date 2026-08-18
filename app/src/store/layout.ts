@@ -1,52 +1,79 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { readInitialViewState } from '../hooks/useTopicViewUrl'
+
+export type PanelId = 'topics' | 'lab' | 'theory'
+
+export const PANEL_ORDER: PanelId[] = ['topics', 'lab', 'theory']
+
+export function panelComboKey(panelIds: PanelId[]): string | null {
+  if (panelIds.length === 0) return null
+  return [...panelIds].sort().join('+')
+}
+
+export function visiblePanels(open: {
+  topics: boolean
+  lab: boolean
+  theory: boolean
+}): PanelId[] {
+  return PANEL_ORDER.filter((id) => open[id])
+}
+
+export function equalPanelWeights(count: number): number[] {
+  if (count <= 0) return []
+  const share = 1 / count
+  return Array.from({ length: count }, () => share)
+}
 
 type LayoutState = {
-  sidebarOpen: boolean
-  /** Fraction of shell width for the left dock (Topics and Lab share it). */
-  labShare: number
-  /** Left dock shows lab layer instead of topics. */
+  topicsOpen: boolean
   labOpen: boolean
-  /** Current topic has a lab (drives Topics/Lab toggle). */
-  activeHasLab: boolean
-  /**
-   * Show theory (main pane). When false — same full-bleed dock animation as former labFocus.
-   */
   theoryOpen: boolean
-  /** Scroll position of the topics list (nav). */
+  /** Normalized flex weights per open-panel combination key (e.g. `lab+topics+theory`). */
+  panelSizes: Record<string, number[]>
+  activeHasLab: boolean
   sidebarScrollTop: number
-  /** Collapsed topic groups in the sidebar (`groupId` → collapsed). */
   collapsedGroups: Record<string, boolean>
-  setSidebarOpen: (open: boolean) => void
-  toggleSidebar: () => void
-  setLabShare: (share: number) => void
+  setTopicsOpen: (open: boolean) => void
   setLabOpen: (open: boolean) => void
-  setActiveHasLab: (hasLab: boolean) => void
   setTheoryOpen: (open: boolean) => void
+  setPanelSizes: (comboKey: string, sizes: number[]) => void
+  setActiveHasLab: (hasLab: boolean) => void
   setSidebarScrollTop: (top: number) => void
   toggleCollapsedGroup: (groupId: string) => void
 }
 
-const clampLabShare = (value: number) => Math.min(0.72, Math.max(0.28, value))
+const normalizeWeights = (sizes: number[]): number[] => {
+  const sum = sizes.reduce((acc, n) => acc + n, 0)
+  if (sum <= 0) return equalPanelWeights(sizes.length)
+  return sizes.map((n) => n / sum)
+}
 
 export const LAB_DOCK_ID = 'lab-dock-root'
+
+const initialView = readInitialViewState()
 
 export const useLayoutStore = create<LayoutState>()(
   persist(
     (set) => ({
-      sidebarOpen: true,
-      labShare: 0.5,
-      labOpen: false,
+      topicsOpen: initialView.topicsOpen,
+      labOpen: initialView.labOpen,
+      theoryOpen: initialView.theoryOpen,
+      panelSizes: {},
       activeHasLab: false,
-      theoryOpen: true,
       sidebarScrollTop: 0,
       collapsedGroups: {},
-      setSidebarOpen: (open) => set({ sidebarOpen: open }),
-      toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
-      setLabShare: (share) => set({ labShare: clampLabShare(share) }),
+      setTopicsOpen: (open) => set({ topicsOpen: open }),
       setLabOpen: (open) => set({ labOpen: open }),
-      setActiveHasLab: (hasLab) => set({ activeHasLab: hasLab }),
       setTheoryOpen: (open) => set({ theoryOpen: open }),
+      setPanelSizes: (comboKey, sizes) =>
+        set((s) => ({
+          panelSizes: {
+            ...s.panelSizes,
+            [comboKey]: normalizeWeights(sizes),
+          },
+        })),
+      setActiveHasLab: (hasLab) => set({ activeHasLab: hasLab }),
       setSidebarScrollTop: (top) => set({ sidebarScrollTop: Math.max(0, Math.round(top)) }),
       toggleCollapsedGroup: (groupId) =>
         set((s) => {
@@ -62,8 +89,7 @@ export const useLayoutStore = create<LayoutState>()(
     {
       name: 'assessment-layout',
       partialize: (state) => ({
-        sidebarOpen: state.sidebarOpen,
-        labShare: state.labShare,
+        panelSizes: state.panelSizes,
         sidebarScrollTop: state.sidebarScrollTop,
         collapsedGroups: state.collapsedGroups,
       }),

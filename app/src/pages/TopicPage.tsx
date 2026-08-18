@@ -121,6 +121,8 @@ import { LayoutGridLab } from '../topics/layout-grid/LayoutGridLab'
 import { LayoutFlexboxLab } from '../topics/layout-flexbox/LayoutFlexboxLab'
 import { LayoutAnimationLab } from '../topics/layout-animation/LayoutAnimationLab'
 import { LayoutScssPostcssLab } from '../topics/layout-scss-postcss/LayoutScssPostcssLab'
+import { LayoutPostcssLab } from '../topics/layout-postcss/LayoutPostcssLab'
+import { LayoutTypographyLab } from '../topics/layout-typography/LayoutTypographyLab'
 import { AsyncEventLoopLab } from '../topics/async-event-loop/AsyncEventLoopLab'
 import { AsyncTasksMicrotasksLab } from '../topics/async-tasks-microtasks/AsyncTasksMicrotasksLab'
 import { AsyncCallbackPromisesLab } from '../topics/async-callback-promises/AsyncCallbackPromisesLab'
@@ -205,7 +207,9 @@ function TopicLab({ topicId }: { topicId: string; topic: TopicDetail }) {
     return <PatternsDependencyInjectionLab />
   if (topicId === '163-patterns-template-flyweight-bridge')
     return <PatternsTemplateFlyweightBridgeLab />
+  if (topicId === '165-layout-typography') return <LayoutTypographyLab />
   if (topicId === '168-layout-scss-postcss') return <LayoutScssPostcssLab />
+  if (topicId === '264-layout-postcss') return <LayoutPostcssLab />
   if (topicId === '169-layout-flexbox') return <LayoutFlexboxLab />
   if (topicId === '170-layout-animation') return <LayoutAnimationLab />
   if (topicId === '172-layout-css-modules-css-in-js') return <LayoutCssModulesCssInJsLab />
@@ -330,8 +334,6 @@ export function TopicPage() {
   const [error, setError] = useState<string | null>(null)
   const [dockEl, setDockEl] = useState<HTMLElement | null>(null)
   const setActiveHasLab = useLayoutStore((s) => s.setActiveHasLab)
-  const setTheoryOpen = useLayoutStore((s) => s.setTheoryOpen)
-  const setLabOpen = useLayoutStore((s) => s.setLabOpen)
 
   useEffect(() => {
     setDockEl(document.getElementById(LAB_DOCK_ID))
@@ -358,10 +360,8 @@ export function TopicPage() {
     return () => {
       cancelled = true
       setActiveHasLab(false)
-      setLabOpen(false)
-      setTheoryOpen(true)
     }
-  }, [topicId, setActiveHasLab, setLabOpen, setTheoryOpen])
+  }, [topicId, setActiveHasLab])
 
   if (error) {
     return <div className={styles.state}>{error}</div>

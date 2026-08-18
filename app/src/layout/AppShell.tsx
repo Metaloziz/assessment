@@ -1,290 +1,134 @@
-import { useCallback, useEffect, useRef, type PointerEvent as ReactPointerEvent } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type PointerEvent as ReactPointerEvent,
+  type ReactNode,
+} from 'react'
 import { Outlet, useMatch } from 'react-router-dom'
 import gsap from 'gsap'
 import { useGSAP } from '@gsap/react'
 import { TopicSidebar } from './TopicSidebar'
+import { RESIZER_WIDTH, usePanelLayout } from '../hooks/usePanelLayout'
 import { useTopicViewUrlSync } from '../hooks/useTopicViewUrl'
-import { LAB_DOCK_ID, useLayoutStore } from '../store/layout'
+import { LAB_DOCK_ID, type PanelId, useLayoutStore } from '../store/layout'
 import { useProgressStore } from '../store/progress'
 import styles from './AppShell.module.css'
 
 gsap.registerPlugin(useGSAP)
 
-/** Phone stack (column + vh cap). Keep side-by-side above this — 860px still fits a dock. */
-const MOBILE_LAYOUT_MQ = '(max-width: 640px)'
+type PanelSlide = 'left' | 'right'
 
-function readSidebarWidthPx(): number {
-  const raw = getComputedStyle(document.documentElement).getPropertyValue('--sidebar-width').trim()
-  const parsed = Number.parseFloat(raw)
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : 300
+function PanelResizer({
+  visible,
+  resizerRef,
+  onPointerDown,
+}: {
+  visible: boolean
+  resizerRef: (el: HTMLDivElement | null) => void
+  onPointerDown: (event: ReactPointerEvent<HTMLDivElement>) => void
+}) {
+  return (
+    <div
+      ref={resizerRef}
+      className={styles.panelResizer}
+      role="separator"
+      aria-orientation="vertical"
+      aria-hidden={!visible}
+      onPointerDown={onPointerDown}
+    />
+  )
 }
 
-/** Shared dock width for Topics and Lab modes (fraction of workspace). */
-function dockWidthFromShare(workspaceWidth: number, share: number): number {
-  const minW = Math.max(readSidebarWidthPx(), Math.round(workspaceWidth * 0.28))
-  const maxW = Math.round(workspaceWidth * 0.72)
-  return Math.min(maxW, Math.max(minW, Math.round(workspaceWidth * share)))
+function ShellPanel({
+  panelRef,
+  panelId,
+  visible,
+  slideFrom,
+  children,
+}: {
+  panelRef: (el: HTMLDivElement | null) => void
+  panelId: PanelId
+  visible: boolean
+  slideFrom: PanelSlide
+  children: ReactNode
+}) {
+  return (
+    <div
+      ref={panelRef}
+      className={styles.panel}
+      data-panel={panelId}
+      data-open={visible ? 'true' : 'false'}
+      aria-hidden={!visible}
+    >
+      <div className={styles.panelInner} data-slide={slideFrom}>
+        {children}
+      </div>
+    </div>
+  )
 }
 
 export function AppShell() {
   const topicMatch = useMatch('/topics/:topicId')
   const onTopicPage = Boolean(topicMatch)
-  const { setDock, setTheory } = useTopicViewUrlSync(onTopicPage)
+  const { setTopics, setDock, setTheory, viewReady } = useTopicViewUrlSync(onTopicPage)
 
-  const sidebarOpen = useLayoutStore((s) => s.sidebarOpen)
+  const topicsOpen = useLayoutStore((s) => s.topicsOpen)
   const labOpen = useLayoutStore((s) => s.labOpen)
   const theoryOpen = useLayoutStore((s) => s.theoryOpen)
-  const labShare = useLayoutStore((s) => s.labShare)
   const activeHasLab = useLayoutStore((s) => s.activeHasLab)
-  const setSidebarOpen = useLayoutStore((s) => s.setSidebarOpen)
+  const setTopicsOpen = useLayoutStore((s) => s.setTopicsOpen)
   const setLabOpen = useLayoutStore((s) => s.setLabOpen)
   const setTheoryOpen = useLayoutStore((s) => s.setTheoryOpen)
-  const setLabShare = useLayoutStore((s) => s.setLabShare)
   const loadProgress = useProgressStore((s) => s.loadProgress)
 
   useEffect(() => {
     void loadProgress()
   }, [loadProgress])
 
-  const theoryHidden = !theoryOpen
+  const open = {
+    topics: topicsOpen,
+    lab: labOpen && activeHasLab,
+    theory: theoryOpen,
+  }
 
   const shellRef = useRef<HTMLDivElement>(null)
   const workspaceRef = useRef<HTMLDivElement>(null)
-  const dockRef = useRef<HTMLDivElement>(null)
-  const topicsRef = useRef<HTMLDivElement>(null)
-  const labRef = useRef<HTMLDivElement>(null)
-  const mainRef = useRef<HTMLElement>(null)
-  const resizerRef = useRef<HTMLDivElement>(null)
+  const panelRefs = useRef<Record<PanelId, HTMLDivElement | null>>({
+    topics: null,
+    lab: null,
+    theory: null,
+  })
+  const resizerRefs = useRef<Record<PanelId, HTMLDivElement | null>>({
+    topics: null,
+    lab: null,
+    theory: null,
+  })
   const hydratedRef = useRef(false)
   const draggingRef = useRef(false)
-  const theoryHiddenRef = useRef(theoryHidden)
-  /** Last theory panel width in px — keeps text layout stable across slide. */
-  const theoryWidthRef = useRef(0)
+  const prevOpenRef = useRef(open)
 
-  /** Dock visible when: lab mode, theory hidden (full-bleed), or topics with sidebar open. */
-  const dockExpanded = labOpen || theoryHidden || (sidebarOpen && theoryOpen)
-  const topicsOn = !labOpen && (sidebarOpen || theoryHidden)
-  const labOn = labOpen
-  const theoryOn = theoryOpen
+  const [workspaceWidth, setWorkspaceWidth] = useState(0)
+  const { layout, onResizerDrag, resizerIndexForPanel } = usePanelLayout(workspaceWidth, open)
 
-  const toggleTopics = () => {
-    if (labOpen) {
-      if (onTopicPage) setDock('topics')
-      else setLabOpen(false)
-      setSidebarOpen(true)
-      return
+  useEffect(() => {
+    const workspace = workspaceRef.current
+    if (!workspace) return
+
+    const syncWidth = () => {
+      setWorkspaceWidth(workspace.getBoundingClientRect().width || window.innerWidth)
     }
-    if (topicsOn) {
-      if (theoryHidden) {
-        if (onTopicPage) setTheory(true)
-        else setTheoryOpen(true)
-      }
-      setSidebarOpen(false)
-      return
+
+    syncWidth()
+    const ro = new ResizeObserver(syncWidth)
+    ro.observe(workspace)
+    window.addEventListener('resize', syncWidth)
+    return () => {
+      ro.disconnect()
+      window.removeEventListener('resize', syncWidth)
     }
-    setSidebarOpen(true)
-  }
-
-  const toggleLab = () => {
-    if (!activeHasLab) return
-    if (labOpen) {
-      if (onTopicPage) setDock('topics')
-      else setLabOpen(false)
-      if (theoryOpen) setSidebarOpen(false)
-      return
-    }
-    if (onTopicPage) setDock('lab')
-    else setLabOpen(true)
-  }
-
-  const toggleTheory = () => {
-    const next = !theoryOpen
-    if (!next && !labOpen && !sidebarOpen) {
-      setSidebarOpen(true)
-    }
-    if (onTopicPage) setTheory(next)
-    else setTheoryOpen(next)
-  }
-
-  useGSAP(
-    () => {
-      const dock = dockRef.current
-      const topics = topicsRef.current
-      const lab = labRef.current
-      const main = mainRef.current
-      const resizer = resizerRef.current
-      const workspace = workspaceRef.current
-      if (!dock || !topics || !lab || !main || !workspace) return
-
-      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-      const mobile = window.matchMedia(MOBILE_LAYOUT_MQ).matches
-      const duration = reduced ? 0 : 0.48
-      const ease = 'power3.inOut'
-      const workspaceW = workspace.getBoundingClientRect().width || window.innerWidth
-      const share = useLayoutStore.getState().labShare
-      const dockW = dockWidthFromShare(workspaceW, share)
-      const resizerW = 6
-
-      const theoryW = Math.max(
-        200,
-        theoryWidthRef.current || workspaceW - dockW - resizerW,
-      )
-
-      // theoryHidden → % ширины, не px: иначе после DevTools/resize док не сжимается
-      const dockWidth = !dockExpanded
-        ? 0
-        : theoryHidden || mobile
-          ? '100%'
-          : dockW
-
-      const theoryOpenWidth = mobile
-        ? workspaceW
-        : dockExpanded && !theoryHidden
-          ? Math.max(200, workspaceW - dockW - resizerW)
-          : workspaceW
-
-      const dockMaxHeight = !dockExpanded
-        ? 0
-        : theoryHidden
-          ? mobile
-            ? '100%'
-            : 'none'
-          : labOpen
-            ? '55vh'
-            : '40vh'
-
-      const layer = labOpen
-        ? {
-            topics: { xPercent: -100, autoAlpha: 0 },
-            lab: { xPercent: 0, autoAlpha: 1 },
-          }
-        : {
-            topics: { xPercent: 0, autoAlpha: 1 },
-            lab: { xPercent: 100, autoAlpha: 0 },
-          }
-
-      const placeTheory = (hidden: boolean, widthPx: number) => {
-        gsap.set(main, {
-          position: 'absolute',
-          top: 0,
-          bottom: 0,
-          right: 0,
-          left: 'auto',
-          height: 'auto',
-          width: mobile ? workspaceW : widthPx,
-          yPercent: 0,
-          xPercent: hidden ? 100 : 0,
-          autoAlpha: 1,
-        })
-      }
-
-      if (!hydratedRef.current) {
-        hydratedRef.current = true
-        if (mobile) {
-          gsap.set(dock, {
-            width: '100%',
-            maxHeight: dockExpanded ? dockMaxHeight : 0,
-            opacity: dockExpanded ? 1 : 0,
-          })
-        } else {
-          gsap.set(dock, { width: dockWidth, maxHeight: 'none', opacity: 1 })
-        }
-        gsap.set(topics, layer.topics)
-        gsap.set(lab, layer.lab)
-        const w = theoryHidden ? theoryW : theoryOpenWidth
-        theoryWidthRef.current = w
-        placeTheory(theoryHidden, w)
-        if (resizer) {
-          gsap.set(resizer, {
-            autoAlpha: dockExpanded && !theoryHidden ? 1 : 0,
-            width: dockExpanded && !theoryHidden ? resizerW : 0,
-          })
-        }
-        theoryHiddenRef.current = theoryHidden
-        return
-      }
-
-      if (draggingRef.current) return
-
-      const tl = gsap.timeline({ defaults: { duration, ease, overwrite: 'auto' } })
-
-      if (mobile) {
-        tl.to(
-          dock,
-          {
-            width: '100%',
-            maxHeight: dockExpanded ? dockMaxHeight : 0,
-            opacity: dockExpanded ? 1 : 0,
-          },
-          0,
-        )
-      } else {
-        tl.to(dock, { width: dockWidth, maxHeight: 'none', opacity: 1 }, 0)
-      }
-
-      tl.to(topics, layer.topics, 0)
-      tl.to(lab, layer.lab, 0)
-
-      const wasHidden = theoryHiddenRef.current
-      const hiding = theoryHidden && !wasHidden
-      const showing = !theoryHidden && wasHidden
-      theoryHiddenRef.current = theoryHidden
-
-      if (hiding) {
-        // Keep current pixel width, only slide right — no fade, no reflow.
-        const currentW = Math.round(main.getBoundingClientRect().width) || theoryW
-        theoryWidthRef.current = currentW
-        gsap.set(main, {
-          position: 'absolute',
-          top: 0,
-          bottom: 0,
-          right: 0,
-          left: 'auto',
-          width: currentW,
-          height: 'auto',
-          autoAlpha: 1,
-          yPercent: 0,
-        })
-        tl.to(main, { xPercent: 100 }, 0)
-      } else if (showing) {
-        theoryWidthRef.current = theoryOpenWidth
-        // Start off-screen, commit layout, then slide in (same motion as hide).
-        gsap.set(main, {
-          position: 'absolute',
-          top: 0,
-          bottom: 0,
-          right: 0,
-          left: 'auto',
-          width: theoryOpenWidth,
-          height: 'auto',
-          xPercent: 100,
-          yPercent: 0,
-          autoAlpha: 1,
-        })
-        void main.offsetWidth
-        tl.fromTo(main, { xPercent: 100 }, { xPercent: 0, ease }, 0)
-      } else if (!theoryHidden) {
-        // Dock/lab toggles while theory stays open — keep panel docked, update width without slide.
-        theoryWidthRef.current = theoryOpenWidth
-        tl.to(main, { width: theoryOpenWidth, xPercent: 0, yPercent: 0 }, 0)
-      } else {
-        // Stays hidden — keep off-screen to the right.
-        gsap.set(main, { xPercent: 100, yPercent: 0, autoAlpha: 1 })
-      }
-
-      if (resizer) {
-        tl.to(
-          resizer,
-          {
-            autoAlpha: dockExpanded && !theoryHidden ? 1 : 0,
-            width: dockExpanded && !theoryHidden ? resizerW : 0,
-          },
-          0,
-        )
-      }
-    },
-    { scope: shellRef, dependencies: [labOpen, dockExpanded, theoryHidden] },
-  )
+  }, [])
 
   useEffect(() => {
     if (!activeHasLab && labOpen) {
@@ -293,75 +137,165 @@ export function AppShell() {
     }
   }, [activeHasLab, labOpen, onTopicPage, setDock, setLabOpen])
 
-  /**
-   * Пересчёт ширин при resize viewport / DevTools / labShare.
-   * GSAP пишет inline width в px — без RO док «залипает» на старом размере.
-   * Не трогаем xPercent (ломает slide теории).
-   */
-  useEffect(() => {
-    const workspace = workspaceRef.current
-    const dock = dockRef.current
-    const main = mainRef.current
-    if (!workspace || !dock || !main) return
+  const toggleTopics = () => {
+    const next = !topicsOpen
+    if (onTopicPage) setTopics(next)
+    else setTopicsOpen(next)
+  }
 
-    const sync = () => {
-      if (draggingRef.current) return
-      const mobile = window.matchMedia(MOBILE_LAYOUT_MQ).matches
-      const workspaceW = workspace.getBoundingClientRect().width || window.innerWidth
-      const { labOpen: lab, sidebarOpen: side, theoryOpen: theory, labShare: share } =
-        useLayoutStore.getState()
-      const expanded = lab || !theory || (side && theory)
-      const theoryHiddenNow = !theory
+  const toggleLab = () => {
+    if (!activeHasLab) return
+    const next = !labOpen
+    if (onTopicPage) setDock(next ? 'lab' : 'topics')
+    else setLabOpen(next)
+  }
 
-      if (mobile) {
-        const maxH = !expanded ? 0 : theoryHiddenNow ? '100%' : lab ? '55vh' : '40vh'
-        gsap.set(dock, {
-          width: '100%',
-          maxHeight: maxH,
-          opacity: expanded ? 1 : 0,
+  const toggleTheory = () => {
+    const next = !theoryOpen
+    if (onTopicPage) setTheory(next)
+    else setTheoryOpen(next)
+  }
+
+  const applyPanelLayout = useCallback(
+    (animate: boolean) => {
+      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      const duration = reduced ? 0 : 0.48
+      const ease = 'power3.inOut'
+
+      const panels: PanelId[] = ['topics', 'lab', 'theory']
+      const prevOpen = prevOpenRef.current
+
+      panels.forEach((id) => {
+        const el = panelRefs.current[id]
+        if (!el) return
+
+        const targetW = open[id] ? layout.widthByPanel[id] : 0
+        const inner = el.querySelector(`.${styles.panelInner}`) as HTMLElement | null
+        const slideFrom = id === 'theory' ? 'right' : 'left'
+        const wasOpen = prevOpen[id]
+        const isOpen = open[id]
+
+        if (id === 'theory') {
+          gsap.set(el, {
+            position: 'absolute',
+            top: 0,
+            bottom: 0,
+            right: 0,
+            left: 'auto',
+            height: 'auto',
+            overflow: 'hidden',
+          })
+          if (inner) {
+            gsap.set(inner, { xPercent: 0, autoAlpha: isOpen ? 1 : 0 })
+          }
+
+          if (!animate || draggingRef.current) {
+            gsap.set(el, {
+              width: isOpen ? targetW : 0,
+              xPercent: isOpen ? 0 : 100,
+            })
+            return
+          }
+
+          const tl = gsap.timeline({ defaults: { duration, ease, overwrite: 'auto' } })
+
+          if (isOpen && !wasOpen) {
+            gsap.set(el, { width: targetW, xPercent: 100 })
+            tl.to(el, { xPercent: 0 }, 0)
+          } else if (!isOpen && wasOpen) {
+            const currentW = Math.round(el.getBoundingClientRect().width) || targetW
+            gsap.set(el, { width: currentW, xPercent: 0 })
+            tl.to(el, { xPercent: 100, width: 0 }, 0)
+          } else if (isOpen) {
+            tl.to(el, { width: targetW, xPercent: 0 }, 0)
+          } else {
+            gsap.set(el, { width: 0, xPercent: 100 })
+          }
+          return
+        }
+
+        if (!animate) {
+          gsap.set(el, { width: targetW, overflow: 'hidden' })
+          if (inner) {
+            gsap.set(inner, {
+              xPercent: isOpen ? 0 : slideFrom === 'left' ? -100 : 100,
+              autoAlpha: isOpen ? 1 : 0,
+            })
+          }
+          return
+        }
+
+        if (draggingRef.current) {
+          gsap.set(el, { width: targetW })
+          return
+        }
+
+        const tl = gsap.timeline({ defaults: { duration, ease, overwrite: 'auto' } })
+        tl.to(el, { width: targetW, overflow: 'hidden' }, 0)
+
+        if (inner) {
+          if (isOpen && !wasOpen) {
+            gsap.set(inner, {
+              xPercent: slideFrom === 'left' ? -100 : 100,
+              autoAlpha: 1,
+            })
+            tl.to(inner, { xPercent: 0 }, 0)
+          } else if (!isOpen && wasOpen) {
+            tl.to(inner, { xPercent: slideFrom === 'left' ? -100 : 100, autoAlpha: 0 }, 0)
+          } else if (isOpen) {
+            tl.to(inner, { xPercent: 0, autoAlpha: 1 }, 0)
+          }
+        }
+      })
+
+      ;(['topics', 'lab'] as PanelId[]).forEach((id) => {
+        const resizer = resizerRefs.current[id]
+        if (!resizer) return
+        const show = layout.resizerAfter[id]
+        gsap.to(resizer, {
+          width: show ? RESIZER_WIDTH : 0,
+          autoAlpha: show ? 1 : 0,
+          duration: animate ? duration : 0,
+          ease,
+          overwrite: 'auto',
         })
-        theoryWidthRef.current = workspaceW
-        gsap.set(main, { width: workspaceW })
-        return
-      }
+      })
 
-      if (!expanded) {
-        gsap.set(dock, { width: 0, maxHeight: 'none', opacity: 1 })
-        theoryWidthRef.current = workspaceW
-        gsap.set(main, { width: workspaceW })
-        return
-      }
+      prevOpenRef.current = open
+    },
+    [layout.widthByPanel, layout.resizerAfter, open],
+  )
 
-      if (theoryHiddenNow) {
-        gsap.set(dock, { width: '100%', maxHeight: 'none', opacity: 1 })
-        theoryWidthRef.current = workspaceW
-        gsap.set(main, { width: workspaceW })
-        return
-      }
-
-      const dockW = dockWidthFromShare(workspaceW, share)
-      gsap.set(dock, { width: dockW, maxHeight: 'none', opacity: 1 })
-      const openW = Math.max(200, workspaceW - dockW - 6)
-      theoryWidthRef.current = openW
-      gsap.set(main, { width: openW })
-    }
-
-    sync()
-    const ro = new ResizeObserver(sync)
-    ro.observe(workspace)
-    window.addEventListener('resize', sync)
-    return () => {
-      ro.disconnect()
-      window.removeEventListener('resize', sync)
-    }
-  }, [labShare, dockExpanded, theoryHidden, labOpen])
+  useGSAP(
+    () => {
+      if (!viewReady || workspaceWidth <= 0) return
+      const animate = hydratedRef.current
+      applyPanelLayout(animate)
+      hydratedRef.current = true
+    },
+    {
+      scope: shellRef,
+      dependencies: [
+        viewReady,
+        workspaceWidth,
+        open.topics,
+        open.lab,
+        open.theory,
+        layout.widthByPanel.topics,
+        layout.widthByPanel.lab,
+        layout.widthByPanel.theory,
+        layout.resizerAfter.topics,
+        layout.resizerAfter.lab,
+      ],
+    },
+  )
 
   const onResizePointerDown = useCallback(
-    (event: ReactPointerEvent<HTMLDivElement>) => {
+    (panelId: PanelId) => (event: ReactPointerEvent<HTMLDivElement>) => {
       event.preventDefault()
       const workspace = workspaceRef.current
-      const dock = dockRef.current
-      if (!workspace || !dock || !dockExpanded || theoryHidden) return
+      const resizerIndex = resizerIndexForPanel(panelId)
+      if (!workspace || resizerIndex === null) return
 
       draggingRef.current = true
       const handle = event.currentTarget
@@ -369,20 +303,12 @@ export function AppShell() {
       document.body.style.cursor = 'col-resize'
       document.body.style.userSelect = 'none'
 
+      const rect = workspace.getBoundingClientRect()
+
       const onMove = (ev: PointerEvent) => {
-        if (!draggingRef.current || !workspaceRef.current || !dockRef.current) return
-        const rect = workspaceRef.current.getBoundingClientRect()
-        if (rect.width <= 0) return
-        const share = (ev.clientX - rect.left) / rect.width
-        const next = Math.min(0.72, Math.max(0.28, share))
-        setLabShare(next)
-        const dockW = dockWidthFromShare(rect.width, next)
-        gsap.set(dockRef.current, { width: dockW })
-        if (mainRef.current) {
-          const openW = Math.max(200, rect.width - dockW - 6)
-          theoryWidthRef.current = openW
-          gsap.set(mainRef.current, { width: openW })
-        }
+        if (!draggingRef.current) return
+        onResizerDrag(resizerIndex, ev.clientX, rect.left)
+        applyPanelLayout(false)
       }
 
       const onUp = (ev: PointerEvent) => {
@@ -392,54 +318,50 @@ export function AppShell() {
         document.body.style.userSelect = ''
         window.removeEventListener('pointermove', onMove)
         window.removeEventListener('pointerup', onUp)
+        applyPanelLayout(true)
       }
 
       window.addEventListener('pointermove', onMove)
       window.addEventListener('pointerup', onUp)
     },
-    [dockExpanded, theoryHidden, setLabShare],
+    [applyPanelLayout, onResizerDrag, resizerIndexForPanel],
   )
 
   return (
-    <div
-      ref={shellRef}
-      className={styles.shell}
-      data-lab-focus={theoryHidden ? 'true' : 'false'}
-      data-lab-open={labOpen ? 'true' : 'false'}
-    >
+    <div ref={shellRef} className={styles.shell}>
       <header className={styles.chrome}>
         <div className={styles.dockToggle} role="toolbar" aria-label="Панели">
           <button
             type="button"
-            aria-pressed={topicsOn}
-            title={topicsOn ? 'Скрыть темы' : 'Показать темы'}
-            className={`${styles.dockTab} ${topicsOn ? styles.dockTabActive : ''}`}
+            aria-pressed={topicsOpen}
+            title={topicsOpen ? 'Скрыть темы' : 'Показать темы'}
+            className={`${styles.dockTab} ${topicsOpen ? styles.dockTabActive : ''}`}
             onClick={toggleTopics}
           >
             Темы
           </button>
           <button
             type="button"
-            aria-pressed={labOn}
+            aria-pressed={labOpen && activeHasLab}
             aria-disabled={!activeHasLab}
             disabled={!activeHasLab}
             title={
               !activeHasLab
                 ? 'У этой темы нет лаборатории'
-                : labOn
+                : labOpen
                   ? 'Скрыть лабораторию'
                   : 'Показать лабораторию'
             }
-            className={`${styles.dockTab} ${labOn ? styles.dockTabActive : ''}`}
+            className={`${styles.dockTab} ${labOpen && activeHasLab ? styles.dockTabActive : ''}`}
             onClick={toggleLab}
           >
             Лаборатория
           </button>
           <button
             type="button"
-            aria-pressed={theoryOn}
-            title={theoryOn ? 'Скрыть теорию' : 'Показать теорию'}
-            className={`${styles.dockTab} ${theoryOn ? styles.dockTabActive : ''}`}
+            aria-pressed={theoryOpen}
+            title={theoryOpen ? 'Скрыть теорию' : 'Показать теорию'}
+            className={`${styles.dockTab} ${theoryOpen ? styles.dockTabActive : ''}`}
             onClick={toggleTheory}
           >
             Теория
@@ -447,46 +369,63 @@ export function AppShell() {
         </div>
       </header>
 
-      <div ref={workspaceRef} className={styles.workspace}>
-        <div
-          ref={dockRef}
-          className={styles.leftDock}
-          data-open={dockExpanded ? 'true' : 'false'}
-          data-mode={labOpen ? 'lab' : 'topics'}
+      <div
+        ref={workspaceRef}
+        className={styles.workspace}
+        data-ready={viewReady ? 'true' : 'false'}
+      >
+        <ShellPanel
+          panelRef={(el) => {
+            panelRefs.current.topics = el
+          }}
+          panelId="topics"
+          visible={open.topics}
+          slideFrom="left"
         >
-          <div className={styles.dockStage}>
-            <div ref={topicsRef} className={styles.topicsLayer} aria-hidden={!topicsOn}>
-              <TopicSidebar />
-            </div>
+          <TopicSidebar />
+        </ShellPanel>
 
-            <div
-              ref={labRef}
-              className={styles.labLayer}
-              aria-hidden={!labOn}
-              aria-label="Лаборатория"
-            >
-              <div className={styles.labColumn}>
-                <div id={LAB_DOCK_ID} className={styles.labDockBody} />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div
-          ref={resizerRef}
-          className={styles.dockResizer}
-          role="separator"
-          aria-orientation="vertical"
-          aria-hidden={!dockExpanded || theoryHidden}
-          aria-label="Изменить ширину левой панели"
-          onPointerDown={onResizePointerDown}
+        <PanelResizer
+          visible={layout.resizerAfter.topics}
+          resizerRef={(el) => {
+            resizerRefs.current.topics = el
+          }}
+          onPointerDown={onResizePointerDown('topics')}
         />
 
-        <main ref={mainRef} className={styles.main} aria-hidden={theoryHidden}>
+        <ShellPanel
+          panelRef={(el) => {
+            panelRefs.current.lab = el
+          }}
+          panelId="lab"
+          visible={open.lab}
+          slideFrom="left"
+        >
+          <div className={styles.labColumn}>
+            <div id={LAB_DOCK_ID} className={styles.labDockBody} />
+          </div>
+        </ShellPanel>
+
+        <PanelResizer
+          visible={layout.resizerAfter.lab}
+          resizerRef={(el) => {
+            resizerRefs.current.lab = el
+          }}
+          onPointerDown={onResizePointerDown('lab')}
+        />
+
+        <ShellPanel
+          panelRef={(el) => {
+            panelRefs.current.theory = el
+          }}
+          panelId="theory"
+          visible={open.theory}
+          slideFrom="right"
+        >
           <div className={styles.mainBody}>
             <Outlet />
           </div>
-        </main>
+        </ShellPanel>
       </div>
     </div>
   )

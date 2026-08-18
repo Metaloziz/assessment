@@ -198,7 +198,9 @@ export function parseTopicMd(id: string, raw: string, order: number): TopicDetai
       id === '161-patterns-mediator-composite-memento' ||
       id === '162-patterns-dependency-injection' ||
       id === '163-patterns-template-flyweight-bridge' ||
+      id === '165-layout-typography' ||
       id === '168-layout-scss-postcss' ||
+      id === '264-layout-postcss' ||
       id === '169-layout-flexbox' ||
       id === '170-layout-animation' ||
       id === '172-layout-css-modules-css-in-js' ||

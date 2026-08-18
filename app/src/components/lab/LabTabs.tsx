@@ -1,6 +1,7 @@
 import { useId, useState, type ReactNode } from 'react'
-import { useMatch } from 'react-router-dom'
+import { useMatch, useParams } from 'react-router-dom'
 import { useLabTabUrl } from '../../hooks/useTopicViewUrl'
+import { LabStandLink } from './LabStandLink'
 import styles from './LabTabs.module.css'
 
 export type LabTabId = 'problem' | 'sandbox' | 'code'
@@ -26,6 +27,7 @@ export function LabTabs({ problem, sandbox, code, defaultTab = 'code' }: LabTabs
     defaultTab === 'sandbox' && !hasSandbox ? 'code' : defaultTab
 
   const onTopicPage = Boolean(useMatch('/topics/:topicId'))
+  const { topicId } = useParams<{ topicId: string }>()
   const { labTab: urlTab, setLabTab, fromUrl } = useLabTabUrl(onTopicPage, fallback)
 
   const [localTab, setLocalTab] = useState<LabTabId>(fallback)
@@ -83,7 +85,8 @@ export function LabTabs({ problem, sandbox, code, defaultTab = 'code' }: LabTabs
         hidden={active !== 'problem'}
         className={styles.panel}
       >
-        {problem}
+        <div className={styles.panelBody}>{problem}</div>
+        {onTopicPage && topicId ? <LabStandLink topicId={topicId} /> : null}
       </div>
       {hasSandbox ? (
         <div

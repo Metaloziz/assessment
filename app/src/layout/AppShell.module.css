@@ -77,37 +77,64 @@
   overflow: hidden;
 }
 
-.leftDock {
+.workspace[data-ready='false'] {
+  visibility: hidden;
+}
+
+.panel {
   flex: 0 0 auto;
-  width: var(--sidebar-width);
   height: 100%;
   min-width: 0;
   overflow: hidden;
-  border-right: 1px solid var(--border);
   background: var(--bg-panel);
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  z-index: 5;
   will-change: width;
   container-type: inline-size;
-  container-name: leftdock;
 }
 
-.leftDock[data-open='false'] {
+.panel[data-panel='topics'],
+.panel[data-panel='lab'] {
+  border-right: 1px solid var(--border);
+  background: var(--bg-panel);
+}
+
+.panel[data-panel='theory'] {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: auto;
+  z-index: 8;
+  background: var(--bg-deep);
+  will-change: width, transform;
+}
+
+.panel[data-open='false'] {
   pointer-events: none;
   border-right-width: 0;
 }
 
-.shell[data-lab-focus='true'] .leftDock {
-  border-right: 0;
+.panelInner {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  will-change: transform, opacity;
 }
 
-/*
- * Max-width не завязан на data-lab-focus: иначе при «Теории» атрибут
- * снимается сразу → контент прыгает влево, а сжатие dock идёт позже.
- * Порог контейнера = max-width → при сужении панели переход без скачка.
- */
+.panel[data-panel='topics'] .panelInner > * {
+  width: 100%;
+  max-width: 100%;
+  margin-inline: auto;
+  height: 100%;
+}
+
+@container (min-width: 28rem) {
+  .panel[data-panel='topics'] .panelInner > * {
+    max-width: var(--focus-topics-max-width);
+  }
+}
+
 .labColumn {
   display: flex;
   flex-direction: column;
@@ -118,54 +145,10 @@
   margin-inline: auto;
 }
 
-@container leftdock (min-width: 52rem) {
-  .labColumn {
+@container (min-width: 52rem) {
+  .panel[data-panel='lab'] .labColumn {
     max-width: var(--focus-pane-max-width);
   }
-}
-
-.topicsLayer > * {
-  width: 100%;
-  max-width: 100%;
-  margin-inline: auto;
-  height: 100%;
-}
-
-@container leftdock (min-width: 28rem) {
-  .topicsLayer > * {
-    max-width: var(--focus-topics-max-width);
-  }
-}
-
-.dockStage {
-  position: relative;
-  flex: 1;
-  min-height: 0;
-  overflow: hidden;
-}
-
-.topicsLayer,
-.labLayer {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  background: var(--bg-panel);
-  will-change: transform, opacity;
-}
-
-.topicsLayer {
-  z-index: 2;
-}
-
-.labLayer {
-  z-index: 1;
-}
-
-.topicsLayer[aria-hidden='true'],
-.labLayer[aria-hidden='true'] {
-  pointer-events: none;
 }
 
 .labDockBody {
@@ -185,7 +168,7 @@
   min-height: 0;
 }
 
-.dockResizer {
+.panelResizer {
   flex: 0 0 6px;
   width: 6px;
   margin: 0 -1px;
@@ -197,12 +180,12 @@
   will-change: width, opacity;
 }
 
-.dockResizer[aria-hidden='true'] {
+.panelResizer[aria-hidden='true'] {
   pointer-events: none;
   cursor: default;
 }
 
-.dockResizer::before {
+.panelResizer::before {
   content: '';
   position: absolute;
   inset: 0 1px;
@@ -211,28 +194,10 @@
   transition: opacity 0.12s ease, background 0.12s ease;
 }
 
-.dockResizer:hover::before,
-.dockResizer:active::before {
+.panelResizer:hover::before,
+.panelResizer:active::before {
   opacity: 1;
   background: var(--accent);
-}
-
-.main {
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 8;
-  overflow: hidden;
-  background: var(--bg-deep);
-  display: flex;
-  flex-direction: column;
-  will-change: transform;
-  /* width / xPercent задаёт GSAP — только сдвиг, без сжатия контента */
-}
-
-.main[aria-hidden='true'] {
-  pointer-events: none;
 }
 
 .mainBody {
@@ -240,6 +205,7 @@
   min-height: 0;
   min-width: 0;
   width: 100%;
+  height: 100%;
   display: flex;
   flex-direction: column;
   overflow: auto;
@@ -254,28 +220,5 @@
   .dockToggle {
     max-width: none;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
-/* Sync with MOBILE_LAYOUT_MQ in AppShell.tsx — stack only on phones */
-@media (max-width: 640px) {
-  .workspace {
-    flex-direction: column;
-  }
-
-  .leftDock {
-    width: 100%;
-    max-height: 40vh;
-    border-right: 0;
-    border-bottom: 1px solid var(--border);
-    will-change: max-height, opacity;
-  }
-
-  .leftDock[data-open='false'] {
-    border-bottom-width: 0;
-  }
-
-  .shell[data-lab-focus='true'] .leftDock {
-    max-height: none;
   }
 }
