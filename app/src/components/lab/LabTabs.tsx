@@ -83,7 +83,7 @@ export function LabTabs({ problem, sandbox, code, defaultTab = 'code' }: LabTabs
         id={`${baseId}-panel-problem`}
         aria-labelledby={`${baseId}-problem`}
         hidden={active !== 'problem'}
-        className={styles.panel}
+        className={`${styles.panel} ${styles.panelWithFooter}`}
       >
         <div className={styles.panelBody}>{problem}</div>
         {onTopicPage && topicId ? <LabStandLink topicId={topicId} /> : null}

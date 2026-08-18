@@ -40,7 +40,11 @@
 .cardFocusBroken {
   border-color: color-mix(in srgb, var(--danger) 50%, var(--border));
   box-shadow: none;
-  outline: none;
+}
+
+.cardSkip {
+  border-color: color-mix(in srgb, var(--warn) 50%, var(--border));
+  opacity: 0.72;
 }
 
 .cardMeta {
@@ -101,7 +105,16 @@
   color: var(--text);
   font: inherit;
   font-size: var(--lab-font-meta);
-  pointer-events: none;
+}
+
+.input:focus-visible {
+  outline: 2px solid var(--accent-bright);
+  outline-offset: 2px;
+}
+
+.fieldBroken .input:focus,
+.fieldBroken .input:focus-visible {
+  outline: none;
 }
 
 .btnNative,
@@ -112,8 +125,6 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  pointer-events: none;
-  cursor: default;
   font-family: var(--font-sans);
   line-height: 1.3;
 }
@@ -127,6 +138,12 @@
   color: var(--btn-primary-text);
   font-size: var(--lab-font-meta);
   font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+}
+
+.btnNative:focus-visible {
+  outline: 2px solid var(--accent-bright);
+  outline-offset: 2px;
 }
 
 .btnIcon {
@@ -137,6 +154,12 @@
   background: transparent;
   color: var(--text);
   font-size: 1rem;
+  cursor: pointer;
+}
+
+.btnIcon:focus-visible {
+  outline: 2px solid var(--accent-bright);
+  outline-offset: 2px;
 }
 
 .btnDiv {
@@ -149,6 +172,7 @@
   font-size: var(--lab-font-meta);
   font-weight: var(--font-weight-medium);
   outline: none;
+  cursor: pointer;
 }
 
 .btnDivIcon {
@@ -159,6 +183,14 @@
   background: color-mix(in srgb, var(--warn) 25%, transparent);
   color: var(--warn);
   font-size: var(--lab-font-ui);
+  outline: none;
+  cursor: pointer;
+}
+
+.btnDiv:focus,
+.btnDivIcon:focus,
+.btnDiv:focus-visible,
+.btnDivIcon:focus-visible {
   outline: none;
 }
 

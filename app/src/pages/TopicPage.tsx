@@ -123,6 +123,7 @@ import { LayoutAnimationLab } from '../topics/layout-animation/LayoutAnimationLa
 import { LayoutScssPostcssLab } from '../topics/layout-scss-postcss/LayoutScssPostcssLab'
 import { LayoutPostcssLab } from '../topics/layout-postcss/LayoutPostcssLab'
 import { LayoutTypographyLab } from '../topics/layout-typography/LayoutTypographyLab'
+import { LayoutVectorRasterLab } from '../topics/layout-vector-raster/LayoutVectorRasterLab'
 import { AsyncEventLoopLab } from '../topics/async-event-loop/AsyncEventLoopLab'
 import { AsyncTasksMicrotasksLab } from '../topics/async-tasks-microtasks/AsyncTasksMicrotasksLab'
 import { AsyncCallbackPromisesLab } from '../topics/async-callback-promises/AsyncCallbackPromisesLab'
@@ -207,6 +208,7 @@ function TopicLab({ topicId }: { topicId: string; topic: TopicDetail }) {
     return <PatternsDependencyInjectionLab />
   if (topicId === '163-patterns-template-flyweight-bridge')
     return <PatternsTemplateFlyweightBridgeLab />
+  if (topicId === '164-layout-vector-raster') return <LayoutVectorRasterLab />
   if (topicId === '165-layout-typography') return <LayoutTypographyLab />
   if (topicId === '168-layout-scss-postcss') return <LayoutScssPostcssLab />
   if (topicId === '264-layout-postcss') return <LayoutPostcssLab />

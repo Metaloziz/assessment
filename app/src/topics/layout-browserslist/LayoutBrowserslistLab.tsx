@@ -10,25 +10,33 @@ import { LabVizPanel, labVizStyles } from '../../components/lab/LabViz'
 import styles from './LayoutBrowserslistLab.module.css'
 
 const TOPIC_ID = '174-layout-browserslist'
-const STEP = 0.65
+const STEP = 0.6
 
 type CaseId = 'shared' | 'drift'
 type Phase = 'idle' | 'query' | 'resolve' | 'done'
 
 const CASES: Array<{ id: CaseId; label: string }> = [
-  { id: 'shared', label: 'Один конфиг' },
-  { id: 'drift', label: 'Рассинхрон' },
+  { id: 'shared', label: 'Один список' },
+  { id: 'drift', label: 'Разные цели' },
 ]
+
+const PAIN = (
+  <>
+    Сборка спрашивает: под какие браузеры готовить код? <code>Browserslist</code> отвечает одним
+    списком. Если <code>Babel</code> и <code>Autoprefixer</code> читают разное — CSS и JS разъедутся.
+  </>
+)
 
 const CASE_BRIEF: Record<CaseId, ReactNode> = {
   shared: (
     <>
-      Запросы из <code>package.json</code> резолвятся в один список; Babel и Autoprefixer берут его оба.
+      Запросы из <code>package.json</code> становятся одним списком версий — и JS, и CSS берут его.
     </>
   ),
   drift: (
     <>
-      У Babel свой <code>targets</code>, Autoprefixer без общего списка — CSS и JS целятся в разные браузеры.
+      У <code>Babel</code> свой <code>targets</code>, Autoprefixer общий файл не видит — покрытие
+      разъезжается.
     </>
   ),
 }
@@ -37,7 +45,7 @@ const SNIPPETS: InteractiveSnippet[] = [
   {
     id: 'package-json',
     label: 'package.json',
-    note: 'Ключ `browserslist` — общий контракт целей для Babel, Autoprefixer и PostCSS.',
+    note: 'Ключ `browserslist` — общий список целей для Babel и Autoprefixer.',
     executable: false,
     languageLabel: 'json',
     code: `{
@@ -53,30 +61,28 @@ const SNIPPETS: InteractiveSnippet[] = [
   ],
 
   "devDependencies": {
-    "@babel/core": "^7.25.0",
     "@babel/preset-env": "^7.25.0",
     "autoprefixer": "^10.4.20",
-    "browserslist": "^4.24.0",
-    "postcss": "^8.4.47"
+    "browserslist": "^4.24.0"
   }
 }`,
   },
   {
     id: 'babel-config',
     label: 'babel.config.js',
-    note: 'Без своего `targets` preset-env читает Browserslist. Свой `targets` перебивает общий конфиг.',
+    note: 'Без своего `targets` preset-env читает Browserslist. Свой `targets` перебивает общий файл.',
     executable: false,
     code: `module.exports = {
   presets: [
     [
       '@babel/preset-env',
       {
-        // ← SHARED: targets нет → берёт browserslist из package.json
+        // ← нет targets: берёт browserslist
         useBuiltIns: 'usage',
         corejs: 3,
 
-        // ← DRIFT (антипример): рассинхрон с Autoprefixer
-        // targets: { ie: '11' },
+        // антипример: второй источник правды
+        // targets: { ie: '11' }, // ← перебивает общий список
       },
     ],
   ],
@@ -90,9 +96,9 @@ const SNIPPETS: InteractiveSnippet[] = [
     code: `module.exports = {
   plugins: {
     autoprefixer: {
-      // ← SHARED: пустой объект → читает browserslist
+      // ← пустой объект: читает browserslist
       //
-      // ← DRIFT (антипример): свой список только для CSS
+      // антипример: свой список только для CSS
       // overrideBrowserslist: ['last 1 chrome version'],
     },
   },
@@ -142,77 +148,105 @@ function BrowserslistViz({ phase, caseId, listRef }: VizProps) {
   const queryOn = phase !== 'idle'
   const resolved = phase === 'resolve' || phase === 'done'
   const done = phase === 'done'
+  const forkOn = resolved
   const drift = !shared && done
 
+  const sourceSub = shared ? 'package.json' : 'Babel targets'
   const listSub = !resolved
     ? 'ещё нет'
     : shared
-      ? 'chrome 120 · firefox 121 · …'
-      : 'только у Babel'
+      ? 'Chrome · Firefox · Safari'
+      : 'IE 11 — только у Babel'
+
+  const jsSub = !done ? 'ждёт список' : shared ? 'тот же список' : 'свой targets'
+  const cssSub = !done ? 'ждёт список' : shared ? 'тот же список' : 'другой / по умолчанию'
+
+  const meta =
+    phase === 'idle'
+      ? 'откуда список?'
+      : done
+        ? shared
+          ? 'оба на одном'
+          : 'разъехались'
+        : phase === 'query'
+          ? 'читаю запросы'
+          : 'версии'
 
   return (
-    <LabVizPanel
-      title="Целевые браузеры"
-      meta={shared ? 'один список → оба инструмента' : 'targets только в Babel'}
-    >
-      <div className={styles.flow}>
+    <LabVizPanel title="один список или два?" meta={meta}>
+      <div className={styles.scheme}>
         <div
-          className={nodeCls(
-            queryOn && labVizStyles.nodeActive,
-            done && (shared ? labVizStyles.nodeOk : styles.nodeWarn),
-          )}
+          className={`${styles.schemeTop} ${nodeCls(
+            queryOn && !done && labVizStyles.nodeActive,
+            done && (shared ? labVizStyles.nodeOk : labVizStyles.nodeErr),
+          )}`}
         >
-          <span className={labVizStyles.nodeLabel}>Query</span>
-          <span className={labVizStyles.nodeSub}>
-            {shared ? 'browserslist' : 'babel targets'}
-          </span>
+          <span className={labVizStyles.nodeLabel}>откуда цели</span>
+          <span className={labVizStyles.nodeSub}>{sourceSub}</span>
         </div>
-
-        <span className={styles.arrow} aria-hidden>
-          →
-        </span>
 
         <div
           ref={listRef}
-          className={nodeCls(
-            resolved && labVizStyles.nodeActive,
-            done && (shared ? labVizStyles.nodeOk : styles.nodeWarn),
-            styles.listNode,
-          )}
+          className={`${styles.schemeMid} ${nodeCls(
+            resolved && !done && labVizStyles.nodeActive,
+            done && (shared ? labVizStyles.nodeOk : labVizStyles.nodeErr),
+            !resolved && styles.dim,
+          )}`}
         >
-          <span className={labVizStyles.nodeLabel}>Список</span>
+          <span className={labVizStyles.nodeLabel}>конкретные версии</span>
           <span className={labVizStyles.nodeSub}>{listSub}</span>
         </div>
 
-        <span className={styles.arrow} aria-hidden>
-          →
+        <div className={styles.schemeFork} aria-hidden>
+          <span
+            className={`${styles.schemeForkJs}${
+              forkOn ? ` ${styles.schemeForkJsOn}` : ` ${styles.schemeForkIdle}`
+            }`}
+          >
+            ↙ JS-сборка
+          </span>
+          <span />
+          <span
+            className={`${styles.schemeForkCss}${
+              forkOn ? ` ${styles.schemeForkCssOn}` : ` ${styles.schemeForkIdle}`
+            }`}
+          >
+            CSS-префиксы ↘
+          </span>
+        </div>
+
+        <div className={`${styles.schemeBranch}${!forkOn ? ` ${styles.dim}` : ''}`}>
+          <div
+            className={nodeCls(
+              resolved && !done && labVizStyles.nodeActive,
+              done && labVizStyles.nodeOk,
+              !forkOn && styles.dim,
+            )}
+          >
+            <span className={labVizStyles.nodeLabel}>
+              <code>Babel</code>
+            </span>
+            <span className={labVizStyles.nodeSub}>{jsSub}</span>
+          </div>
+        </div>
+
+        <span className={styles.schemeBranchArrow} aria-hidden>
+          {done ? '↓' : ''}
         </span>
 
-        <div className={styles.consumers}>
+        <div className={`${styles.schemeBranch}${!forkOn ? ` ${styles.dim}` : ''}`}>
           <div
             className={nodeCls(
-              done && labVizStyles.nodeOk,
-              resolved && shared && labVizStyles.nodeActive,
-              resolved && !shared && labVizStyles.nodeActive,
-            )}
-          >
-            <span className={labVizStyles.nodeLabel}>Babel</span>
-            <span className={labVizStyles.nodeSub}>
-              {done ? (shared ? 'тот же list' : 'свой targets') : 'ждёт'}
-            </span>
-          </div>
-          <div
-            className={nodeCls(
+              resolved && shared && !done && labVizStyles.nodeActive,
               done && shared && labVizStyles.nodeOk,
-              done && drift && styles.nodeWarn,
-              resolved && shared && labVizStyles.nodeActive,
-              !shared && styles.nodeSkipped,
+              done && drift && labVizStyles.nodeErr,
+              (!forkOn || (drift && !done)) && styles.dim,
             )}
           >
-            <span className={labVizStyles.nodeLabel}>Autoprefixer</span>
-            <span className={labVizStyles.nodeSub}>
-              {done ? (shared ? 'тот же list' : 'другой / default') : 'ждёт'}
+            <span className={labVizStyles.nodeLabel}>
+              <code>Autoprefixer</code>
             </span>
+            <span className={labVizStyles.nodeSub}>{cssSub}</span>
           </div>
         </div>
       </div>
@@ -224,7 +258,7 @@ export function LayoutBrowserslistLab() {
   const { lines, log, clear } = useLabLog()
   const [caseId, setCaseId] = useState<CaseId>('shared')
   const [phase, setPhase] = useState<Phase>('idle')
-  const [hint, setHint] = useState<string | null>(null)
+  const [hint, setHint] = useState<ReactNode>(null)
   const [busy, setBusy] = useState(false)
 
   const tlRef = useRef<gsap.core.Timeline | null>(null)
@@ -255,23 +289,23 @@ export function LayoutBrowserslistLab() {
       [
         () => {
           setPhase('query')
-          log('info', shared ? 'читаю browserslist из package.json' : 'Babel: targets: { ie: "11" }')
+          log('info', shared ? 'читаю запросы из package.json' : 'у Babel свой targets: IE 11')
         },
         () => {
           setPhase('resolve')
           log(
             shared ? 'ok' : 'warn',
             shared
-              ? 'caniuse-lite → chrome / firefox / safari (без IE 11)'
-              : 'список только для preset-env; Autoprefixer не в курсе',
+              ? 'версии: Chrome, Firefox, Safari — без IE'
+              : 'список только для Babel; Autoprefixer не в курсе',
           )
         },
         () => {
           setPhase('done')
           if (shared) {
-            log('ok', 'Babel + Autoprefixer на одном списке')
+            log('ok', 'JS и CSS смотрят один список')
           } else {
-            log('err', 'JS под IE 11, CSS — под default/override → рассинхрон')
+            log('err', 'JS под IE, CSS — под другое')
           }
         },
       ],
@@ -288,9 +322,14 @@ export function LayoutBrowserslistLab() {
       () => {
         setBusy(false)
         setHint(
-          shared
-            ? 'Один browserslist — оба потребителя на одном покрытии.'
-            : 'Свой targets у Babel ломает единый контракт; вынесите цели в browserslist.',
+          shared ? (
+            'Один файл — оба инструмента на одном покрытии.'
+          ) : (
+            <>
+              Свой <code>targets</code> у <code>Babel</code> ломает общий список; цели лучше держать
+              в <code>browserslist</code>.
+            </>
+          ),
         )
       },
     )
@@ -311,6 +350,9 @@ export function LayoutBrowserslistLab() {
             {c.label}
           </LabButton>
         ))}
+      </div>
+
+      <div className={shell.row}>
         <LabButton variant="primary" disabled={busy} onClick={run}>
           Запустить
         </LabButton>
@@ -329,35 +371,30 @@ export function LayoutBrowserslistLab() {
         </LabButton>
       </div>
 
-      <p className={shell.pain}>
-        <code>Browserslist</code> превращает запросы в список версий. Babel и Autoprefixer должны
-        читать один конфиг — иначе CSS и JS целятся в разные браузеры.
-      </p>
+      <p className={shell.pain}>{PAIN}</p>
       <p className={shell.hint}>{CASE_BRIEF[caseId]}</p>
 
       <BrowserslistViz phase={phase} caseId={caseId} listRef={listRef} />
 
-      {hint ? (
-        <p className={shell.hint}>
-          Итог: {hint}
-        </p>
-      ) : null}
+      {hint ? <p className={shell.hint}>Итог: {hint}</p> : null}
       <LabLogView lines={lines} />
     </div>
   )
 
   const code = (
-    <InteractiveCodePanel
-      topicId={TOPIC_ID}
-      intro="`browserslist` в `package.json`; Babel без своего `targets`; Autoprefixer без `overrideBrowserslist`."
-      snippets={SNIPPETS}
-    />
+    <div className={shell.codePane}>
+      <InteractiveCodePanel
+        topicId={TOPIC_ID}
+        intro="`browserslist` в `package.json`; Babel без своего `targets`; Autoprefixer без `overrideBrowserslist`."
+        snippets={SNIPPETS}
+      />
+    </div>
   )
 
   return (
     <JsLabShell
       title="Browserslist"
-      lead="Один query → список браузеров → Babel и Autoprefixer на одном покрытии."
+      lead="Один список браузеров — и JS, и CSS готовятся под одних людей."
       problem={problem}
       code={code}
     />

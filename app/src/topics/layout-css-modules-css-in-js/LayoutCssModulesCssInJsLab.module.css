@@ -5,7 +5,7 @@
   min-height: 8.5rem;
 }
 
-.card {
+.scene {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -21,75 +21,77 @@
     box-shadow 0.4s ease;
 }
 
-.cardOn {
+.sceneOn {
   opacity: 1;
 }
 
-.cardOk {
+.sceneOk {
   border-color: color-mix(in srgb, var(--ok) 45%, var(--border));
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--ok) 20%, transparent);
 }
 
-.cardWarn {
+.sceneWarn {
   border-color: color-mix(in srgb, var(--warn) 55%, var(--border));
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--warn) 18%, transparent);
 }
 
-.cardTitle {
-  font-size: var(--lab-font-ui);
-  font-weight: var(--font-weight-semibold);
-  color: var(--text-heading);
-}
-
-.classChip {
-  font-family: var(--font-mono);
+.sceneKicker {
   font-size: var(--lab-font-meta);
   color: var(--text-muted);
-  padding: 0.1rem 0.35rem;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border);
-  background: var(--stage-bg);
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  font-weight: var(--font-weight-medium);
 }
 
-.sample {
-  appearance: none;
+.sceneMeta {
+  font-size: var(--lab-font-meta);
+  color: var(--text-muted);
+  line-height: 1.3;
+}
+
+.heading {
+  margin: 0;
+  line-height: 1.25;
+  transition:
+    color 0.4s ease,
+    font-size 0.4s ease,
+    font-weight 0.4s ease;
+}
+
+.headingGhost {
+  font-size: var(--lab-font-ui);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-faint);
+}
+
+.productTitle {
+  font-size: 1.05rem;
+  font-weight: var(--font-weight-semibold);
+  color: var(--accent-bright);
+}
+
+.newsTitle {
+  font-size: var(--lab-font-ui);
+  font-weight: var(--font-weight-medium);
+  color: var(--text);
+}
+
+.tag {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 1.85rem;
-  padding: 0.28rem 0.7rem;
-  pointer-events: none;
-  cursor: default;
-  font-family: var(--font-sans);
+  min-height: 1.5rem;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
   font-size: var(--lab-font-meta);
   font-weight: var(--font-weight-semibold);
-  line-height: 1.3;
+  line-height: 1.2;
   border: 1px solid transparent;
-  border-radius: var(--radius-lg);
   transition:
     background 0.4s ease,
     color 0.4s ease,
     border-color 0.4s ease;
 }
 
-.samplePrimary {
-  background: var(--btn-primary-bg);
-  color: var(--btn-primary-text);
-  border-color: var(--btn-primary-border);
-  box-shadow: 0 1px 0 var(--btn-inset-shadow-primary) inset;
-}
-
-.sampleDanger {
-  background: color-mix(in srgb, var(--danger) 85%, var(--bg-deep));
-  color: var(--bg-deep);
-  border-color: color-mix(in srgb, var(--danger) 60%, var(--border));
-}
-
-.sampleGhost {
+.tagGhost {
   background: transparent;
   color: var(--text-faint);
   border-color: var(--border);
@@ -97,18 +99,23 @@
   font-weight: var(--font-weight-medium);
 }
 
-.injectHint {
+.tagSale {
+  background: color-mix(in srgb, var(--danger) 85%, var(--bg-deep));
+  color: var(--bg-deep);
+  border-color: color-mix(in srgb, var(--danger) 60%, var(--border));
+}
+
+.tagNew {
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+  border-color: var(--btn-primary-border);
+}
+
+.receipt {
+  font-family: var(--font-mono);
   font-size: var(--lab-font-meta);
   color: var(--text-muted);
   line-height: 1.3;
-}
-
-.codePane {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  min-height: 0;
-  flex: 1;
 }
 
 .codeSwitch {
@@ -124,8 +131,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .card,
-  .sample {
+  .scene,
+  .heading,
+  .tag {
     transition: none;
   }
 }

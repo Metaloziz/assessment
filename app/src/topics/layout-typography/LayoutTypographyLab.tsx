@@ -29,8 +29,8 @@ const CASE_BRIEF: Record<CaseId, ReactNode> = {
   ),
   drift: (
     <>
-      Три блока с разными <code>px</code>, семействами и синтетическим <code>font-weight: 300</code>{' '}
-      — иерархия «плывёт».
+      На «Статье» и «Карточке» свои <code>px</code> без шкалы: на карточке лид крупнее заголовка, на
+      статье скачок 24→11→13.
     </>
   ),
 }
@@ -169,7 +169,15 @@ function playTimeline(
   motion?.(tl)
 }
 
-function PreviewText({ caseId, visible }: { caseId: CaseId; visible: boolean }) {
+function PreviewText({
+  caseId,
+  previewId,
+  visible,
+}: {
+  caseId: CaseId
+  previewId: PreviewId
+  visible: boolean
+}) {
   if (!visible) return null
 
   if (caseId === 'scale') {
@@ -184,18 +192,48 @@ function PreviewText({ caseId, visible }: { caseId: CaseId; visible: boolean }) 
     )
   }
 
+  if (previewId === 'article') {
+    return (
+      <>
+        <div className={styles.driftRow}>
+          <span className={styles.sizeTag}>24px</span>
+          <h3 className={styles.driftArticleH}>Заголовок материала</h3>
+        </div>
+        <div className={styles.driftRow}>
+          <span className={styles.sizeTag}>11px</span>
+          <p className={styles.driftArticleLead}>Лид: слишком мелкий после крупного заголовка.</p>
+        </div>
+        <div className={styles.driftRow}>
+          <span className={styles.sizeTag}>13px</span>
+          <p className={styles.driftArticleBody}>Тело: Arial, другой ритм строки.</p>
+        </div>
+      </>
+    )
+  }
+
   return (
     <>
-      <h3 className={styles.driftH}>Заголовок материала</h3>
-      <p className={styles.driftLead}>Лид: 15px / 18px и weight 300 без файла.</p>
-      <p className={styles.driftBody}>Тело: 13px Arial — другой ритм и семейство.</p>
+      <div className={styles.driftRow}>
+        <span className={styles.sizeTagWarn}>14px</span>
+        <h3 className={styles.driftCardH}>Заголовок карточки</h3>
+      </div>
+      <div className={styles.driftRow}>
+        <span className={styles.sizeTagWarn}>16px</span>
+        <p className={styles.driftCardLead}>Лид 16px — крупнее заголовка 14px.</p>
+      </div>
+      <div className={styles.driftRow}>
+        <span className={styles.sizeTag}>15px</span>
+        <p className={styles.driftCardBody}>Тело почти как лид — иерархия слилась.</p>
+      </div>
     </>
   )
 }
 
-function metaLabel(caseId: CaseId, visible: boolean) {
+function metaLabel(caseId: CaseId, previewId: PreviewId, visible: boolean) {
   if (!visible) return 'ещё не показано'
-  return caseId === 'scale' ? 'rem · var(--text-*) · один стек' : '22/15/13 px · 3 family'
+  if (caseId === 'scale') return 'rem · var(--text-*) · один стек'
+  if (previewId === 'article') return '24 / 11 / 13 px · Georgia + Arial'
+  return '14 / 16 / 15 px · лид > заголовка'
 }
 
 function TypographyViz({
@@ -231,11 +269,11 @@ function TypographyViz({
           >
             <div className={styles.cardHead}>
               <span className={styles.cardTitle}>{preview.title}</span>
-              <span className={styles.cardMeta}>{metaLabel(caseId, painted)}</span>
+              <span className={styles.cardMeta}>{metaLabel(caseId, preview.id, painted)}</span>
             </div>
             <div className={styles.preview}>
               {painted ? (
-                <PreviewText caseId={caseId} visible={painted} />
+                <PreviewText caseId={caseId} previewId={preview.id} visible={painted} />
               ) : (
                 <span className={styles.previewGhost}>Текст появится после запуска</span>
               )}
@@ -286,7 +324,7 @@ export function LayoutTypographyLab() {
             'info',
             scale
               ? 'рисую заголовок / лид / body из rem-токенов и --font-sans'
-              : 'три блока с px, Georgia, Arial и синтетическим weight 300',
+              : 'Статья 24/11/13 px; на карточке лид 16px больше заголовка 14px',
           )
         },
         () => {
@@ -294,7 +332,7 @@ export function LayoutTypographyLab() {
           if (scale) {
             log('ok', 'Статья и карточка — один ритм и стек')
           } else {
-            log('err', 'Кегли 22/15/13 px и разные family — иерархия расходится')
+            log('err', 'Соседние блоки с разными px; на карточке лид крупнее заголовка')
           }
         },
       ],
@@ -313,7 +351,7 @@ export function LayoutTypographyLab() {
         setHint(
           scale
             ? 'Type scale и font-family держат читаемую иерархию на всех блоках.'
-            : 'Без шкалы и стека каждый блок «свой» — текст труднее сканировать.',
+            : 'Без шкалы соседние экраны не совпадают по кеглю; иерархия внутри блока ломается.',
         )
       },
     )

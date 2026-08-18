@@ -13,10 +13,8 @@ const TOPIC_ID = '172-layout-css-modules-css-in-js'
 const STEP = 0.6
 
 type Pattern = 'modules' | 'cssInJs'
-type ModCase = 'scoped' | 'global'
-type JsCase = 'props' | 'runtime'
-type CaseId = ModCase | JsCase
-type Phase = 'idle' | 'map' | 'done'
+type CaseId = 'scoped' | 'global' | 'props' | 'runtime'
+type Phase = 'idle' | 'paint' | 'done'
 
 const PATTERNS: Array<{ id: Pattern; label: string }> = [
   { id: 'modules', label: 'CSS Modules' },
@@ -25,34 +23,36 @@ const PATTERNS: Array<{ id: Pattern; label: string }> = [
 
 const CASES: Record<Pattern, Array<{ id: CaseId; label: string }>> = {
   modules: [
-    { id: 'scoped', label: 'Локальные классы' },
-    { id: 'global', label: 'Глобальный .btn' },
+    { id: 'scoped', label: 'Свои стили' },
+    { id: 'global', label: 'Общий .title' },
   ],
   cssInJs: [
-    { id: 'props', label: 'Стили от props' },
-    { id: 'runtime', label: 'Inject в runtime' },
+    { id: 'props', label: 'Вид от props' },
+    { id: 'runtime', label: 'Сначала без CSS' },
   ],
 }
 
 const CASE_BRIEF: Record<CaseId, ReactNode> = {
   scoped: (
     <>
-      Оба компонента пишут локальный <code>.root</code> — после хеша имена разные, цвета не смешиваются.
+      Товар и новость оба пишут <code>.title</code>, но после хеша это разные классы — заголовки
+      остаются своими.
     </>
   ),
   global: (
     <>
-      Оба подключают глобальный <code>.btn</code> — один селектор на документ, Badge перекрашивается под Primary.
+      Оба файла объявили один <code>.title</code> на всю страницу — заголовок новости становится
+      как у карточки товара.
     </>
   ),
   props: (
     <>
-      <code>$primary</code> / <code>$danger</code> меняют правила в JS; у кнопок разные сгенерированные классы.
+      Одна бирка, два <code>kind</code>: скидка красная, новинка — акцент, без отдельных CSS-файлов.
     </>
   ),
   runtime: (
     <>
-      Стили появляются только после inject тега <code>style</code> — до этого кнопка «голая» (FOUC / SSR-риск).
+      Стили появляются только когда JS вставляет <code>style</code> — до этого бирки «голые».
     </>
   ),
 }
@@ -60,119 +60,89 @@ const CASE_BRIEF: Record<CaseId, ReactNode> = {
 const PAIN: Record<Pattern, ReactNode> = {
   modules: (
     <>
-      CSS Modules на сборке превращают локальные классы в уникальные хеши. Глобальный{' '}
-      <code>.btn</code> снова открывает коллизии между компонентами.
+      Сборщик делает из локального класса уникальное имя. Общий <code>.title</code> снова смешивает
+      два экрана.
     </>
   ),
   cssInJs: (
     <>
-      CSS-in-JS держит стили рядом с компонентом и удобен для <code>props</code>/темы. Runtime-inject
-      даёт динамику, но платит FOUC и сложностью SSR.
+      Стили живут рядом с компонентом и легко зависят от <code>props</code>. Если CSS вставляется
+      только в браузере — сначала виден голый текст.
     </>
   ),
 }
 
 const CODE_INTRO: Record<Pattern, string> = {
-  modules: '`Button.module.css` → `styles.root` с хешем; `:global(.btn)` — осознанный выход из изоляции.',
-  cssInJs: 'styled-button с `$primary`; runtime-inject через `<style>` — цена SSR/FOUC.',
+  modules: '`ProductTitle.module.css`: локальный `.title` → хеш. Глобальный `.title` — коллизия.',
+  cssInJs: '`Tag.tsx`: вид от `kind`. Runtime — `<style>` после загрузки JS.',
 }
 
 const CODE_SNIPPETS: Record<Pattern, InteractiveSnippet[]> = {
   modules: [
     {
-      id: 'button-module-css',
-      label: 'Button.module.css',
-      note: 'Локальный `.root` после сборки станет `Button_root_…`.',
+      id: 'product-title-css',
+      label: 'ProductTitle.module.css',
+      note: 'Локальный `.title` станет `ProductTitle_title_…`.',
       executable: false,
       languageLabel: 'css',
-      code: `/* ═══════════════════════════════════════════
- * CSS MODULES ← локальная область имён
- * ═══════════════════════════════════════════ */
-.root {
-  padding: 0.4rem 0.85rem;
-  border-radius: 8px;
-  background: var(--accent);
-  color: var(--bg-deep);
-} /* ← styles.root → Button_root_a3f2 */
+      code: `.title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--accent);
+} /* ← styles.title → ProductTitle_title_a3f2 */
 
-/* Антипример: снова общая помойка */
-/* :global(.btn) { … } */`,
+/* Антипример: выход из изоляции
+:global(.title) { color: navy; }
+*/`,
     },
     {
-      id: 'button-tsx',
-      label: 'Button.tsx',
-      note: 'Импорт объекта styles, не строки класса.',
+      id: 'product-title-tsx',
+      label: 'ProductTitle.tsx',
+      note: 'Импорт объекта styles, не строки «title».',
       executable: false,
-      code: `import styles from './Button.module.css';
+      code: `import styles from './ProductTitle.module.css';
 
-export function Button({ children }: { children: React.ReactNode }) {
-  // ← хеш уже внутри styles.root
-  return (
-    <button type="button" className={styles.root}>
-      {children}
-    </button>
-  );
-}`,
-    },
-    {
-      id: 'global-anti',
-      label: 'legacy.css',
-      note: 'Глобальный `.btn` в двух фичах — одна область имён браузера.',
-      executable: false,
-      languageLabel: 'css',
-      code: `/* ← GLOBAL: коллизия с любым другим .btn */
-.btn {
-  padding: 0.4rem 0.85rem;
-  background: navy;
-  color: white;
-}
+type Props = { children: React.ReactNode };
 
-/* Badge.css тоже объявил .btn → last wins / leak */`,
+export const ProductTitle = ({ children }: Props) => (
+  <h2 className={styles.title}>{children}</h2> // ← хеш уже внутри
+);`,
     },
   ],
   cssInJs: [
     {
-      id: 'styled-button',
-      label: 'StyledButton.tsx',
-      note: 'Правила зависят от props; класс генерирует библиотека.',
+      id: 'tag-tsx',
+      label: 'Tag.tsx',
+      note: 'Правила зависят от kind; класс выдаёт библиотека.',
       executable: false,
       code: `import styled from 'styled-components';
 
-// ═══════════════════════════════════════════
-// CSS-in-JS ← стили рядом с компонентом
-// ═══════════════════════════════════════════
-export const Button = styled.button<{ $primary?: boolean; $danger?: boolean }>\`
-  padding: 0.4rem 0.85rem;
-  border-radius: 8px;
-  border: 1px solid transparent;
-  /* ← PROPS: динамика без отдельного .primary.css */
+export const Tag = styled.span<{ $kind: 'sale' | 'new' }>\`
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  /* ← вид от props, без Tag.sale.css */
   background: \${(p) =>
-    p.$danger ? 'var(--danger)' : p.$primary ? 'var(--accent)' : 'transparent'};
-  color: \${(p) => (p.$primary || p.$danger ? 'var(--bg-deep)' : 'var(--text)')};
+    p.$kind === 'sale' ? 'var(--danger)' : 'var(--accent)'};
+  color: var(--bg-deep);
 \`;
 
-// <Button $primary>Ок</Button>
-// <Button $danger>Удалить</Button>`,
+// <Tag $kind="sale">Скидка</Tag>
+// <Tag $kind="new">Новинка</Tag>`,
     },
     {
       id: 'runtime-inject',
-      label: 'runtime-inject.ts',
-      note: 'Упрощённая модель runtime: стиль живёт только после JS.',
+      label: 'injectTag.ts',
+      note: 'Упрощённая модель runtime: стиль есть только после JS.',
       executable: false,
       languageLabel: 'ts',
-      code: `// ═══════════════════════════════════════════
-// RUNTIME ← inject <style> на клиенте
-// ═══════════════════════════════════════════
-export function ensureButtonStyles() {
-  if (document.getElementById('sc-btn')) return;
+      code: `export const ensureTagStyles = () => {
+  if (document.getElementById('sc-tag')) return;
 
   const el = document.createElement('style'); // ← FOUC, если поздно
-  el.id = 'sc-btn';
-  el.textContent = \`.sc-btn { background: var(--accent); }\`;
+  el.id = 'sc-tag';
+  el.textContent = '.sc-tag { background: var(--accent); }';
   document.head.appendChild(el);
-}
-
-// SSR: без критического CSS кнопка сначала «голая»`,
+};`,
     },
   ],
 }
@@ -194,7 +164,7 @@ function playTimeline(
     return
   }
   const tl = gsap.timeline({
-    defaults: { duration: 0.5, ease: 'power2.inOut' },
+    defaults: { duration: 0.55, ease: 'power2.inOut' },
     onComplete: onDone,
   })
   tlRef.current = tl
@@ -212,128 +182,135 @@ type VizProps = {
 }
 
 function StyleOrgViz({ pattern, caseId, phase, stageRef }: VizProps) {
-  const on = phase !== 'idle'
+  const painted = phase === 'paint' || phase === 'done'
   const done = phase === 'done'
-  const scoped = caseId === 'scoped'
-  const global = caseId === 'global'
-  const propsCase = caseId === 'props'
-  const runtime = caseId === 'runtime'
+  const leak = done && caseId === 'global'
+  const fouc = caseId === 'runtime' && phase === 'paint'
+  const tagsOn = caseId === 'props' ? painted : caseId === 'runtime' ? done : painted
 
   if (pattern === 'modules') {
-    const leftClass = !done ? '.root' : scoped ? 'Button_root_a3f2' : '.btn'
-    const rightClass = !done ? '.root' : scoped ? 'Badge_root_b9k1' : '.btn'
-    const bleed = done && global
-
     return (
       <LabVizPanel
-        title="Два компонента"
-        meta={scoped ? 'локальные хеши' : 'общий селектор .btn'}
+        title="Товар и новость"
+        meta={caseId === 'scoped' ? 'у каждого свой .title' : 'один .title на страницу'}
       >
         <div ref={stageRef} className={styles.stage}>
-          <div
+          <article
             className={[
-              styles.card,
-              on && styles.cardOn,
-              done && scoped && styles.cardOk,
-              bleed && styles.cardWarn,
+              styles.scene,
+              painted && styles.sceneOn,
+              done && caseId === 'scoped' && styles.sceneOk,
+              leak && styles.sceneWarn,
             ]
               .filter(Boolean)
               .join(' ')}
           >
-            <span className={styles.cardTitle}>PrimaryBtn</span>
-            <span className={styles.classChip}>{leftClass}</span>
-            <span className={[styles.sample, styles.samplePrimary].join(' ')}>Оплатить</span>
-          </div>
-          <div
-            className={[
-              styles.card,
-              on && styles.cardOn,
-              done && scoped && styles.cardOk,
-              bleed && styles.cardWarn,
-            ]
-              .filter(Boolean)
-              .join(' ')}
-          >
-            <span className={styles.cardTitle}>DangerBadge</span>
-            <span className={styles.classChip}>{rightClass}</span>
-            <span
+            <span className={styles.sceneKicker}>Каталог</span>
+            <h3
+              data-paint
               className={[
-                styles.sample,
-                bleed ? styles.samplePrimary : styles.sampleDanger,
+                styles.heading,
+                painted ? styles.productTitle : styles.headingGhost,
               ].join(' ')}
             >
-              Срочно
+              Наушники
+            </h3>
+            <span className={styles.sceneMeta}>{painted ? '4 990 ₽' : '—'}</span>
+            <span className={styles.receipt}>
+              {painted ? (leak ? '.title' : 'Product_title_a3') : 'ещё нет'}
             </span>
-          </div>
+          </article>
+          <article
+            className={[
+              styles.scene,
+              painted && styles.sceneOn,
+              done && caseId === 'scoped' && styles.sceneOk,
+              leak && styles.sceneWarn,
+            ]
+              .filter(Boolean)
+              .join(' ')}
+          >
+            <span className={styles.sceneKicker}>Блог</span>
+            <h3
+              data-paint
+              className={[
+                styles.heading,
+                !painted
+                  ? styles.headingGhost
+                  : leak
+                    ? styles.productTitle
+                    : styles.newsTitle,
+              ].join(' ')}
+            >
+              Как выбрать
+            </h3>
+            <span className={styles.sceneMeta}>{painted ? '12 авг' : '—'}</span>
+            <span className={styles.receipt}>
+              {painted ? (leak ? '.title' : 'News_title_b9') : 'ещё нет'}
+            </span>
+          </article>
         </div>
       </LabVizPanel>
     )
   }
 
-  const leftClass = !done ? '—' : propsCase ? 'sc-pq1' : 'sc-btn'
-  const rightClass = !done ? '—' : propsCase ? 'sc-xy2' : 'sc-btn'
-  const unstyled = runtime && phase === 'map'
-  const painted = runtime ? done : on
-
   return (
     <LabVizPanel
-      title="Styled buttons"
-      meta={propsCase ? 'правила от props' : 'inject style → paint'}
+      title="Бирки на карточке"
+      meta={caseId === 'props' ? 'скидка и новинка из props' : 'style после загрузки JS'}
     >
       <div ref={stageRef} className={styles.stage}>
         <div
           className={[
-            styles.card,
-            on && styles.cardOn,
-            done && propsCase && styles.cardOk,
-            done && runtime && styles.cardWarn,
+            styles.scene,
+            painted && styles.sceneOn,
+            done && caseId === 'props' && styles.sceneOk,
+            done && caseId === 'runtime' && styles.sceneWarn,
           ]
             .filter(Boolean)
             .join(' ')}
         >
-          <span className={styles.cardTitle}>$primary</span>
-          <span className={styles.classChip}>{leftClass}</span>
+          <span className={styles.sceneKicker}>Скидка</span>
           <span
+            data-paint
             className={[
-              styles.sample,
-              painted && !unstyled ? styles.samplePrimary : styles.sampleGhost,
+              styles.tag,
+              tagsOn && !fouc
+                ? caseId === 'props'
+                  ? styles.tagSale
+                  : styles.tagNew
+                : styles.tagGhost,
             ].join(' ')}
           >
-            Ок
+            −30%
           </span>
-          {runtime ? (
-            <span className={styles.injectHint}>
-              {phase === 'idle' ? 'нет style' : phase === 'map' ? 'inject…' : 'style#sc-btn в head'}
-            </span>
-          ) : null}
+          <span className={styles.receipt}>
+            {!painted ? 'ещё нет' : fouc ? 'нет style' : caseId === 'props' ? 'sc-sale' : 'style в head'}
+          </span>
         </div>
         <div
           className={[
-            styles.card,
-            on && styles.cardOn,
-            done && propsCase && styles.cardOk,
-            done && runtime && styles.cardWarn,
+            styles.scene,
+            painted && styles.sceneOn,
+            done && caseId === 'props' && styles.sceneOk,
+            done && caseId === 'runtime' && styles.sceneWarn,
           ]
             .filter(Boolean)
             .join(' ')}
         >
-          <span className={styles.cardTitle}>$danger</span>
-          <span className={styles.classChip}>{rightClass}</span>
+          <span className={styles.sceneKicker}>Новинка</span>
           <span
+            data-paint
             className={[
-              styles.sample,
-              painted && !unstyled
-                ? propsCase
-                  ? styles.sampleDanger
-                  : styles.samplePrimary
-                : styles.sampleGhost,
+              styles.tag,
+              tagsOn && !fouc ? styles.tagNew : styles.tagGhost,
             ].join(' ')}
           >
-            Удалить
+            New
           </span>
-          {runtime && done ? (
-            <span className={styles.injectHint}>оба на одном sc-btn</span>
-          ) : null}
+          <span className={styles.receipt}>
+            {!painted ? 'ещё нет' : fouc ? 'нет style' : caseId === 'props' ? 'sc-new' : 'тот же sc-tag'}
+          </span>
         </div>
       </div>
     </LabVizPanel>
@@ -354,7 +331,9 @@ export function LayoutCssModulesCssInJsLab() {
   const resetViz = () => {
     setPhase('idle')
     setHint(null)
-    if (stageRef.current) gsap.set(stageRef.current, { clearProps: 'transform,opacity' })
+    if (stageRef.current) {
+      gsap.set(stageRef.current.querySelectorAll('[data-paint]'), { clearProps: 'opacity,transform' })
+    }
   }
 
   const selectPattern = (next: Pattern) => {
@@ -383,20 +362,20 @@ export function LayoutCssModulesCssInJsLab() {
       tlRef,
       [
         () => {
-          setPhase('map')
+          setPhase('paint')
           if (pattern === 'modules') {
             log(
               'info',
               caseId === 'scoped'
-                ? 'css-loader: .root → уникальный хеш на файл'
-                : 'оба файла пишут глобальный .btn',
+                ? 'сборщик даёт товару и новости разные имена классов'
+                : 'оба файла пишут один .title в документ',
             )
           } else {
             log(
               'info',
               caseId === 'props'
-                ? 'считаю правила из $primary / $danger'
-                : 'создаю <style id="sc-btn"> в document.head',
+                ? 'рисую бирки из kind: sale и new'
+                : 'JS ещё вставляет style — бирки пока без окраски',
             )
           }
         },
@@ -404,23 +383,24 @@ export function LayoutCssModulesCssInJsLab() {
           setPhase('done')
           if (pattern === 'modules') {
             if (caseId === 'scoped') {
-              log('ok', 'Button_root_a3f2 ≠ Badge_root_b9k1 — leak нет')
+              log('ok', 'наушники крупные, новость спокойная — стили не смешались')
             } else {
-              log('err', 'один .btn → Badge выглядит как Primary')
+              log('err', 'заголовок блога стал как у товара')
             }
           } else if (caseId === 'props') {
-            log('ok', 'sc-pq1 / sc-xy2 — варианты без коллизии имён')
+            log('ok', 'скидка красная, новинка — акцент')
           } else {
-            log('warn', 'до inject кнопка без стилей; SSR нужен критический CSS')
+            log('warn', 'бирки окрасились только после style в head')
           }
         },
       ],
       (tl) => {
-        if (stageRef.current) {
+        const nodes = stageRef.current?.querySelectorAll('[data-paint]')
+        if (nodes?.length) {
           tl.fromTo(
-            stageRef.current,
-            { opacity: 0.55, y: 6 },
-            { opacity: 1, y: 0, duration: 0.45, ease: 'power2.out' },
+            nodes,
+            { opacity: 0.35, y: 4 },
+            { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out', stagger: 0.08 },
             0,
           )
         }
@@ -430,14 +410,14 @@ export function LayoutCssModulesCssInJsLab() {
         if (pattern === 'modules') {
           setHint(
             caseId === 'scoped'
-              ? 'Локальные классы после хеша не пересекаются.'
-              : 'Глобальный .btn снова общая область имён документа.',
+              ? 'Два заголовка выглядят по-разному — у каждого свой класс.'
+              : 'Общий .title перекрасил новость под каталог.',
           )
         } else {
           setHint(
             caseId === 'props'
-              ? 'Props задают вид; библиотека выдаёт разные классы.'
-              : 'Runtime-inject удобен, но без SSR-CSS будет FOUC.',
+              ? 'Один компонент, два вида — правила из props.'
+              : 'Пока JS не вставил CSS, бирки были просто текстом.',
           )
         }
       },
@@ -497,17 +477,13 @@ export function LayoutCssModulesCssInJsLab() {
 
       <StyleOrgViz pattern={pattern} caseId={caseId} phase={phase} stageRef={stageRef} />
 
-      {hint ? (
-        <p className={shell.hint}>
-          Итог: {hint}
-        </p>
-      ) : null}
+      {hint ? <p className={shell.hint}>Итог: {hint}</p> : null}
       <LabLogView lines={lines} />
     </div>
   )
 
   const code = (
-    <div className={styles.codePane}>
+    <div className={shell.codePane}>
       <div className={styles.codeSwitch}>
         {PATTERNS.map((p) => (
           <LabButton
@@ -533,7 +509,7 @@ export function LayoutCssModulesCssInJsLab() {
   return (
     <JsLabShell
       title="CSS Modules и CSS-in-JS"
-      lead="Изоляция классов: хеши на сборке или стили в JS. На схеме — leak vs scoped и props vs runtime-inject."
+      lead="Товар и новость делят имя .title. Хеш или стили в JS не дают им перекрасить друг друга."
       problem={problem}
       code={code}
     />

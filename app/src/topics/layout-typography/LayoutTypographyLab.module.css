@@ -56,11 +56,11 @@
 .preview {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 0.5rem;
   padding: var(--space-2);
   border-radius: var(--radius-sm);
   background: var(--stage-bg);
-  min-height: 5.5rem;
+  min-height: 6.5rem;
 }
 
 .previewGhost {
@@ -103,32 +103,90 @@
   color: var(--text);
 }
 
-/* Drift case — inconsistent */
-.driftH {
+/* Drift — статья: скачок 24 → 11 → 13 */
+.driftRow {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+}
+
+.sizeTag,
+.sizeTagWarn {
+  flex-shrink: 0;
+  min-width: 2.35rem;
+  padding: 0.08rem 0.25rem;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  font-weight: var(--font-weight-semibold);
+  line-height: 1.2;
+  text-align: center;
+}
+
+.sizeTag {
+  color: var(--text-muted);
+  background: color-mix(in srgb, var(--border) 55%, transparent);
+}
+
+.sizeTagWarn {
+  color: var(--warn);
+  background: color-mix(in srgb, var(--warn) 18%, transparent);
+}
+
+.driftArticleH {
   margin: 0;
-  font-family: Georgia, serif;
-  font-size: 22px;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 24px;
   font-weight: 700;
   line-height: 1.1;
-  letter-spacing: -0.02em;
   color: var(--text-heading);
 }
 
-.driftLead {
+.driftArticleLead {
   margin: 0;
   font-family: var(--font-sans);
-  font-size: 15px;
+  font-size: 11px;
   font-weight: 300;
-  line-height: 18px;
+  line-height: 1.35;
   color: var(--accent-bright);
 }
 
-.driftBody {
+.driftArticleBody {
   margin: 0;
   font-family: Arial, sans-serif;
   font-size: 13px;
   font-weight: 400;
   line-height: 1.65;
+  color: var(--text-muted);
+}
+
+/* Drift — карточка: лид 16px > заголовок 14px */
+.driftCardH {
+  margin: 0;
+  font-family: Verdana, Geneva, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--text-heading);
+}
+
+.driftCardLead {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.25;
+  color: var(--text);
+}
+
+.driftCardBody {
+  margin: 0;
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.4;
   color: var(--text-muted);
 }
 

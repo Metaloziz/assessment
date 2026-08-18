@@ -619,7 +619,7 @@ export const TOPIC_META: Record<
   // Вёрстка
   "164-layout-vector-raster": {
     groupId: "layout",
-    level: "junior",
+    level: "senior",
     sortInGroup: 1,
   },
   "165-layout-typography": {

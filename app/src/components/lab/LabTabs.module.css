@@ -58,10 +58,15 @@
   flex-direction: column;
 }
 
+.panelWithFooter {
+  overflow: hidden;
+}
+
 .panelBody {
   min-width: 0;
   min-height: 0;
   flex: 1;
+  overflow: auto;
   display: flex;
   flex-direction: column;
 }
