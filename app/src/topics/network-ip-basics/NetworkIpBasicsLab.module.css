@@ -1,0 +1,138 @@
+.scheme {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 0.35rem 0.55rem;
+  align-items: stretch;
+  min-height: 11rem;
+}
+
+.schemeTop,
+.schemeMid,
+.schemeOut {
+  grid-column: 1 / -1;
+  justify-self: center;
+  width: min(100%, 14rem);
+}
+
+.schemeFork {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 0.25rem 0.4rem;
+  align-items: center;
+  text-align: center;
+  color: var(--muted);
+  font-size: var(--lab-font-meta);
+  user-select: none;
+}
+
+.schemeForkHit,
+.schemeForkMiss {
+  transition: color 0.4s ease, opacity 0.4s ease;
+}
+
+.schemeForkHitActive {
+  color: var(--ok);
+}
+
+.schemeForkMissActive {
+  color: var(--accent-bright);
+}
+
+.schemeForkIdle {
+  opacity: 0.45;
+}
+
+.schemeBranch {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.schemeBranchArrow {
+  color: var(--muted);
+  font-size: var(--lab-font-meta);
+  text-align: center;
+  user-select: none;
+  line-height: 1;
+}
+
+.natWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  align-items: stretch;
+}
+
+.writeRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 0.35rem 0.4rem;
+  align-items: center;
+  min-height: 7.5rem;
+}
+
+.writeArrow {
+  color: var(--muted);
+  font-size: var(--lab-font-meta);
+  user-select: none;
+  transition: color 0.4s ease, opacity 0.4s ease;
+}
+
+.writeArrowActive {
+  color: var(--accent-bright);
+}
+
+.writeArrowIdle {
+  opacity: 0.4;
+}
+
+.dim {
+  opacity: 0.42;
+  transition: opacity 0.4s ease;
+}
+
+.pathOff {
+  opacity: 0.28;
+  transition: opacity 0.4s ease;
+}
+
+.packet {
+  grid-column: 1 / -1;
+  justify-self: center;
+  width: min(100%, 9.5rem);
+  padding: 0.18rem 0.35rem;
+  text-align: center;
+  border-radius: var(--radius-pill);
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--border));
+  background: color-mix(in srgb, var(--accent) 18%, rgba(20, 24, 30, 0.9));
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-meta);
+  font-weight: var(--font-weight-semibold);
+  transition: opacity 0.4s ease;
+}
+
+@media (max-width: 640px) {
+  .writeRow {
+    grid-template-columns: 1fr;
+    justify-items: stretch;
+  }
+
+  .writeArrow {
+    transform: rotate(90deg);
+    justify-self: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .schemeForkHit,
+  .schemeForkMiss,
+  .writeArrow,
+  .dim,
+  .pathOff,
+  .packet {
+    transition: none;
+  }
+}

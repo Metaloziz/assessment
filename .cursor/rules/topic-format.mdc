@@ -12,6 +12,9 @@ alwaysApply: false
 
 - Эталон **целой темы**: [`topics/112-js-v8-pipeline.md`](../../topics/112-js-v8-pipeline.md).
 - Эталон плотности **«Сути»**: [`topics/140-project-prod-dev-plugins.md`](../../topics/140-project-prod-dev-plugins.md).
+- Эталон **человекочитаемого общего понимания**: [`topics/263-network-dns-basics.md`](../../topics/263-network-dns-basics.md).
 - Middle / senior: лаба по [`skills/write-assessment-labs/SKILL.md`](../../skills/write-assessment-labs/SKILL.md).
+
+Текст темы — для человека, который учится: абзацы своими словами, термин после расшифровки. Не справочник RFC. Подробности — `TOPIC_FORMAT.md` § «Человекочитаемый текст».
 
 Не дублируй длинные правила здесь — следуй скиллу и `TOPIC_FORMAT.md`.

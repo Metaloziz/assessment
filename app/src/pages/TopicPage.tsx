@@ -153,6 +153,9 @@ import { NetworkApiFirstLab } from '../topics/network-api-first/NetworkApiFirstL
 import { NetworkHttpHttpsLab } from '../topics/network-http-https/NetworkHttpHttpsLab'
 import { NetworkTcpipInternetAppLab } from '../topics/network-tcpip-internet-app/NetworkTcpipInternetAppLab'
 import { NetworkTcpipTransportLinkLab } from '../topics/network-tcpip-transport-link/NetworkTcpipTransportLinkLab'
+import { NetworkIpBasicsLab } from '../topics/network-ip-basics/NetworkIpBasicsLab'
+import { NetworkTcpLab } from '../topics/network-tcp/NetworkTcpLab'
+import { NetworkDnsBasicsLab } from '../topics/network-dns-basics/NetworkDnsBasicsLab'
 import { NetworkLongPollingWsSseLab } from '../topics/network-long-polling-ws-sse/NetworkLongPollingWsSseLab'
 import { LAB_DOCK_ID, useLayoutStore } from '../store/layout'
 import styles from './TopicPage.module.css'
@@ -261,6 +264,9 @@ function TopicLab({ topicId }: { topicId: string; topic: TopicDetail }) {
   if (topicId === '252-network-long-polling-ws-sse') return <NetworkLongPollingWsSseLab />
   if (topicId === '253-network-tcpip-internet-app') return <NetworkTcpipInternetAppLab />
   if (topicId === '254-network-tcpip-transport-link') return <NetworkTcpipTransportLinkLab />
+  if (topicId === '261-network-ip-basics') return <NetworkIpBasicsLab />
+  if (topicId === '262-network-tcp') return <NetworkTcpLab />
+  if (topicId === '263-network-dns-basics') return <NetworkDnsBasicsLab />
   if (topicId === '256-software-solid') return <SoftwareSolidLab />
   if (topicId === '257-software-mvc-mvp-mvvm') return <SoftwareMvcMvpMvvmLab />
   if (topicId === '259-software-incremental-iterative-spiral')

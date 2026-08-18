@@ -1074,15 +1074,30 @@ export const TOPIC_META: Record<
     level: "middle",
     sortInGroup: 6,
   },
-  "253-network-tcpip-internet-app": {
+  "261-network-ip-basics": {
     groupId: "network",
     level: "senior",
     sortInGroup: 7,
   },
-  "254-network-tcpip-transport-link": {
+  "263-network-dns-basics": {
     groupId: "network",
     level: "senior",
     sortInGroup: 8,
+  },
+  "253-network-tcpip-internet-app": {
+    groupId: "network",
+    level: "senior",
+    sortInGroup: 9,
+  },
+  "254-network-tcpip-transport-link": {
+    groupId: "network",
+    level: "senior",
+    sortInGroup: 10,
+  },
+  "262-network-tcp": {
+    groupId: "network",
+    level: "senior",
+    sortInGroup: 11,
   },
 
   // Разработка ПО
