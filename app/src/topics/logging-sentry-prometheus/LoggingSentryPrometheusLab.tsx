@@ -5,10 +5,13 @@ import shell from '../../components/lab/JsLabShell.module.css'
 import { InteractiveCodePanel } from '../../components/lab/InteractiveCodePanel'
 import { LabLogView } from '../../components/lab/LabLogView'
 import { useLabLog } from '../../components/lab/useLabLog'
+import { Sentry } from '../../sentry.client'
 
 const TOPIC_ID = '146-logging-sentry-prometheus'
 
 type Mode = 'sentry' | 'metrics' | 'alert'
+
+const LAB_SENTRY_ERROR = "TypeError: Cannot read properties of undefined (reading 'id')"
 
 export function LoggingSentryPrometheusLab() {
   const { lines, log, clear } = useLabLog()
@@ -18,10 +21,23 @@ export function LoggingSentryPrometheusLab() {
   const run = () => {
     clear()
     if (mode === 'sentry') {
-      log('err', 'TypeError: Cannot read properties of undefined (reading "id")')
-      log('ok', 'Sentry issue #1842 · release=sha-a1b2 · env=production')
-      log('info', 'breadcrumbs: click Pay → POST /api/pay → exception')
-      setHint('Sentry = ошибка + release — см. sentry.client.js')
+      log('err', LAB_SENTRY_ERROR)
+      const release = import.meta.env.VITE_APP_RELEASE ?? 'local'
+      const sentryLive = Boolean(import.meta.env.PROD && import.meta.env.VITE_SENTRY_DSN && Sentry.getClient())
+
+      if (sentryLive) {
+        const err = new Error(LAB_SENTRY_ERROR)
+        err.name = 'TypeError'
+        Sentry.captureException(err)
+        log('ok', `Отправлено в Sentry · release=${release}`)
+        log('info', 'breadcrumbs: lab → Запустить → captureException')
+        setHint('Проверьте Issues в проекте javascript-react на sentry.io')
+      } else {
+        log('ok', 'Sentry issue #1842 · release=sha-a1b2 · env=production (симуляция)')
+        log('info', 'breadcrumbs: click Pay → POST /api/pay → exception')
+        log('warn', 'Sentry не активен (dev или нет VITE_SENTRY_DSN) — только локальный лог')
+        setHint('На prod с DSN «Запустить» шлёт реальное событие — см. sentry.client.ts')
+      }
       return
     }
     if (mode === 'metrics') {
@@ -40,13 +56,13 @@ export function LoggingSentryPrometheusLab() {
   const problem = (
     <div className={shell.panel}>
       <p className={shell.pain}>
-        Ошибки и метрики отвечают на разные вопросы. Здесь — сценарии инцидента; init Sentry и
-        счётчики — во вкладке «Код».
+        Ошибки и метрики отвечают на разные вопросы. На prod «Sentry» + «Запустить» вызывает{' '}
+        <code>Sentry.captureException</code>; в dev — только симуляция в логе.
       </p>
       <ol className={shell.steps}>
         <li>Выберите Sentry, Metrics или Alert.</li>
         <li>
-          Откройте «Код»: <code>sentry.client.js</code>, <code>metrics.js</code>.
+          Откройте «Код»: <code>sentry.client.ts</code>, <code>metrics.js</code>.
         </li>
         <li>Сверьте лог с полями <code>release</code> / labels.</li>
       </ol>
@@ -108,31 +124,34 @@ export function LoggingSentryPrometheusLab() {
       snippets={[
         {
           id: 'sentry-client',
-          label: 'sentry.client.js',
-          note: 'DSN из env; release + beforeSend; sample rate на проде.',
+          label: 'sentry.client.ts',
+          note: 'Реальный init приложения: DSN из env, только prod.',
           executable: false,
-          code: `import * as Sentry from '@sentry/browser';
+          code: `import * as Sentry from '@sentry/react'
 
-// ═══════════════════════════════════════════
-// SENTRY ← ошибки с контекстом и релизом
-// ═══════════════════════════════════════════
-Sentry.init({
-  dsn: import.meta.env.VITE_SENTRY_DSN, // ← не коммитить DSN в git как секрет? чаще ok public DSN
-  environment: import.meta.env.MODE,
-  release: import.meta.env.VITE_APP_VERSION, // ← git sha / semver
+const dsn = import.meta.env.VITE_SENTRY_DSN
+const release = import.meta.env.VITE_APP_RELEASE
 
-  tracesSampleRate: 0.1, // ← sample на проде
+if (import.meta.env.PROD && dsn) {
+  Sentry.init({
+    dsn,
+    environment: import.meta.env.MODE,
+    release: release || undefined,
+    tracesSampleRate: 0, // ← только errors на стенде
+    beforeSend(event) {
+      const headers = event.request?.headers
+      if (headers) {
+        delete headers.Authorization
+        delete headers.authorization
+        delete headers.Cookie
+        delete headers.cookie
+      }
+      return event
+    },
+  })
+}
 
-  beforeSend(event) {
-    // ═══════════════════════════════════════════
-    // PII ← вырезать токены / email из extra
-    // ═══════════════════════════════════════════
-    if (event.extra) delete event.extra.password;
-    return event;
-  },
-});
-
-// source maps загружают в Sentry на CI → читаемый stack`,
+export { Sentry }`,
         },
         {
           id: 'metrics',
