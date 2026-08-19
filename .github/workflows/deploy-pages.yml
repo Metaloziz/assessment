@@ -32,6 +32,11 @@ jobs:
         env:
           # Repo → Settings → Secrets → Actions → VITE_API_BASE_URL=https://assessment-api-fm0e.onrender.com
           VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
+          VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
+          VITE_APP_RELEASE: assessment-web@${{ github.sha }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
         run: npm run build
       - uses: actions/upload-pages-artifact@v3
         with:
