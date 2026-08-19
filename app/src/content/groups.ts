@@ -364,6 +364,11 @@ export const TOPIC_META: Record<
     level: "senior",
     sortInGroup: 43,
   },
+  "266-js-proxy-reflect": {
+    groupId: "js",
+    level: "senior",
+    sortInGroup: 44,
+  },
 
   // Алгоритмы и структуры данных (после JS)
   "127-algorithms-what-is": {

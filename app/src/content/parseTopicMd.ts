@@ -163,6 +163,7 @@ export function parseTopicMd(id: string, raw: string, order: number): TopicDetai
       id === '116-js-v8-optimizations' ||
       id === '117-js-proto-vs-closure-perf' ||
       id === '118-js-webcomponents-css' ||
+      id === '266-js-proxy-reflect' ||
       id === '124-redux-saga-thunk' ||
       id === '126-redux-feature-first-ducks' ||
       id === '02-normalize-immutable-libs' ||

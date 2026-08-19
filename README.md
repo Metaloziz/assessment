@@ -214,12 +214,13 @@ Env: корневой `.env` / `server/.env` / переменные хостин
 | 110 | [110-js-delegation-pattern.md](topics/110-js-delegation-pattern.md) | Делегирование событий |
 | 111 | [111-js-v8-gc.md](topics/111-js-v8-gc.md) | Сборщик мусора V8 |
 | 112 | [112-js-v8-pipeline.md](topics/112-js-v8-pipeline.md) | Процесс обработки кода в V8 |
-| 113 | [113-js-class-engine.md](topics/113-js-class-engine.md) | Как движок реализует классы |
+| 113 | [113-js-class-engine.md](topics/113-js-class-engine.md) | Преобразование классов в рантайме. Приватные и статичные поля классов |
 | 114 | [114-js-mixins.md](topics/114-js-mixins.md) | Примеси |
 | 115 | [115-js-web-components.md](topics/115-js-web-components.md) | Web Components |
 | 116 | [116-js-v8-optimizations.md](topics/116-js-v8-optimizations.md) | Оптимизации V8 |
 | 117 | [117-js-proto-vs-closure-perf.md](topics/117-js-proto-vs-closure-perf.md) | Производительность: прототип против замыкания |
 | 118 | [118-js-webcomponents-css.md](topics/118-js-webcomponents-css.md) | CSS в Web Components |
+| 266 | [266-js-proxy-reflect.md](topics/266-js-proxy-reflect.md) | Proxy и Reflect |
 | 119 | [119-redux-scope.md](topics/119-redux-scope.md) | Redux, область применения |
 | 120 | [120-react-redux-binding.md](topics/120-react-redux-binding.md) | Связывание React с Redux |
 | 121 | [121-redux-action-dispatch.md](topics/121-redux-action-dispatch.md) | action, dispatch |

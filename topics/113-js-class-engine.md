@@ -1,143 +1,173 @@
 # 1. Тема
 
-**Как движок реализует классы:** конструктор · `Class.prototype` · `extends` · обязательный `new` · `super` и private names
+**Преобразование классов в рантайме. Приватные и статичные поля классов**
 
 ---
 
 # 2. Главное в одну фразу
 
-`class` — синтаксис над прототипной моделью: движок создаёт функцию-конструктор и объект прототипа, а `extends` / `super` / private fields добавляют жёсткую семантику поверх «просто function + prototype».
+Синтаксис `class` движок превращает в конструктор и объект прототипа, а статические и приватные поля кладёт не туда, где лежат обычные методы и свойства экземпляра.
 
 ---
 
 # 3. Суть
 
-> Класс в JavaScript не отдельная объектная модель: движок по-прежнему связывает экземпляры с прототипом. Объявление `class Person` даёт конструктор `Person` и объект `Person.prototype`, куда кладут общие методы.
+> Запись `class Account { … }` в рантайме даёт функцию-конструктор `Account` и объект `Account.prototype` с общими методами. Экземпляр после `new` хранит свои поля у себя и ссылается на прототип за методами — та же прототипная модель, что у «старого» `function + prototype`, только с жёсткой семантикой `new`, `extends` и `super`.
 >
-> Так тысячи однотипных объектов делят одну функцию `greet`, а не копируют её в каждый экземпляр. Статические члены живут на самом конструкторе и удобны для фабрик.
+> **Статические** поля и методы (`static count`, `static create()`) живут на **самом конструкторе** `Account`, а не на `Account.prototype` и не на каждом экземпляре. Один счётчик или фабрика на класс — удобно для общих настроек и счётчиков без копии в каждый объект.
 >
-> `extends` строит две цепочки: прототипы экземпляров и цепочку самих конструкторов. Дополнительно класс нельзя вызвать без `new`, тело в strict mode, у `super` и `#private` свои правила — поэтому «это просто сахар над function» верно лишь наполовину.
+> **Приватные** поля `#balance` движок не кладёт как обычный строковый ключ: у объекта нет `#balance` в `Object.keys`, снаружи нет `obj['#balance']`. Доступ проверяется по «бренду» класса — только код, объявленный в этом классе, может читать и писать `#balance`. У подкласса своё `#balance` — это другое поле, даже если имя совпадает; к `#balance` родителя из наследника не попасть.
+>
+> Поэтому «class — просто сахар над function» верно лишь для методов и прототипа: статика и private names добавляют отдельные правила, которые транспайлер в старый ES5 не воспроизводит один в один.
 
 ---
 
 # 4. Самое главное запомнить
 
-- `class C {}` ≈ конструктор `C` + объект `C.prototype` с методами.
-- `Object.getPrototypeOf(instance) === C.prototype`.
-- Методы на прототипе общие; поля из `constructor` / полей класса — на экземпляре.
-- `extends`: `Child.prototype → Parent.prototype` и `Child → Parent` (через `[[Prototype]]` функции).
-- Класс нельзя вызвать без `new`; в derived-конструкторе к `this` — только после `super()`.
-- Private `#field` — не обычное свойство объекта; у подкласса нет доступа к private names родителя.
+- `class C {}` → конструктор `C` + объект `C.prototype`; методы экземпляра — на прототипе.
+- `static x` и `static method()` — свойства **конструктора** `C`, не экземпляра и не `C.prototype`.
+- Поле экземпляра `#secret` не видно в перечислении ключей объекта; снаружи к нему не обратиться.
+- Подкласс не читает `#secret` родителя — у private names своя привязка к классу объявления.
+- Вызов класса без `new` — `TypeError`; в derived-конструкторе к `this` только после `super()`.
 
 ---
 
 # 5. Описание
 
-## Что создаёт движок при `class`
+## Что получается после `class`
 
 ```js
-class Person {
-  constructor(name) {
-    this.name = name;
+class BankAccount {
+  static taxRate = 0.13;
+  static create(id) {
+    return new this(id);
   }
 
-  greet() {
-    return `Привет, ${this.name}`;
+  #balance = 0;
+
+  constructor(id) {
+    this.id = id;
   }
 
-  static from(data) {
-    return new this(data.name);
+  deposit(amount) {
+    this.#balance += amount;
+  }
+
+  getBalance() {
+    return this.#balance;
   }
 }
 ```
 
-Упрощённо внутри:
+Упрощённая картина в памяти:
 
 ```text
-Person                 // функция-конструктор (callable только через [[Construct]] / new)
-├── .prototype  ──►  Person.prototype
-│                      ├── .constructor → Person
-│                      └── .greet       → function (неперечисляемый, strict)
-└── .from       → static method (свойство конструктора, не прототипа)
+BankAccount                    // функция-конструктор (только через new)
+├── .taxRate = 0.13            // ← static field на конструкторе
+├── .create()                  // ← static method
+├── .prototype ──►
+│     ├── .constructor → BankAccount
+│     ├── .deposit()
+│     └── .getBalance()
+└── (нет #balance здесь)
 
-new Person('Ада')
+new BankAccount('A1')
 └── instance
-    ├── .name = 'Ада'          // собственное поле
-    └── [[Prototype]] ──► Person.prototype
+    ├── .id = 'A1'             // обычное own-свойство
+    ├── #balance → слот движка // не ключ в Object.keys
+    └── [[Prototype]] ──► BankAccount.prototype
 ```
 
-Проверка:
+Проверки:
 
 ```js
-const user = new Person('Ада');
-Object.getPrototypeOf(user) === Person.prototype; // true
-user.hasOwnProperty('greet'); // false — метод на прототипе
-typeof Person.prototype.greet; // 'function'
+const acc = BankAccount.create('A1');
+acc.deposit(100);
+
+Object.keys(acc); // ['id'] — #balance не в списке
+'balance' in acc; // false
+acc.getBalance(); // 100 — метод класса видит #balance
+
+BankAccount.taxRate; // 0.13 — на конструкторе
+acc.taxRate; // undefined — на экземпляре static нет
 ```
 
-Методы из тела класса попадают на прототип и **неперечисляемы** (`for…in` их обычно не показывает). Вызов идёт в **strict mode**: «голый» вызов без объекта даст `this === undefined`, а не `globalThis`.
+## Статические поля и методы
 
-## Обязательный `new` и TDZ
-
-Функцию-конструктор в старом стиле можно ошибочно вызвать без `new` и получить баг. Класс при вызове без `new` бросает `TypeError`: у конструктора класса нет обычного `[[Call]]` как у function declaration для создания экземпляра.
-
-Объявление `class` не поднимается как `function`: до строки `class` имя в **temporal dead zone** — обратиться нельзя.
-
-## `extends`: две связи
+Статика нужна, когда состояние или поведение относится ко **всему классу**, а не к одному объекту: счётчик созданных экземпляров, общий лимит, фабрика `create`, константа конфигурации.
 
 ```js
-class Employee extends Person {
-  constructor(name, role) {
-    super(name);
-    this.role = role;
+class Counter {
+  static count = 0;
+
+  constructor() {
+    Counter.count += 1;
+  }
+}
+
+new Counter();
+new Counter();
+Counter.count; // 2
+```
+
+Static-методы часто используют `new this(...)` или `new Target(...)` в фабриках наследников: `this` в static-методе — сам конструктор (например `SavingsAccount`, если метод вызван на нём).
+
+Статические поля инициализируются при подготовке класса; порядок с другими static-полями того же класса — сверху вниз, как у обычных полей.
+
+## Приватные поля `#name`
+
+Private field — не «соглашение с подчёркиванием» и не TypeScript `private` (который стирается при компиляции в JS без `#`). Это проверка **в рантайме**:
+
+```js
+class Wallet {
+  #balance = 0;
+
+  credit(n) {
+    this.#balance += n;
+  }
+}
+
+const w = new Wallet();
+w.credit(50);
+// w.#balance — SyntaxError снаружи класса
+// w['#balance'] — undefined, такого ключа нет
+```
+
+Движок хранит значение в internal slot, привязанном к паре «объект + имя private brand класса». Методы того же класса обращаются к `#balance` через скомпилированную ссылку на brand; чужой код — нет.
+
+## Наследник и private родителя
+
+```js
+class Savings extends BankAccount {
+  #bonus = 0;
+
+  addBonus(n) {
+    this.#bonus += n;
+    // this.#balance — ошибка: #balance объявлен в BankAccount, не здесь
+    this.deposit(n); // ок — публичный метод родителя трогает #balance внутри
   }
 }
 ```
 
-```text
-Экземпляры:     emp ──[[Prototype]]──► Employee.prototype ──► Person.prototype ──► Object.prototype ──► null
+У `Savings` своё `#bonus`; `#balance` из `BankAccount` для кода `Savings` как бы не существует — даже если подкласс знает, что у родителя было поле с таким именем.
 
-Конструкторы:   Employee ──[[Prototype]]──► Person ──► Function.prototype …
-```
+## Чем это отличается от «голого» конструктора
 
-Зачем вторая цепочка: чтобы `Employee.from` мог найтись на родителе, если static не переопределён, и чтобы `super` в static-методах знал родителя.
-
-В конструкторе наследника **нельзя читать/писать `this` до `super(...)`**: сначала родительский конструктор должен инициализировать экземпляр.
-
-## Private names и brand
-
-Поля `#secret` хранятся не как обычные enumerable-свойства. Движок ведёт учёт «бренда» класса: доступ к `#secret` разрешён только коду, объявленному в том же классе. Подкласс с собственным `#secret` — **другое** поле, даже если имя выглядит так же. Снаружи нет `obj['#secret']` и нет ключа в `Object.keys`.
-
-Это сильнее соглашения `_private` и сильнее TypeScript `private` (который стирается при компиляции в JS без `#`).
-
-## Чем class не равен «просто function»
-
-| | `function Person() {}` + `Person.prototype` | `class Person {}` |
+| | `function + prototype` | `class` + static + `#private` |
 | --- | --- | --- |
-| Вызов без `new` | часто «молчаливый» баг | `TypeError` |
-| Методы | вручную на `.prototype`, часто enumerable | на прототипе, non-enumerable, strict |
-| `extends` / `super` | вручную две цепочки | встроенная семантика |
-| `#private` | нет | runtime-проверка brand |
-| Hoisting | function declaration поднимается | TDZ до объявления |
+| Методы экземпляра | вручную на `.prototype` | на `C.prototype`, non-enumerable |
+| Static | вручную `C.x = …` | `static x` на конструкторе |
+| Приватность | соглашение `_x` или WeakMap снаружи | `#x` с проверкой brand в рантайме |
+| Вызов без `new` | часто тихий баг | `TypeError` |
 
-Транспайлер в ES5 может сгенерировать *приближённый* код, но современный движок исполняет семантику класса напрямую — с private, `super` и запретом вызова без `new`.
-
-## Практика для собеседования
-
-На вопрос «как движок реализует классы» достаточно цепочки:
-
-1. конструктор + `prototype`;
-2. экземпляр → `[[Prototype]]` → методы;
-3. `extends` = две связи;
-4. отличия от «голого» function-конструктора.
-
-Детали hidden class / shapes объектов — уже соседняя тема про пайплайн V8 и оптимизацию.
+Транспайлер может сгенерировать **приближённый** ES5-код для методов и наследования, но семантику `#private` и static fields современный движок исполняет нативно.
 
 ---
 
 # 6. Ссылки
 
 - [MDN: Classes](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes)
-- [MDN: Inheritance and the prototype chain](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Inheritance_and_the_prototype_chain)
+- [MDN: Private elements](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes/Private_elements)
+- [MDN: Static initialization blocks](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes/Static_initialization_blocks)
 - [TC39: Private fields](https://github.com/tc39/proposal-class-fields)
-- [JavaScript.info: Class basic syntax](https://javascript.info/class)
+- [JavaScript.info: Private and public fields](https://javascript.info/private-protected-properties-methods)
