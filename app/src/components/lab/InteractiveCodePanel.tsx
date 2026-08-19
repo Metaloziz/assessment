@@ -155,11 +155,14 @@ export function InteractiveCodePanel({
   const [maxEditorPx, setMaxEditorPx] = useState<number | undefined>()
   /** Пишем в LS только после правки в редакторе, не при mount / смене эталона. */
   const editedRef = useRef(false)
+  /** true только после клика «Выполнить»; автозапуск не считается. */
+  const [userRan, setUserRan] = useState(false)
   const persistTimerRef = useRef<number | null>(null)
 
   const loadSnippet = useCallback(
     (snippet: InteractiveSnippet) => {
       editedRef.current = false
+      setUserRan(false)
       if (persistTimerRef.current != null) {
         window.clearTimeout(persistTimerRef.current)
         persistTimerRef.current = null
@@ -260,9 +263,23 @@ export function InteractiveCodePanel({
     }
   }, [fillAvailable, intro, activeMeta?.note, consoleLines.length, executable])
 
+  const resetCode = () => {
+    if (!activeMeta) return
+    editedRef.current = false
+    setUserRan(false)
+    if (persistTimerRef.current != null) {
+      window.clearTimeout(persistTimerRef.current)
+      persistTimerRef.current = null
+    }
+    clearStored(topicId, activeMeta.id)
+    setCode(activeMeta.code)
+    setConsoleLines([])
+  }
+
   if (!activeMeta) return null
 
   const dirty = code !== activeMeta.code
+  const showReset = dirty || userRan
 
   return (
     <div
@@ -291,25 +308,21 @@ export function InteractiveCodePanel({
 
       <div className={styles.toolbar}>
         {executable ? (
-          <LabButton variant="primary" onClick={() => run(code)}>
+          <LabButton
+            variant="primary"
+            onClick={() => {
+              setUserRan(true)
+              run(code)
+            }}
+          >
             Выполнить
           </LabButton>
         ) : null}
-        <LabButton
-          variant="secondary"
-          disabled={!dirty}
-          onClick={() => {
-            editedRef.current = false
-            if (persistTimerRef.current != null) {
-              window.clearTimeout(persistTimerRef.current)
-              persistTimerRef.current = null
-            }
-            clearStored(topicId, activeMeta.id)
-            setCode(activeMeta.code)
-          }}
-        >
-          Сброс кода
-        </LabButton>
+        {showReset ? (
+          <LabButton variant="secondary" onClick={resetCode}>
+            Сброс кода
+          </LabButton>
+        ) : null}
         {dirty ? <span className={styles.saved}>черновик в localStorage</span> : null}
       </div>
 

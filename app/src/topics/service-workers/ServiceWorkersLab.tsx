@@ -7,76 +7,61 @@ const TOPIC_ID = '65-service-workers'
 
 const CODE_SNIPPETS: InteractiveSnippet[] = [
   {
+    id: 'sw-lifecycle',
+    label: 'register + sw-lab.js',
+    executable: false,
+    languageLabel: 'js',
+    note: 'Страница регистрирует SW; дальше браузер вызывает `install` → `activate` → `fetch`.',
+    code: `// main.js — страница ставит SW на guard
+if ('serviceWorker' in navigator) {
+  const reg = await navigator.serviceWorker.register('/sw-lab.js', {
+    scope: '/', // ← какие URL перехватывает SW
+  })
+  await navigator.serviceWorker.ready // ← install + activate завершены
+}
+
+// sw-lab.js — фоновый скрипт
+self.addEventListener('install', (event) => {
+  self.skipWaiting() // ← новая версия не ждёт закрытия вкладок
+  event.waitUntil(caches.open('assessment-sw-lab-v3'))
+})
+
+self.addEventListener('activate', (event) => {
+  event.waitUntil(self.clients.claim()) // ← SW начинает контролировать вкладку
+})
+
+self.addEventListener('fetch', (event) => {
+  event.respondWith(/* кэш или сеть — см. следующий файл */)
+})`,
+  },
+  {
     id: 'sw-fetch',
     label: 'app/public/sw-lab.js',
     executable: false,
     languageLabel: 'js',
-    note: '`fetch` отдаёт кэш сразу и параллельно обновляет его из сети.',
+    note: 'На `fetch` SW сам решает: отдать кэш, сходить в сеть или обновить снимок в фоне.',
     code: `self.addEventListener('fetch', (event) => {
   const { request } = event
   if (request.method !== 'GET') return
   if (request.url !== WEATHER_URL) return
 
-  event.respondWith(weatherWidget(request)) // ← весь контроль ответа здесь
+  event.respondWith(weatherWidget(request)) // ← страница ждёт этот Response
 })
 
 async function weatherWidget(request) {
   const cache = await caches.open(CACHE)
   const cached = await cache.match(WEATHER_URL)
 
-  if (forceOffline) {
-    if (cached) return tag(cached, 'cache-offline') // ← offline, но снимок уже есть
-    return jsonError(503, 'offline-empty', 'Нет сети и нет закэшированной погоды')
-  }
-
-  const networkPromise = fetch(request)
-    .then(async (fresh) => {
-      if (fresh.ok) await cache.put(WEATHER_URL, fresh.clone()) // ← обновили кэш
-      return fresh
-    })
-    .catch(() => null)
-
   if (cached) {
-    void networkPromise
-    return tag(cached, 'cache-hit') // ← stale-while-revalidate
+    void fetch(request).then((fresh) => {
+      if (fresh.ok) cache.put(WEATHER_URL, fresh.clone()) // ← фоновое обновление
+    })
+    return tag(cached, 'cache-hit') // ← ответ сразу из Cache Storage
   }
 
-  const fresh = await networkPromise
-  if (fresh) return tag(fresh, 'network-first')
-  return jsonError(503, 'network-fail', 'Сеть недоступна, кэша ещё нет')
-}`,
-  },
-  {
-    id: 'lab-run',
-    label: 'app/src/topics/service-workers/LiveSwLab.tsx',
-    executable: false,
-    languageLabel: 'tsx',
-    note: 'Кейс сам прогоняет шаги: включить `Service Worker`, прогреть кэш и показать контраст.',
-    code: `const runCase = async () => {
-  clear()
-  setFinished(false)
-  setBusy(true)
-
-  try {
-    const ready = await ensureControlled()
-    if (!ready) return
-
-    await setOfflineMode(false)
-    await clearCache()
-
-    if (caseId === 'warm') {
-      await fetchWeather('первый запрос')
-      await fetchWeather('повторный запрос') // ← ожидаем cache-hit
-    } else {
-      await fetchWeather('прогрев кэша')
-      await setOfflineMode(true)
-      await fetchWeather('offline с кэшем') // ← ожидаем cache-offline
-    }
-
-    setFinished(true)
-  } finally {
-    setBusy(false)
-  }
+  const fresh = await fetch(request)
+  if (fresh.ok) await cache.put(WEATHER_URL, fresh.clone())
+  return tag(fresh, 'network-first') // ← первый раз только из сети
 }`,
   },
 ]
@@ -86,7 +71,7 @@ function SwCodePanel() {
     <div className={shell.codePane}>
       <InteractiveCodePanel
         topicId={TOPIC_ID}
-        intro="Смотрите `register()`, `fetch`, `Cache Storage` и маркер `X-SW-Lab`, по которому стенд понимает: ответ пришёл из сети или из кэша."
+        intro="Сначала — как страница регистрирует `Service Worker` и как он проходит `install` / `activate`. Затем — перехват `fetch` и выбор между кэшем и сетью."
         snippets={CODE_SNIPPETS}
       />
     </div>

@@ -20,6 +20,7 @@ import { LegacyCodeApproachesLab } from '../topics/legacy-code-approaches/Legacy
 import { ApoLab } from '../topics/apo/ApoLab'
 import { CookiesLab } from '../topics/cookies/CookiesLab'
 import { ServiceWorkersLab } from '../topics/service-workers/ServiceWorkersLab'
+import { PwaLab } from '../topics/pwa/PwaLab'
 import { WebApisLab } from '../topics/web-apis/WebApisLab'
 import { IndexedDbLab } from '../topics/indexeddb/IndexedDbLab'
 import { WebWorkersLab } from '../topics/web-workers/WebWorkersLab'
@@ -81,6 +82,7 @@ import { LoggingServerDebugBrowserLab } from '../topics/logging-server-debug-bro
 import { LoggingNodesLab } from '../topics/logging-nodes/LoggingNodesLab'
 import { IframeLab } from '../topics/iframe/IframeLab'
 import { BrowserEventsFeaturesLab } from '../topics/browser-events-features/BrowserEventsFeaturesLab'
+import { BrowserWebComponentsLab } from '../topics/browser-web-components/BrowserWebComponentsLab'
 import { XFrameOptionsLab } from '../topics/x-frame-options/XFrameOptionsLab'
 import { CorsLab } from '../topics/cors/CorsLab'
 import { NpmAuditLab } from '../topics/npm-audit/NpmAuditLab'
@@ -196,6 +198,7 @@ function TopicLab({ topicId }: { topicId: string; topic: TopicDetail }) {
   if (topicId === '06-logging-nodes') return <LoggingNodesLab />
   if (topicId === '61-iframe') return <IframeLab />
   if (topicId === '268-browser-events-features') return <BrowserEventsFeaturesLab />
+  if (topicId === '269-browser-web-components') return <BrowserWebComponentsLab />
   if (topicId === '151-x-frame-options') return <XFrameOptionsLab />
   if (topicId === '07-cors') return <CorsLab />
   if (topicId === '08-npm-audit') return <NpmAuditLab />
@@ -300,6 +303,7 @@ function TopicLab({ topicId }: { topicId: string; topic: TopicDetail }) {
   if (topicId === '56-dead-code-tools') return <DeadCodeLab />
   if (topicId === '57-cookies') return <CookiesLab />
   if (topicId === '65-service-workers') return <ServiceWorkersLab />
+  if (topicId === '70-pwa') return <PwaLab />
   if (topicId === '66-web-workers') return <WebWorkersLab />
   if (topicId === '67-web-apis') return <WebApisLab />
   if (topicId === '68-indexeddb') return <IndexedDbLab />

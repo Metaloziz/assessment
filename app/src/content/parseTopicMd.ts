@@ -132,8 +132,10 @@ export function parseTopicMd(id: string, raw: string, order: number): TopicDetai
       id === '57-cookies' ||
       id === '61-iframe' ||
       id === '268-browser-events-features' ||
+      id === '269-browser-web-components' ||
       id === '267-devtools-websocket-debug' ||
       id === '65-service-workers' ||
+      id === '70-pwa' ||
       id === '66-web-workers' ||
       id === '67-web-apis' ||
       id === '68-indexeddb' ||
