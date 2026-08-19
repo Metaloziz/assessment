@@ -127,6 +127,15 @@ export function useWebWorkersLab() {
     pushLog({ kind: 'info', text: 'worker.terminate()' })
   }
 
+  const resetViz = () => {
+    workerRef.current?.terminate()
+    workerRef.current = null
+    setBusy(null)
+    setLastMain(null)
+    setLastWorker(null)
+    setLog([])
+  }
+
   return {
     supported,
     limit,
@@ -139,6 +148,7 @@ export function useWebWorkersLab() {
     runOnMain,
     runOnWorker,
     terminateWorker,
+    resetViz,
   }
 }
 

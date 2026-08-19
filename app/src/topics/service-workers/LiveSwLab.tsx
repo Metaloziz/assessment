@@ -1,5 +1,9 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState, type ReactNode } from 'react'
 import { LabButton } from '../../components/lab/LabButton'
+import { LabLogView } from '../../components/lab/LabLogView'
+import { LabNode, LabVizPanel } from '../../components/lab/LabViz'
+import shell from '../../components/lab/JsLabShell.module.css'
+import { useLabLog } from '../../components/lab/useLabLog'
 import styles from './LiveSwLab.module.css'
 
 type WeatherPayload = {
@@ -16,13 +20,46 @@ type WeatherPayload = {
   }
 }
 
-type LogLine = { kind: 'ok' | 'err' | 'info'; text: string }
-
 /** Минск · Open-Meteo (без API-ключа). URL должен совпадать с sw-lab.js */
 export const WEATHER_URL =
   'https://api.open-meteo.com/v1/forecast?latitude=53.9006&longitude=27.559&current=temperature_2m,weather_code,wind_speed_10m&timezone=Europe%2FMinsk'
 
 const CACHE_NAME = 'assessment-sw-lab-v3'
+type SwCaseId = 'warm' | 'offline'
+
+const CASES: Array<{ id: SwCaseId; label: string }> = [
+  { id: 'warm', label: 'повторный запрос' },
+  { id: 'offline', label: 'offline с кэшем' },
+]
+
+const CASE_BRIEF: Record<SwCaseId, ReactNode> = {
+  warm: (
+    <>
+      Первый ответ приходит из сети, а повторный уже отдаёт <code>Cache Storage</code>.
+    </>
+  ),
+  offline: (
+    <>
+      Сначала прогреваем кэш из сети, потом выключаем сеть и получаем последний снимок через{' '}
+      <code>Service Worker</code>.
+    </>
+  ),
+}
+
+const HINT: Record<SwCaseId, ReactNode> = {
+  warm: (
+    <>
+      Итог: второй запрос не ждёт интернет с нуля, потому что <code>Service Worker</code> уже держит
+      снимок в <code>Cache Storage</code>.
+    </>
+  ),
+  offline: (
+    <>
+      Итог: сеть пропала, но пустого экрана нет, потому что <code>Service Worker</code> вернул
+      последний закэшированный ответ.
+    </>
+  ),
+}
 
 function swUrl() {
   return `${import.meta.env.BASE_URL}sw-lab.js`
@@ -61,14 +98,11 @@ export function useLiveSwLab() {
   const [active, setActive] = useState(false)
   const [offline, setOffline] = useState(false)
   const [busy, setBusy] = useState(false)
-  const [log, setLog] = useState<LogLine[]>([])
   const [weather, setWeather] = useState<WeatherPayload | null>(null)
   const [via, setVia] = useState('')
-  const [raw, setRaw] = useState('')
-
-  const pushLog = useCallback((line: LogLine) => {
-    setLog((prev) => [...prev.slice(-10), line])
-  }, [])
+  const [caseId, setCaseId] = useState<SwCaseId>('warm')
+  const [finished, setFinished] = useState(false)
+  const { lines, log, clear } = useLabLog(8)
 
   const refreshActive = useCallback(async () => {
     if (!supported) return
@@ -95,23 +129,54 @@ export function useLiveSwLab() {
     controller.postMessage(message)
   }
 
-  const register = async () => {
-    if (!supported) return
+  const setOfflineMode = useCallback(
+    async (value: boolean) => {
+      setOffline(value)
+      await postToSw({ type: 'SET_OFFLINE', value })
+    },
+    [],
+  )
+
+  const clearCache = useCallback(async () => {
+    if (navigator.serviceWorker.controller) {
+      await postToSw({ type: 'CLEAR_CACHE' })
+    }
+    await caches.delete(CACHE_NAME)
+    setVia('')
+  }, [])
+
+  const resetDemo = useCallback(async () => {
+    clear()
+    setFinished(false)
+    setBusy(true)
+    try {
+      await setOfflineMode(false)
+      await clearCache()
+      setWeather(null)
+      log('info', 'Стенд сброшен: offline выключен, кэш очищен')
+    } catch (err) {
+      log('err', err instanceof Error ? err.message : 'Не удалось сбросить стенд')
+    } finally {
+      setBusy(false)
+    }
+  }, [clear, clearCache, log, setOfflineMode])
+
+  const ensureControlled = useCallback(async () => {
+    if (!supported) return false
     if (!window.isSecureContext) {
-      pushLog({
-        kind: 'err',
-        text: 'SW нужен secure context (localhost / HTTPS)',
-      })
-      return
+      log('err', 'Нужен secure context: localhost или HTTPS')
+      return false
     }
 
-    setBusy(true)
+    if (navigator.serviceWorker.controller) {
+      await refreshActive()
+      return true
+    }
+
     try {
       const reg = await navigator.serviceWorker.register(swUrl(), {
         scope: import.meta.env.BASE_URL,
       })
-
-      // ready может висеть вечно, если worker не активировался — не блокируем UI
       const ready = await Promise.race([
         navigator.serviceWorker.ready,
         new Promise<null>((resolve) => {
@@ -120,100 +185,34 @@ export function useLiveSwLab() {
       ])
 
       if (!ready) {
-        pushLog({
-          kind: 'err',
-          text: 'SW не активировался за 4с — проверь Application → Service Workers',
-        })
-        await refreshActive()
-        return
+        log('err', 'SW не активировался за 4 секунды')
+        return false
       }
 
       if (!navigator.serviceWorker.controller) {
-        pushLog({
-          kind: 'info',
-          text: 'SW установлен — перезагрузка, чтобы страница стала controlled…',
-        })
+        log('info', `SW установлен для ${reg.scope}`)
+        log('warn', 'Перезагружаю страницу, чтобы SW начал контролировать вкладку')
         window.setTimeout(() => {
           window.location.reload()
         }, 250)
-        return
+        return false
       }
 
-      pushLog({ kind: 'ok', text: `SW готов · scope ${reg.scope}` })
+      log('ok', `SW готов · scope ${reg.scope}`)
       await refreshActive()
+      return true
     } catch (err) {
-      pushLog({
-        kind: 'err',
-        text: err instanceof Error ? err.message : 'Ошибка register()',
-      })
-    } finally {
-      setBusy(false)
+      log('err', err instanceof Error ? err.message : 'Ошибка register()')
+      return false
     }
-  }
+  }, [log, refreshActive, supported])
 
-  const unregister = async () => {
-    setBusy(true)
-    try {
-      const regs = await navigator.serviceWorker.getRegistrations()
-      await Promise.all(regs.map((r) => r.unregister()))
-      await caches.delete(CACHE_NAME)
-      setActive(false)
-      setOffline(false)
-      setWeather(null)
-      setVia('')
-      setRaw('')
-      pushLog({ kind: 'info', text: 'SW снят, кэш погоды очищен' })
-    } catch (err) {
-      pushLog({
-        kind: 'err',
-        text: err instanceof Error ? err.message : 'Ошибка unregister()',
-      })
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  const clearCache = async () => {
-    setBusy(true)
-    try {
-      if (navigator.serviceWorker.controller) {
-        await postToSw({ type: 'CLEAR_CACHE' })
-      }
-      await caches.delete(CACHE_NAME)
-      setVia('')
-      pushLog({ kind: 'info', text: `Кэш ${CACHE_NAME} очищен` })
-    } catch (err) {
-      pushLog({
-        kind: 'err',
-        text: err instanceof Error ? err.message : 'Не удалось очистить кэш',
-      })
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  const toggleOffline = async () => {
-    const next = !offline
-    setOffline(next)
-    await postToSw({ type: 'SET_OFFLINE', value: next })
-    pushLog({
-      kind: 'info',
-      text: next ? 'Симуляция offline: SW не ходит в сеть' : 'Сеть снова «доступна» для SW',
-    })
-  }
-
-  const loadWeather = async () => {
-    setBusy(true)
+  const fetchWeather = useCallback(async (label: string) => {
     const t0 = performance.now()
     try {
-      const swOn = Boolean(navigator.serviceWorker.controller)
-      if (swOn) {
-        await postToSw({ type: 'SET_OFFLINE', value: offline })
-      }
-
       const res = await fetch(WEATHER_URL)
       const ms = Math.round(performance.now() - t0)
-      const source = res.headers.get('X-SW-Lab') ?? (swOn ? 'sw-no-header' : 'без SW · сеть')
+      const source = res.headers.get('X-SW-Lab') ?? 'без SW · сеть'
       const text = await res.text()
       let data: WeatherPayload
       try {
@@ -223,41 +222,63 @@ export function useLiveSwLab() {
       }
       setWeather(data)
       setVia(source)
-      setRaw(text)
-      pushLog({
-        kind: res.ok ? 'ok' : 'err',
-        text: `${source} · ${ms} ms · HTTP ${res.status}`,
-      })
-      if (swOn && source === 'cache-hit') {
-        pushLog({
-          kind: 'info',
-          text: 'В Network может быть ещё запрос к API — это фон (SWR)',
-        })
+      log(res.ok ? 'ok' : 'err', `${label}: ${source} · ${ms} ms · HTTP ${res.status}`)
+      if (source === 'cache-hit') {
+        log('info', 'Фоновый запрос в сеть всё ещё возможен: это revalidate после cache-hit')
       }
+      return source
     } catch (err) {
-      pushLog({
-        kind: 'err',
-        text: err instanceof Error ? err.message : 'Fetch failed',
-      })
+      log('err', err instanceof Error ? err.message : 'Fetch failed')
+      return null
+    }
+  }, [log])
+
+  const runCase = useCallback(async () => {
+    clear()
+    setFinished(false)
+    setBusy(true)
+
+    try {
+      const ready = await ensureControlled()
+      if (!ready) return
+
+      await setOfflineMode(false)
+      await clearCache()
+      setWeather(null)
+      log('info', 'Кэш очищен перед прогоном')
+
+      if (caseId === 'warm') {
+        log('info', 'Первый запрос идёт в сеть и кладёт ответ в кэш')
+        await fetchWeather('первый запрос')
+        log('info', 'Повторный запрос должен прийти из кэша')
+        await fetchWeather('повторный запрос')
+      } else {
+        log('info', 'Сначала прогреваем кэш из сети')
+        await fetchWeather('прогрев кэша')
+        await setOfflineMode(true)
+        log('warn', 'Сеть для SW выключена, ждём ответ из кэша')
+        await fetchWeather('offline')
+      }
+
+      setFinished(true)
     } finally {
       setBusy(false)
     }
-  }
+  }, [caseId, clear, clearCache, ensureControlled, fetchWeather, log, setOfflineMode])
 
   return {
     supported,
     active,
     offline,
     busy,
-    log,
+    lines,
     weather,
     via,
-    raw,
-    register,
-    unregister,
-    clearCache,
-    toggleOffline,
-    loadWeather,
+    caseId,
+    finished,
+    setCaseId,
+    runCase,
+    resetDemo,
   }
 }
 
@@ -301,33 +322,20 @@ function WeatherWidget({ weather }: { weather: WeatherPayload | null }) {
   )
 }
 
-function LabLog({ log }: { log: LogLine[] }) {
-  return (
-    <pre className={styles.log} aria-live="polite">
-      {log.length === 0 ? 'лог пуст' : null}
-      {log.map((line, i) => (
-        <span key={`${i}-${line.text}`} className={styles[line.kind]}>
-          {line.text}
-          {'\n'}
-        </span>
-      ))}
-    </pre>
-  )
-}
-
 export function SwProblemPanel({ lab }: { lab: LiveSwLabApi }) {
   const {
     supported,
     active,
     offline,
     busy,
-    log,
+    lines,
     weather,
     via,
-    register,
-    unregister,
-    toggleOffline,
-    loadWeather,
+    caseId,
+    finished,
+    setCaseId,
+    runCase,
+    resetDemo,
   } = lab
 
   if (!supported) {
@@ -335,119 +343,83 @@ export function SwProblemPanel({ lab }: { lab: LiveSwLabApi }) {
   }
 
   return (
-    <div className={styles.root}>
-      <div className={styles.problem}>
-        <div className={styles.problemLabel}>Проблема</div>
-        <p>
-          Виджет погоды каждый раз ждёт API. Без сети — пустой экран; при повторном открытии —
-          снова спиннер, хотя снимок уже был.
-        </p>
-        <div className={styles.problemLabel}>Решение через SW</div>
-        <p>
-          Перехват прогноза Open-Meteo: отдать кэш сразу, сеть обновить в фоне (SWR); при offline —
-          последний снимок, а не ошибка.
-        </p>
-      </div>
-
-      <StatusBadges active={active} via={via} />
-
-      <div className={styles.actions}>
-        {!active ? (
-          <LabButton variant="primary" disabled={busy} onClick={() => void register()}>
-            Включить SW
+    <div className={shell.panel}>
+      <div className={shell.row}>
+        {CASES.map((item) => (
+          <LabButton
+            key={item.id}
+            variant="ghost"
+            size="sm"
+            active={caseId === item.id}
+            disabled={busy}
+            onClick={() => setCaseId(item.id)}
+          >
+            {item.label}
           </LabButton>
-        ) : (
-          <LabButton variant="secondary" disabled={busy} onClick={() => void unregister()}>
-            Выключить SW
-          </LabButton>
-        )}
-        <LabButton
-          variant={offline ? 'danger' : 'secondary'}
-          disabled={busy || !active}
-          onClick={() => void toggleOffline()}
-        >
-          {offline ? 'Offline ON' : 'Симулировать offline'}
+        ))}
+      </div>
+      <div className={shell.row}>
+        <LabButton variant="primary" size="sm" disabled={busy} onClick={() => void runCase()}>
+          Запустить
+        </LabButton>
+        <LabButton variant="secondary" size="sm" disabled={busy} onClick={() => void resetDemo()}>
+          Сброс
         </LabButton>
       </div>
-
-      <LabButton variant="primary" disabled={busy} onClick={() => void loadWeather()}>
-        Загрузить погоду
-      </LabButton>
-
-      <WeatherWidget weather={weather} />
-
-      <p className={styles.tip}>
-        1) Загрузи без SW — только сеть. 2) Включи SW → первая загрузка <code>network-first</code>. 3)
-        Повтор — <code>cache-hit</code> (второй запрос к API в DevTools — фон SWR). 4) Offline ON →
-        кэш, не ошибка.
+      <p className={shell.pain}>
+        Без <code>Service Worker</code> виджет каждый раз ждёт сеть заново. Если интернет пропал,
+        страница легко остаётся без данных, хотя снимок уже можно было сохранить.
       </p>
+      <p className={shell.hint}>{CASE_BRIEF[caseId]}</p>
 
-      <LabLog log={log} />
-    </div>
-  )
-}
+      <LabVizPanel
+        title="виджет прогноза"
+        meta={
+          <>
+            {active ? 'SW on' : 'SW off'} · {offline ? 'offline для SW' : 'сеть доступна'}
+          </>
+        }
+      >
+        <div className={styles.scene}>
+          <WeatherWidget weather={weather} />
+          <div className={styles.route}>
+            <LabNode label="страница" sub="fetch()" state={via ? 'ok' : 'idle'} />
+            <LabNode
+              label="service worker"
+              sub={active ? 'контролирует вкладку' : 'ещё не подключён'}
+              state={active ? 'ok' : 'idle'}
+            />
+            <div className={styles.routeFork}>
+              <LabNode
+                label="кэш"
+                sub={
+                  via === 'cache-hit'
+                    ? 'cache-hit'
+                    : via === 'cache-offline'
+                      ? 'offline fallback'
+                      : 'ждёт ответ'
+                }
+                state={via === 'cache-hit' || via === 'cache-offline' ? 'ok' : 'idle'}
+              />
+              <LabNode
+                label="сеть"
+                sub={
+                  via === 'network-first'
+                    ? 'network-first'
+                    : offline
+                      ? 'для SW выключена'
+                      : 'используется при прогреве'
+                }
+                state={via === 'network-first' ? 'active' : offline ? 'err' : 'idle'}
+              />
+            </div>
+          </div>
+          <StatusBadges active={active} via={via} />
+        </div>
+      </LabVizPanel>
 
-export function SwSandboxPanel({ lab }: { lab: LiveSwLabApi }) {
-  const {
-    supported,
-    active,
-    offline,
-    busy,
-    log,
-    weather,
-    via,
-    raw,
-    register,
-    unregister,
-    clearCache,
-    toggleOffline,
-    loadWeather,
-  } = lab
-
-  if (!supported) {
-    return <p className={styles.warn}>Service Worker в этом браузере недоступен.</p>
-  }
-
-  return (
-    <div className={styles.root}>
-      <p className={styles.tip}>
-        Свободный режим: SW, кэш, offline, заголовок <code>X-SW-Lab</code>, Network и Application →
-        Cache Storage. API: Open-Meteo, Минск.
-      </p>
-
-      <StatusBadges active={active} via={via} />
-
-      <div className={styles.actions}>
-        <LabButton variant="primary" disabled={busy || active} onClick={() => void register()}>
-          Register
-        </LabButton>
-        <LabButton variant="secondary" disabled={busy || !active} onClick={() => void unregister()}>
-          Unregister
-        </LabButton>
-        <LabButton variant="secondary" disabled={busy} onClick={() => void clearCache()}>
-          Clear cache
-        </LabButton>
-        <LabButton
-          variant={offline ? 'danger' : 'secondary'}
-          disabled={busy || !active}
-          onClick={() => void toggleOffline()}
-        >
-          {offline ? 'Offline ON' : 'Offline OFF'}
-        </LabButton>
-        <LabButton variant="primary" disabled={busy} onClick={() => void loadWeather()}>
-          Fetch погода
-        </LabButton>
-      </div>
-
-      <WeatherWidget weather={weather} />
-
-      {raw ? (
-        <pre className={styles.raw} aria-label="Сырой ответ">
-          {raw}
-        </pre>
-      ) : null}
-
-      <LabLog log={log} />
+      {finished ? <p className={shell.hint}>{HINT[caseId]}</p> : null}
+      <LabLogView lines={lines} />
     </div>
   )
 }

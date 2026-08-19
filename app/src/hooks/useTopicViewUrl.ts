@@ -128,9 +128,11 @@ export function useTopicViewUrlSync(enabled: boolean) {
     if (isEmptySearch(params) && !seededDefault.current) {
       seededDefault.current = true
       setTopicsOpen(true)
-      setTheoryOpen(true)
-      setLabOpen(false)
-      patchParams({ topics: true, theory: true, dock: 'topics' })
+      // При входе на `/topics/:topicId` без query-параметров по клику по теме
+      // показываем лабораторную, а не теорию.
+      setTheoryOpen(false)
+      setLabOpen(true)
+      patchParams({ topics: true, theory: false, dock: 'lab' })
     } else {
       const view = readViewStateFromSearch(params)
       setTopicsOpen(view.topicsOpen)
