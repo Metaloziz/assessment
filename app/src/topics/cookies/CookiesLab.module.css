@@ -1,27 +1,57 @@
-.root {
+.flow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 0.6rem;
+  align-items: center;
+}
+
+.flowNode {
+  min-height: 5.5rem;
+}
+
+.arrow {
+  color: var(--text-muted);
+  font-size: 1.15rem;
+  line-height: 1;
+}
+
+.notes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+
+.noteCard {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-}
-
-.section {
+  gap: 0.2rem;
+  padding: 0.6rem 0.7rem;
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  background: var(--code-bg);
-  padding: 0.85rem 0.9rem 0.95rem;
-  box-shadow: none;
+  background: color-mix(in srgb, var(--code-bg) 78%, transparent);
 }
 
-.title {
-  margin: 0 0 0.25rem;
-  font-family: var(--font-sans);
-  font-size: var(--lab-font-title);
-  font-weight: var(--font-weight-bold);
-}
-
-.lead {
-  margin: 0 0 0.75rem;
+.noteCard strong {
+  font-size: var(--lab-font-meta);
   color: var(--text-muted);
-  font-size: var(--lab-font-lead);
+}
+
+.noteCard span {
+  font-size: var(--lab-font-body);
   line-height: var(--lab-line);
+}
+
+@media (max-width: 900px) {
+  .flow {
+    grid-template-columns: 1fr;
+  }
+
+  .arrow {
+    justify-self: center;
+    transform: rotate(90deg);
+  }
+
+  .notes {
+    grid-template-columns: 1fr;
+  }
 }
