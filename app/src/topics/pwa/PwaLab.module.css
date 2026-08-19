@@ -1,0 +1,198 @@
+.scene {
+  display: grid;
+  gap: 12px;
+}
+
+.device {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 40%),
+    var(--bg-elevated);
+  transition: border-color 0.4s ease, box-shadow 0.4s ease;
+}
+
+.deviceActive {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px rgba(105, 177, 255, 0.25);
+}
+
+.browserChrome {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: rgba(0, 0, 0, 0.35);
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.browserDots {
+  display: flex;
+  gap: 4px;
+}
+
+.browserDots span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.urlBar {
+  flex: 1;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.statusBar {
+  height: 6px;
+  background: var(--accent);
+  transition: background 0.4s ease, opacity 0.35s ease;
+}
+
+.statusBarHidden {
+  opacity: 0;
+  height: 0;
+}
+
+.appBody {
+  padding: 16px;
+  min-height: 132px;
+  display: grid;
+  gap: 10px;
+}
+
+.appTitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.appMeta {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.installRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.installBtn {
+  padding: 6px 12px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  font: inherit;
+  font-size: 12px;
+  transition: opacity 0.35s ease, border-color 0.35s ease, background 0.35s ease;
+}
+
+.installReady {
+  background: var(--btn-primary-bg, #2f5f8f);
+  border-color: var(--btn-primary-border, #5b9bd5);
+  color: var(--btn-primary-text, #fff);
+}
+
+.installDisabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.checklist {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  align-items: stretch;
+}
+
+@media (max-width: 640px) {
+  .checklist {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.checkItem {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 8px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.02);
+  transition: border-color 0.4s ease, background 0.4s ease, opacity 0.35s ease;
+}
+
+.checkItem strong {
+  display: block;
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+
+.checkItem span {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.checkIdle {
+  opacity: 0.55;
+}
+
+.checkOk {
+  border-color: var(--ok);
+  background: rgba(82, 196, 26, 0.08);
+}
+
+.checkWarn {
+  border-color: var(--warn);
+  background: rgba(250, 173, 20, 0.08);
+}
+
+.checkActive {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px rgba(105, 177, 255, 0.2);
+}
+
+.arrowRow {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  color: var(--text-muted);
+  font-size: 14px;
+  opacity: 0.6;
+}
+
+.homeIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--accent), #3a74ad);
+  color: #111;
+}
+
+.iconSlot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.iconMissing {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  border: 1px dashed var(--warn);
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  color: var(--warn);
+}

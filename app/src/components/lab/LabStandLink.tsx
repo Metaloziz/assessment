@@ -8,6 +8,17 @@ type Props = {
   labTab: LabTabId
 }
 
+function LinkIcon() {
+  return (
+    <svg className={styles.icon} viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        fill="currentColor"
+        d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"
+      />
+    </svg>
+  )
+}
+
 function CopyIcon() {
   return (
     <svg className={styles.icon} viewBox="0 0 24 24" aria-hidden="true">
@@ -63,27 +74,26 @@ export function LabStandLink({ topicId, labTab }: Props) {
 
   return (
     <footer className={styles.root}>
-      <p className={styles.label}>Стенд</p>
-      <div className={styles.row}>
-        <p className={styles.url}>
-          <a className={styles.urlLink} href={url} target="_blank" rel="noopener noreferrer">
-            {url}
-          </a>
-        </p>
-        <button
-          type="button"
-          className={styles.copyBtn}
-          data-copied={copied ? 'true' : 'false'}
-          aria-label={copied ? 'Ссылка скопирована' : 'Скопировать ссылку на стенд'}
-          title={copied ? 'Скопировано' : 'Скопировать'}
-          onClick={() => void copy()}
-        >
-          {copied ? <CheckIcon /> : <CopyIcon />}
-        </button>
-      </div>
-      <p className={styles.hint} aria-live="polite">
-        {copied ? 'Скопировано' : '\u00a0'}
-      </p>
+      <a
+        className={styles.iconBtn}
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Открыть стенд в новой вкладке"
+        title={url}
+      >
+        <LinkIcon />
+      </a>
+      <button
+        type="button"
+        className={styles.iconBtn}
+        data-copied={copied ? 'true' : 'false'}
+        aria-label={copied ? 'Ссылка скопирована' : 'Скопировать ссылку на стенд'}
+        title={copied ? 'Скопировано' : 'Скопировать'}
+        onClick={() => void copy()}
+      >
+        {copied ? <CheckIcon /> : <CopyIcon />}
+      </button>
     </footer>
   )
 }

@@ -171,7 +171,7 @@ Env: корневой `.env` / `server/.env` / переменные хостин
 | 67 | [67-web-apis.md](topics/67-web-apis.md) | Web APIs |
 | 68 | [68-indexeddb.md](topics/68-indexeddb.md) | IndexedDB |
 | 69 | [69-worklets.md](topics/69-worklets.md) | Worklets |
-| 70 | [70-pwa.md](topics/70-pwa.md) | PWA |
+| 70 | [70-pwa.md](topics/70-pwa.md) | Как веб-приложение превратить в PWA, особенности работы PWA |
 | 71 | [71-why-cicd.md](topics/71-why-cicd.md) | Зачем нужен CI/CD |
 | 72 | [72-jenkins.md](topics/72-jenkins.md) | Jenkins |
 | 73 | [73-mesos-marathon.md](topics/73-mesos-marathon.md) | Mesos/Marathon |
@@ -230,3 +230,4 @@ Env: корневой `.env` / `server/.env` / переменные хостин
 | 125 | [125-redux-toolkit.md](topics/125-redux-toolkit.md) | Redux Toolkit (RTK) — официальный способ писать Redux |
 | 126 | [126-redux-feature-first-ducks.md](topics/126-redux-feature-first-ducks.md) | Альтернативные подходы к организации store: Feature-first и redux-ducks |
 | 268 | [268-browser-events-features.md](topics/268-browser-events-features.md) | Особенности работы с браузерными событиями |
+| 269 | [269-browser-web-components.md](topics/269-browser-web-components.md) | WebComponents · ShadowDom · Custom elements · HTML templates · Особенности работы с CSS |

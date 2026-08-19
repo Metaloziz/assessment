@@ -261,6 +261,11 @@ export const TOPIC_META: Record<
     level: "middle",
     sortInGroup: 16,
   },
+  "269-browser-web-components": {
+    groupId: "browser",
+    level: "senior",
+    sortInGroup: 17,
+  },
 
   // CI/CD (порядок как в Notion; уровень по цвету иконки)
   "71-why-cicd": { groupId: "cicd", level: "junior", sortInGroup: 1 },
