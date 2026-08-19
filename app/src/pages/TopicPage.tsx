@@ -79,6 +79,7 @@ import { LoggingChromeApplicationSourcesLab } from '../topics/logging-chrome-app
 import { LoggingSentryPrometheusLab } from '../topics/logging-sentry-prometheus/LoggingSentryPrometheusLab'
 import { LoggingServerDebugBrowserLab } from '../topics/logging-server-debug-browser/LoggingServerDebugBrowserLab'
 import { LoggingNodesLab } from '../topics/logging-nodes/LoggingNodesLab'
+import { IframeLab } from '../topics/iframe/IframeLab'
 import { XFrameOptionsLab } from '../topics/x-frame-options/XFrameOptionsLab'
 import { CorsLab } from '../topics/cors/CorsLab'
 import { NpmAuditLab } from '../topics/npm-audit/NpmAuditLab'
@@ -162,6 +163,7 @@ import { NetworkIpBasicsLab } from '../topics/network-ip-basics/NetworkIpBasicsL
 import { NetworkTcpLab } from '../topics/network-tcp/NetworkTcpLab'
 import { NetworkDnsBasicsLab } from '../topics/network-dns-basics/NetworkDnsBasicsLab'
 import { NetworkLongPollingWsSseLab } from '../topics/network-long-polling-ws-sse/NetworkLongPollingWsSseLab'
+import { DevtoolsWebsocketDebugLab } from '../topics/devtools-websocket-debug/DevtoolsWebsocketDebugLab'
 import { LAB_DOCK_ID, useLayoutStore } from '../store/layout'
 import styles from './TopicPage.module.css'
 
@@ -191,6 +193,7 @@ function TopicLab({ topicId }: { topicId: string; topic: TopicDetail }) {
   if (topicId === '146-logging-sentry-prometheus') return <LoggingSentryPrometheusLab />
   if (topicId === '147-logging-server-debug-browser') return <LoggingServerDebugBrowserLab />
   if (topicId === '06-logging-nodes') return <LoggingNodesLab />
+  if (topicId === '61-iframe') return <IframeLab />
   if (topicId === '151-x-frame-options') return <XFrameOptionsLab />
   if (topicId === '07-cors') return <CorsLab />
   if (topicId === '08-npm-audit') return <NpmAuditLab />
@@ -270,6 +273,7 @@ function TopicLab({ topicId }: { topicId: string; topic: TopicDetail }) {
   if (topicId === '250-network-http-https') return <NetworkHttpHttpsLab />
   if (topicId === '251-network-api-first') return <NetworkApiFirstLab />
   if (topicId === '252-network-long-polling-ws-sse') return <NetworkLongPollingWsSseLab />
+  if (topicId === '267-devtools-websocket-debug') return <DevtoolsWebsocketDebugLab />
   if (topicId === '253-network-tcpip-internet-app') return <NetworkTcpipInternetAppLab />
   if (topicId === '254-network-tcpip-transport-link') return <NetworkTcpipTransportLinkLab />
   if (topicId === '261-network-ip-basics') return <NetworkIpBasicsLab />

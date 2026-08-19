@@ -6,86 +6,110 @@
 
 # 2. Главное в одну фразу
 
-Cookie — небольшой фрагмент данных, который сервер (или страница) сохраняет в браузере и который браузер автоматически прикладывает к подходящим HTTP-запросам.
+Cookie хранит небольшое состояние у браузера и автоматически прикладывается к подходящим HTTP-запросам, поэтому важны не только значение, но и правила отправки.
 
 ---
 
 # 3. Суть
 
-> **Cookie** — механизм HTTP state: сервер отвечает заголовком `Set-Cookie`, браузер хранит пару имя/значение и при следующих запросах на подходящий origin/path отправляет заголовок `Cookie`.
+> **Cookie** - это маленькая запись, которую сайт кладёт в браузер, чтобы помнить состояние между запросами: сессию, язык, корзину, A/B-вариант. В отличие от `localStorage`, cookie браузер сам прикладывает к HTTP-запросам на подходящий сайт и путь.
 >
-> Типичные задачи: **сессия и auth**, персонализация, редко — трекинг. Объём маленький (порядка 4 KB на cookie), это не замена `localStorage` / IndexedDB.
+> Это удобно для сессий и серверной авторизации: сервер один раз отвечает `Set-Cookie`, а дальше получает `Cookie` почти без участия клиентского кода. Но именно из-за автоматической отправки cookie легко настроить слишком широко: она может утекать в лишние запросы, ездить без HTTPS или оказаться доступной из JavaScript.
 >
-> Ключевые атрибуты безопасности: **`HttpOnly`** (недоступно из JS → сильнее против XSS-кражи сессии), **`Secure`** (только HTTPS), **`SameSite`** (ограничивает отправку с чужих сайтов → снижает CSRF). Срок жизни задают `Max-Age` / `Expires`; без них cookie обычно сессионная.
+> Основной механизм такой: сервер или страница задаёт имя, значение и атрибуты, браузер сохраняет запись, а перед следующим запросом сам решает, подходит ли она по `Domain`, `Path`, `Secure` и `SameSite`. Поэтому в cookie обычно обсуждают не только «что хранить», но и «когда браузер имеет право это отправить».
 >
-> Смотреть и править cookie удобно в DevTools → **Application → Cookies** и в **Network** (Request/Response Headers).
+> Ловушка: считать cookie просто ещё одним клиентским хранилищем. Для темы оформления это может быть удобно, но для секретов нужны `HttpOnly`, `Secure` и осмысленный `SameSite`; без них XSS и CSRF становятся заметно опаснее.
 
 ---
 
 # 4. Самое главное запомнить
 
-- Установка: `Set-Cookie` от сервера (или ограниченно из JS через `document.cookie`).
-- Отправка: браузер сам добавляет `Cookie` к запросам по правилам domain/path/Secure/SameSite.
-- `HttpOnly` — JS не читает; `Secure` — только HTTPS; `SameSite` — cross-site политика.
-- Cookie ≠ общее клиентское хранилище: размер мал, уходит на сервер автоматически.
-- Для auth-токена в cookie обычно связка `HttpOnly` + `Secure` + продуманный `SameSite`.
+- Cookie приходит с сервера через `Set-Cookie` или задаётся из JS через `document.cookie`, но `HttpOnly` может поставить только сервер.
+- Браузер сам решает, прикладывать ли cookie к запросу: учитывает `Domain`, `Path`, `Secure`, `SameSite` и срок жизни.
+- Cookie маленькая по объёму и ездит на сервер автоматически, поэтому это не замена `localStorage` или `IndexedDB`.
+- Для сессии обычно нужна связка `HttpOnly` + `Secure` + подходящий `SameSite`, а в значении лучше держать opaque session id, а не чувствительные данные.
+- `SameSite=None` требует `Secure`, иначе современные браузеры такую cookie отклоняют.
+- Проверять cookie удобно в DevTools: `Application -> Cookies` показывает запись и флаги, `Network -> Headers` показывает факт отправки.
 
-| Атрибут | Эффект |
-|---|---|
-| `HttpOnly` | Нет доступа из `document.cookie` |
-| `Secure` | Только по HTTPS |
-| `SameSite=Strict\|Lax\|None` | Когда cookie уходит в cross-site запросах |
-| `Max-Age` / `Expires` | Срок жизни |
-| `Path` / `Domain` | Куда cookie привязана |
+| Атрибут | Что меняет |
+| --- | --- |
+| `HttpOnly` | Запрещает чтение через `document.cookie` |
+| `Secure` | Разрешает отправку только по HTTPS |
+| `SameSite` | Ограничивает отправку в cross-site сценариях |
+| `Max-Age` / `Expires` | Управляет сроком жизни |
+| `Path` / `Domain` | Сужает, где cookie вообще подходит |
 
 ---
 
 # 5. Описание
 
-### Жизненный цикл
-
-1. Сервер: `Set-Cookie: sessionId=abc123; Path=/; HttpOnly; Secure; SameSite=Lax`
-2. Браузер сохраняет cookie для сайта.
-3. Следующий запрос на тот же сайт (с учётом path/domain/SameSite): `Cookie: sessionId=abc123`.
-
-Сессионная cookie (без `Max-Age`/`Expires`) живёт до закрытия браузера/профиля (поведение зависит от браузера). Постоянная — до истечения срока или явного удаления.
-
-### Установка с сервера
-
-```http
-Set-Cookie: sessionId=abc123; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=86400
+```text
+server ── Set-Cookie: session=abc; HttpOnly; Secure; SameSite=Lax ──► browser
+browser ── хранит запись по правилам domain/path/ttl ───────────────► cookie jar
+browser ── Cookie: session=abc ─────────────────────────────────────► next request
 ```
 
-Несколько cookie — несколько заголовков `Set-Cookie`.
+## Как cookie появляется
 
-### Установка из JavaScript
+Чаще всего cookie ставит сервер в ответе:
 
-```javascript
+```http
+Set-Cookie: sessionId=abc123; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=86400
+```
+
+Браузер не просто запоминает строку, а раскладывает её на имя, значение и правила отправки. Если сервер вернул несколько cookie, то и заголовков `Set-Cookie` будет несколько.
+
+Из JavaScript запись тоже можно создать:
+
+```js
 document.cookie = 'theme=dark; Path=/; Max-Age=604800; SameSite=Lax'
 ```
 
-Так **нельзя** выставить `HttpOnly` — атрибут задаёт только сервер. Значит session token в `document.cookie` уязвим к XSS.
+Так удобно хранить несекретные клиентские настройки, но `HttpOnly` здесь недоступен. Поэтому токен сессии в `document.cookie` и серверная `HttpOnly`-cookie - это разные по безопасности решения.
 
-### SameSite кратко
+## Когда браузер отправляет cookie
 
-- **Strict** — cookie почти не уходит с cross-site навигации/запросов.
-- **Lax** — уходит при top-level GET-переходах (ссылка), не при cross-site POST из формы/iframe по умолчанию.
-- **None** — нужна пара с `Secure`; иначе современные браузеры отклонят.
+Cookie не уходит «всегда на этот домен». Браузер перед каждым запросом проверяет, подходит ли запись:
 
-### Типичные ловушки
+1. Совпадает ли сайт и путь.
+2. Разрешён ли протокол для `Secure`.
+3. Не блокирует ли отправку политика `SameSite`.
+4. Не истёк ли срок жизни.
 
-- Путать cookie с `localStorage`: storage не уходит на сервер сам и не защищается `HttpOnly`.
-- Ставить auth cookie без `Secure` на проде.
-- `SameSite=None` «чтобы заработало» без понимания CSRF.
-- Ожидать, что `HttpOnly` cookie видна в JS — её там нет; это нормально.
+Из-за этого две cookie с одинаковым именем могут вести себя по-разному: одна поедет только в `https://app.example.com/api`, а другая - на все пути сайта.
 
-В DevTools: Application → Cookies — список, флаги, размер; Network → выбранный запрос → Headers — факт отправки.
+## Ключевые атрибуты без перегруза
+
+`HttpOnly` нужен, когда значение не должен читать JS. Это не лечит XSS полностью, но не даёт просто вытащить токен через `document.cookie`.
+
+`Secure` говорит браузеру: отправляй только по HTTPS. Для авторизации на проде это практически базовое требование.
+
+`SameSite` отвечает за cross-site сценарии:
+
+- `Strict` - почти не отправлять с чужого сайта;
+- `Lax` - нормальный дефолт для многих сессий: ссылка верхнего уровня обычно проходит, а фоновые cross-site запросы режутся;
+- `None` - явно разрешить cross-site отправку, но только вместе с `Secure`.
+
+## Где cookie уместна, а где нет
+
+Cookie особенно полезна там, где серверу нужно состояние запроса без ручной прокладки токена в каждый `fetch`: сессия, refresh token, язык, простая персонализация.
+
+Для больших клиентских данных cookie неудобна: размер маленький, она ездит в сети автоматически и создаёт лишний вес в запросах. Поэтому кеш API, черновики форм и большие объекты обычно кладут в `localStorage`, `sessionStorage` или `IndexedDB`.
+
+## Частые ошибки
+
+- хранить секрет в читаемой JS-cookie и считать, что это почти как `HttpOnly`;
+- ставить auth-cookie без `Secure`;
+- включать `SameSite=None`, не понимая, что cookie станет cross-site;
+- ждать, что `HttpOnly`-cookie появится в `document.cookie`;
+- путать «cookie есть в Application» и «она реально ушла в этот запрос» - второе проверяется в `Network`.
 
 ---
 
 # 6. Ссылки
 
-- [MDN — HTTP cookies](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Cookies)
-- [RFC 6265](https://datatracker.ietf.org/doc/html/rfc6265)
-- [OWASP — Session Management](https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html)
-- [Chrome DevTools — Cookies](https://developer.chrome.com/docs/devtools/storage/cookies/)
+- [MDN - Using HTTP cookies](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Cookies)
+- [MDN - Set-Cookie](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie)
+- [MDN - Document.cookie](https://developer.mozilla.org/en-US/docs/Web/API/Document/cookie)
+- [Chrome DevTools - Cookies](https://developer.chrome.com/docs/devtools/storage/cookies/)
+- [OWASP - Session Management Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html)

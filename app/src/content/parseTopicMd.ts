@@ -99,10 +99,12 @@ export function parseTopicMd(id: string, raw: string, order: number): TopicDetai
   /** Темы с лабой против живого `assessment-api` (не симуляция). */
   const hasApi =
     id === '07-cors' ||
+    id === '57-cookies' ||
     id === '244-nodejs-db-async-config' ||
     id === '245-nodejs-cache-crud' ||
     id === '27-server-performance-metrics' ||
     id === '246-nodejs-worker-threads' ||
+    id === '267-devtools-websocket-debug' ||
     id === '251-network-api-first' ||
     id === '250-network-http-https' ||
     id === '252-network-long-polling-ws-sse'
@@ -128,6 +130,8 @@ export function parseTopicMd(id: string, raw: string, order: number): TopicDetai
       id === '55-legacy-code-approaches' ||
       id === '56-dead-code-tools' ||
       id === '57-cookies' ||
+      id === '61-iframe' ||
+      id === '267-devtools-websocket-debug' ||
       id === '65-service-workers' ||
       id === '66-web-workers' ||
       id === '67-web-apis' ||

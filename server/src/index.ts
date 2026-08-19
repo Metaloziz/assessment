@@ -10,8 +10,10 @@ import { dbLabRoutes } from './routes/dbLab.js'
 import { cacheLabRoutes } from './routes/cacheLab.js'
 import { workersLabRoutes } from './routes/workersLab.js'
 import { realtimeLabRoutes } from './routes/realtimeLab.js'
+import { wsDebugLabRoutes } from './routes/wsDebugLab.js'
 import { progressRoutes } from './routes/progress.js'
 import { perfLabRoutes } from './routes/perfLab.js'
+import { cookiesLabRoutes } from './routes/cookiesLab.js'
 import { sqlClient } from './db.js'
 
 const app = Fastify({ logger: true })
@@ -28,10 +30,12 @@ await app.register(demoRoutes)
 await app.register(corsLabRoutes)
 await app.register(httpLabRoutes)
 await app.register(apiFirstLabRoutes)
+await app.register(cookiesLabRoutes)
 await app.register(dbLabRoutes)
 await app.register(cacheLabRoutes)
 await app.register(workersLabRoutes)
 await app.register(realtimeLabRoutes)
+await app.register(wsDebugLabRoutes)
 await app.register(progressRoutes)
 await app.register(perfLabRoutes)
 
