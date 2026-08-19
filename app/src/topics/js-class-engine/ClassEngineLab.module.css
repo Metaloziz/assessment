@@ -1,0 +1,75 @@
+.runtimeScene {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 10rem;
+}
+
+.runtimeNode {
+  width: min(100%, 16rem);
+  padding: 0.45rem 0.6rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  transition:
+    border-color 0.4s ease,
+    box-shadow 0.4s ease,
+    opacity 0.4s ease;
+}
+
+.runtimeNodeActive {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+.runtimeNodeOk {
+  border-color: var(--ok);
+}
+
+.runtimeNodeWarn {
+  border-color: var(--warn);
+}
+
+.runtimeNodeDim {
+  opacity: 0.42;
+}
+
+.runtimeTitle {
+  font-size: var(--lab-font-meta);
+  color: var(--muted);
+  line-height: 1.2;
+}
+
+.runtimeProp {
+  font-size: var(--lab-font-body);
+  color: var(--text);
+  font-family: var(--font-mono, ui-monospace, monospace);
+  line-height: 1.35;
+}
+
+.runtimeLink {
+  font-size: var(--lab-font-meta);
+  color: var(--muted);
+  user-select: none;
+  line-height: 1;
+}
+
+.runtimeBadge {
+  align-self: stretch;
+  max-width: 16rem;
+  padding: 0.35rem 0.55rem;
+  border-radius: var(--radius-sm);
+  border: 1px dashed var(--border);
+  font-size: var(--lab-font-meta);
+  color: var(--muted);
+  text-align: center;
+}
+
+.runtimeBadgeActive {
+  border-color: var(--accent-bright);
+  color: var(--text);
+}

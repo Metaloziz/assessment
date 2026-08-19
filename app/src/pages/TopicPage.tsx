@@ -54,6 +54,7 @@ import { WebComponentsLab } from '../topics/js-web-components/WebComponentsLab'
 import { V8OptimizationsLab } from '../topics/js-v8-optimizations/V8OptimizationsLab'
 import { ProtoVsClosurePerfLab } from '../topics/js-proto-vs-closure-perf/ProtoVsClosurePerfLab'
 import { WebComponentsCssLab } from '../topics/js-webcomponents-css/WebComponentsCssLab'
+import { ProxyReflectLab } from '../topics/js-proxy-reflect/ProxyReflectLab'
 import { ReduxSagaThunkLab } from '../topics/redux-saga-thunk/ReduxSagaThunkLab'
 import { ReduxFeatureFirstDucksLab } from '../topics/redux-feature-first-ducks/ReduxFeatureFirstDucksLab'
 import { NormalizeImmutableLibsLab } from '../topics/normalize-immutable-libs/NormalizeImmutableLibsLab'
@@ -327,6 +328,7 @@ function TopicLab({ topicId }: { topicId: string; topic: TopicDetail }) {
   if (topicId === '116-js-v8-optimizations') return <V8OptimizationsLab />
   if (topicId === '117-js-proto-vs-closure-perf') return <ProtoVsClosurePerfLab />
   if (topicId === '118-js-webcomponents-css') return <WebComponentsCssLab />
+  if (topicId === '266-js-proxy-reflect') return <ProxyReflectLab />
   if (topicId === '124-redux-saga-thunk') return <ReduxSagaThunkLab />
   if (topicId === '126-redux-feature-first-ducks') return <ReduxFeatureFirstDucksLab />
   return null

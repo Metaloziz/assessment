@@ -1,0 +1,310 @@
+/* —— Карточки этапов (как v8-pipeline) —— */
+.stageCard {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  min-height: 3.2rem;
+  padding: 0.42rem 0.48rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid color-mix(in srgb, var(--border) 88%, var(--accent) 12%);
+  background: linear-gradient(
+    165deg,
+    color-mix(in srgb, var(--bg-elevated) 90%, var(--accent) 10%) 0%,
+    var(--bg-elevated) 100%
+  );
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.18rem;
+  overflow: hidden;
+  transition:
+    border-color 0.4s ease,
+    box-shadow 0.4s ease,
+    opacity 0.4s ease,
+    transform 0.35s ease;
+}
+
+.stageActive {
+  border-color: var(--accent);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent),
+    0 4px 14px color-mix(in srgb, var(--accent) 18%, transparent);
+  transform: translateY(-1px);
+}
+
+.stageOk {
+  border-color: var(--ok);
+}
+
+.stageWarn {
+  border-color: var(--warn);
+}
+
+.stageDim {
+  opacity: 0.42;
+}
+
+.stageLabel {
+  display: block;
+  font-size: var(--lab-font-meta);
+  font-weight: 500;
+  color: var(--text);
+  line-height: 1.25;
+  text-align: center;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.stageSub {
+  display: block;
+  font-size: var(--lab-font-mono);
+  color: var(--muted);
+  line-height: 1.2;
+  text-align: center;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.trackFlex {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  justify-content: center;
+  gap: 0.2rem 0.12rem;
+  width: 100%;
+}
+
+.trackCell {
+  flex: 1 1 4.75rem;
+  min-width: 4.35rem;
+  max-width: 7.5rem;
+  display: flex;
+}
+
+.trackArrow {
+  flex: 0 0 0.75rem;
+  align-self: center;
+  text-align: center;
+  font-size: calc(var(--lab-font-meta) * 0.88);
+  color: var(--muted);
+  user-select: none;
+  line-height: 1;
+  opacity: 0.75;
+}
+
+.flow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  justify-content: center;
+  gap: 0.2rem 0.12rem;
+  width: 100%;
+  min-height: 5rem;
+}
+
+.flow .trackCell {
+  flex: 1 1 5rem;
+  min-width: 4.5rem;
+  max-width: 8rem;
+}
+
+/* —— Shapes: объекты и IC —— */
+.shapeRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  justify-content: center;
+  min-height: 4.5rem;
+}
+
+.shapeCard {
+  box-sizing: border-box;
+  flex: 1 1 7rem;
+  min-width: 0;
+  max-width: 10rem;
+  padding: 0.45rem 0.55rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid color-mix(in srgb, var(--border) 88%, var(--accent) 12%);
+  background: var(--bg-elevated);
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  transition:
+    border-color 0.4s ease,
+    box-shadow 0.4s ease,
+    opacity 0.4s ease;
+}
+
+.shapeActive {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+.shapeOk {
+  border-color: var(--ok);
+}
+
+.shapeWarn {
+  border-color: var(--warn);
+}
+
+.shapeDim {
+  opacity: 0.42;
+}
+
+.shapeTitle {
+  font-size: var(--lab-font-meta);
+  font-weight: 500;
+  color: var(--text);
+  text-align: center;
+}
+
+.shapeFields {
+  font-size: var(--lab-font-mono);
+  color: var(--muted);
+  text-align: center;
+}
+
+.icFork {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  width: 100%;
+  margin-top: 0.35rem;
+  padding-top: 0.35rem;
+  border-top: 1px dashed color-mix(in srgb, var(--border) 70%, transparent);
+}
+
+.icLead {
+  align-self: center;
+  font-size: var(--lab-font-meta);
+  color: var(--muted);
+}
+
+.icBranches {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.35rem;
+  width: 100%;
+}
+
+/* —— Global: модуль vs цикл —— */
+.scopeRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  justify-content: center;
+  align-items: stretch;
+  min-height: 5.5rem;
+}
+
+.scopeBox {
+  box-sizing: border-box;
+  flex: 1 1 9rem;
+  min-width: 0;
+  max-width: 14rem;
+  padding: 0.5rem 0.6rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid color-mix(in srgb, var(--border) 88%, var(--accent) 12%);
+  background: linear-gradient(
+    165deg,
+    color-mix(in srgb, var(--bg-elevated) 90%, var(--accent) 10%) 0%,
+    var(--bg-elevated) 100%
+  );
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  transition:
+    border-color 0.4s ease,
+    opacity 0.4s ease;
+}
+
+.scopeActive {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+.scopeOk {
+  border-color: var(--ok);
+}
+
+.scopeWarn {
+  border-color: var(--warn);
+}
+
+.scopeDim {
+  opacity: 0.42;
+}
+
+.scopeTitle {
+  font-size: var(--lab-font-meta);
+  font-weight: 500;
+  color: var(--text);
+}
+
+.scopeChip {
+  display: inline-block;
+  padding: 0.22rem 0.45rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid color-mix(in srgb, var(--border) 80%, var(--accent) 20%);
+  background: color-mix(in srgb, var(--bg-elevated) 85%, var(--accent) 15%);
+  font-size: var(--lab-font-mono);
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.loopGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.loopChip {
+  padding: 0.18rem 0.35rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid color-mix(in srgb, var(--warn) 40%, var(--border));
+  background: color-mix(in srgb, var(--bg-elevated) 80%, var(--warn) 20%);
+  font-size: calc(var(--lab-font-mono) * 0.92);
+  color: var(--text);
+}
+
+.deoptFork {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  width: 100%;
+  margin-top: 0.25rem;
+}
+
+.deoptLead {
+  align-self: center;
+  font-size: var(--lab-font-meta);
+  color: color-mix(in srgb, var(--warn) 75%, var(--muted));
+}
+
+.deoptBranches {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.2rem 0.12rem;
+  max-width: 22rem;
+  margin-inline: auto;
+}
+
+.deoptBranches .trackCell {
+  flex: 1 1 6rem;
+  min-width: 5rem;
+  max-width: 9rem;
+}
+
+@media (max-width: 520px) {
+  .icBranches {
+    grid-template-columns: 1fr;
+  }
+
+  .flow .trackCell {
+    flex: 1 1 calc(33% - 0.5rem);
+    min-width: 3.85rem;
+    max-width: none;
+  }
+}
