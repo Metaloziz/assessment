@@ -5,6 +5,9 @@ Thumbs.db
 .idea/
 .vscode/
 
+# Cursor (local rules, not shared via repo)
+.cursor/rules/
+
 # Temp
 *.tmp
 *.log

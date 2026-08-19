@@ -1,9 +1,0 @@
----
-description: Визуализации в лабах — см. skills/assessment-lab-visualizations
-globs: app/src/topics/**/*Lab.tsx
-alwaysApply: false
----
-
-# Визуализации в лабах
-
-Скилл: [`skills/assessment-lab-visualizations/SKILL.md`](../../skills/assessment-lab-visualizations/SKILL.md).
