@@ -9,88 +9,118 @@ import { Sentry } from '../../sentry.client'
 
 const TOPIC_ID = '146-logging-sentry-prometheus'
 
-type Mode = 'sentry' | 'metrics' | 'alert'
+type Mode = 'exception' | 'handled' | 'message'
 
-const LAB_SENTRY_ERROR = "TypeError: Cannot read properties of undefined (reading 'id')"
+const LAB_EXCEPTION =
+  "TypeError: Cannot read properties of undefined (reading 'id')"
+const LAB_HANDLED = 'ApiError: GET /api/pay → 500 Internal Server Error'
+const LAB_MESSAGE = 'Payment provider timeout after 30s'
+
+function sentryLive(): boolean {
+  return Boolean(import.meta.env.PROD && import.meta.env.VITE_SENTRY_DSN && Sentry.getClient())
+}
 
 export function LoggingSentryPrometheusLab() {
   const { lines, log, clear } = useLabLog()
-  const [mode, setMode] = useState<Mode>('sentry')
+  const [mode, setMode] = useState<Mode>('exception')
   const [hint, setHint] = useState<string | null>(null)
+
+  const finish = (liveHint: string, devHint: string) => {
+    const release = import.meta.env.VITE_APP_RELEASE ?? 'local'
+    if (sentryLive()) {
+      log('ok', `Отправлено в Sentry · release=${release}`)
+      setHint(liveHint)
+      return
+    }
+    log('warn', 'Sentry не активен (dev или нет VITE_SENTRY_DSN) — только локальный лог')
+    setHint(devHint)
+  }
 
   const run = () => {
     clear()
-    if (mode === 'sentry') {
-      log('err', LAB_SENTRY_ERROR)
-      const release = import.meta.env.VITE_APP_RELEASE ?? 'local'
-      const sentryLive = Boolean(import.meta.env.PROD && import.meta.env.VITE_SENTRY_DSN && Sentry.getClient())
 
-      if (sentryLive) {
-        const err = new Error(LAB_SENTRY_ERROR)
+    if (mode === 'exception') {
+      log('err', LAB_EXCEPTION)
+      if (sentryLive()) {
+        const err = new Error(LAB_EXCEPTION)
         err.name = 'TypeError'
         Sentry.captureException(err)
-        log('ok', `Отправлено в Sentry · release=${release}`)
-        log('info', 'breadcrumbs: lab → Запустить → captureException')
-        setHint('Проверьте Issues в проекте javascript-react на sentry.io')
-      } else {
-        log('ok', 'Sentry issue #1842 · release=sha-a1b2 · env=production (симуляция)')
-        log('info', 'breadcrumbs: click Pay → POST /api/pay → exception')
-        log('warn', 'Sentry не активен (dev или нет VITE_SENTRY_DSN) — только локальный лог')
-        setHint('На prod с DSN «Запустить» шлёт реальное событие — см. sentry.client.ts')
       }
+      log('info', 'captureException · runtime / render-phase')
+      finish(
+        'Issue с stack trace — проект javascript-react на sentry.io',
+        'На prod «Запустить» шлёт captureException — см. sentry.client.ts',
+      )
       return
     }
-    if (mode === 'metrics') {
-      log('info', 'http_requests_total{route="/pay",status="500"} +1')
-      log('ok', 'rate(5xx[5m]) = 0.12 → Grafana panel')
-      log('warn', 'label userId=… — высокая кардинальность, не делать')
-      setHint('Prometheus = счётчики/latency — см. metrics.js')
+
+    if (mode === 'handled') {
+      log('err', LAB_HANDLED)
+      log('info', 'try/catch на границе API — ошибка обработана, но reportable')
+      if (sentryLive()) {
+        const err = new Error(LAB_HANDLED)
+        err.name = 'ApiError'
+        Sentry.withScope((scope) => {
+          scope.setTag('route', '/api/pay')
+          scope.setExtra('status', 500)
+          scope.setExtra('method', 'GET')
+          Sentry.captureException(err)
+        })
+      }
+      finish(
+        'Issue с tags route + extra status — тот же release',
+        'Handled API error — captureException + scope на prod',
+      )
       return
     }
-    log('err', 'Alertmanager: ErrorRateHigh /pay')
-    log('ok', 'открыть Sentry issues за тот же release')
-    log('info', 'сначала метрика (сколько), потом issue (что)')
-    setHint('алерты связывают Prometheus и Sentry')
+
+    log('err', LAB_MESSAGE)
+    log('info', 'captureMessage · level=error (без stack, но issue в Sentry)')
+    if (sentryLive()) {
+      Sentry.captureMessage(LAB_MESSAGE, 'error')
+    }
+    finish(
+      'Issue типа message — degradation / timeout без exception',
+      'Operational message — captureMessage на prod',
+    )
   }
 
   const problem = (
     <div className={shell.panel}>
       <p className={shell.pain}>
-        Ошибки и метрики отвечают на разные вопросы. На prod «Sentry» + «Запустить» вызывает{' '}
-        <code>Sentry.captureException</code>; в dev — только симуляция в логе.
+        Три реальных способа отправить сигнал в Sentry с prod: необработанное исключение, пойманная
+        ошибка API с контекстом и operational message без stack.
       </p>
       <ol className={shell.steps}>
-        <li>Выберите Sentry, Metrics или Alert.</li>
-        <li>
-          Откройте «Код»: <code>sentry.client.ts</code>, <code>metrics.js</code>.
-        </li>
-        <li>Сверьте лог с полями <code>release</code> / labels.</li>
+        <li>Выберите тип: Исключение, HTTP catch или Message.</li>
+        <li>Нажмите «Запустить» — на prod уйдёт в Sentry, в dev только лог.</li>
+        <li>Сверьте issue с примерами на вкладке «Код».</li>
       </ol>
 
       <div className={shell.row}>
         <LabButton
           variant="ghost"
           size="sm"
-          active={mode === 'sentry'}
-          onClick={() => setMode('sentry')}
+          active={mode === 'exception'}
+          onClick={() => setMode('exception')}
         >
-          Sentry
+          Исключение
         </LabButton>
         <LabButton
           variant="ghost"
           size="sm"
-          active={mode === 'metrics'}
-          onClick={() => setMode('metrics')}
+          active={mode === 'handled'}
+          onClick={() => setMode('handled')}
         >
-          Metrics
+          HTTP catch
         </LabButton>
         <LabButton
           variant="ghost"
           size="sm"
-          active={mode === 'alert'}
-          onClick={() => setMode('alert')}
+          active={mode === 'message'}
+          onClick={() => setMode('message')}
         >
-          Alert
+          Message
         </LabButton>
         <LabButton variant="primary" onClick={run}>
           Запустить
@@ -111,7 +141,7 @@ export function LoggingSentryPrometheusLab() {
           Итог: <code>{hint}</code>
         </p>
       ) : (
-        <p className={shell.hint}>Выберите сигнал.</p>
+        <p className={shell.hint}>Выберите тип события.</p>
       )}
       <LabLogView lines={lines} />
     </div>
@@ -120,12 +150,12 @@ export function LoggingSentryPrometheusLab() {
   const code = (
     <InteractiveCodePanel
       topicId={TOPIC_ID}
-      intro="Sentry.init с release; Prometheus Counter на границе HTTP."
+      intro="Init приложения и три паттерна отправки в Sentry."
       snippets={[
         {
           id: 'sentry-client',
           label: 'sentry.client.ts',
-          note: 'Реальный init приложения: DSN из env, только prod.',
+          note: 'Реальный init: DSN из env, только prod.',
           executable: false,
           code: `import * as Sentry from '@sentry/react'
 
@@ -137,14 +167,12 @@ if (import.meta.env.PROD && dsn) {
     dsn,
     environment: import.meta.env.MODE,
     release: release || undefined,
-    tracesSampleRate: 0, // ← только errors на стенде
+    tracesSampleRate: 0,
     beforeSend(event) {
       const headers = event.request?.headers
       if (headers) {
         delete headers.Authorization
         delete headers.authorization
-        delete headers.Cookie
-        delete headers.cookie
       }
       return event
     },
@@ -154,48 +182,41 @@ if (import.meta.env.PROD && dsn) {
 export { Sentry }`,
         },
         {
-          id: 'metrics',
-          label: 'metrics.js',
-          note: 'Счётчики с низкой кардинальностью labels; /metrics для scrape.',
+          id: 'handled-api',
+          label: 'handled-api.ts',
+          note: 'Поймали на границе fetch — всё равно captureException + tags/extra.',
           executable: false,
-          code: `import client from 'prom-client';
-import express from 'express';
+          code: `import * as Sentry from '@sentry/react';
 
-// ═══════════════════════════════════════════
-// PROMETHEUS ← метрики, не текст логов
-// ═══════════════════════════════════════════
-const register = new client.Registry();
-client.collectDefaultMetrics({ register });
-
-const httpRequests = new client.Counter({
-  name: 'http_requests_total',
-  help: 'HTTP requests',
-  // ← labels: низкая кардинальность (не userId!)
-  labelNames: ['method', 'route', 'status'],
-  registers: [register],
-});
-
-const app = express();
-
-app.post('/pay', async (req, res) => {
+async function loadPay() {
   try {
-    await pay(req.body);
-    httpRequests.inc({ method: 'POST', route: '/pay', status: '200' });
-    res.sendStatus(200);
+    const res = await fetch('/api/pay');
+    if (!res.ok) throw new Error(\`GET /api/pay → \${res.status}\`);
+    return res.json();
   } catch (e) {
-    httpRequests.inc({ method: 'POST', route: '/pay', status: '500' }); // ← 5xx в Grafana
-    Sentry.captureException(e); // ← параллельно issue
-    res.sendStatus(500);
+    // ← handled, но reportable: контекст для on-call
+    Sentry.withScope((scope) => {
+      scope.setTag('route', '/api/pay');
+      scope.setExtra('status', (e as Response)?.status ?? 500);
+      Sentry.captureException(e);
+    });
+    throw e; // ← UI может показать fallback
   }
-});
+}`,
+        },
+        {
+          id: 'capture-message',
+          label: 'capture-message.ts',
+          note: 'Degradation без exception: timeout, quota, business rule.',
+          executable: false,
+          code: `import * as Sentry from '@sentry/react';
 
-// ═══════════════════════════════════════════
-// SCRAPE ← Prometheus тянет этот endpoint
-// ═══════════════════════════════════════════
-app.get('/metrics', async (_req, res) => {
-  res.set('Content-Type', register.contentType);
-  res.end(await register.metrics());
-});`,
+function onProviderTimeout(ms: number) {
+  // ← не Error, но issue в Sentry (level=error)
+  Sentry.captureMessage(\`Payment provider timeout after \${ms}ms\`, 'error');
+}
+
+// Prometheus/Grafana — «сколько timeout»; Sentry message — «что случилось сейчас»`,
         },
       ]}
     />
@@ -203,8 +224,8 @@ app.get('/metrics', async (_req, res) => {
 
   return (
     <JsLabShell
-      title="Sentry · Prometheus"
-      lead="Сценарии ошибки и метрик; init и счётчики — во вкладке «Код»."
+      title="Sentry · типы событий"
+      lead="captureException (runtime / handled) и captureMessage — все три шлют issue на prod."
       problem={problem}
       code={code}
     />
