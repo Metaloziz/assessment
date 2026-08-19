@@ -229,3 +229,4 @@ Env: корневой `.env` / `server/.env` / переменные хостин
 | 124 | [124-redux-saga-thunk.md](topics/124-redux-saga-thunk.md) | redux-saga и redux-thunk — middleware для асинхронной логики |
 | 125 | [125-redux-toolkit.md](topics/125-redux-toolkit.md) | Redux Toolkit (RTK) — официальный способ писать Redux |
 | 126 | [126-redux-feature-first-ducks.md](topics/126-redux-feature-first-ducks.md) | Альтернативные подходы к организации store: Feature-first и redux-ducks |
+| 268 | [268-browser-events-features.md](topics/268-browser-events-features.md) | Особенности работы с браузерными событиями |

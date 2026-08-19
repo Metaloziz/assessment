@@ -256,6 +256,11 @@ export const TOPIC_META: Record<
   "68-indexeddb": { groupId: "browser", level: "senior", sortInGroup: 13 },
   "69-worklets": { groupId: "browser", level: "senior", sortInGroup: 14 },
   "70-pwa": { groupId: "browser", level: "senior", sortInGroup: 15 },
+  "268-browser-events-features": {
+    groupId: "browser",
+    level: "middle",
+    sortInGroup: 16,
+  },
 
   // CI/CD (порядок как в Notion; уровень по цвету иконки)
   "71-why-cicd": { groupId: "cicd", level: "junior", sortInGroup: 1 },
