@@ -11,8 +11,8 @@
   color: var(--text-faint);
   font-size: var(--lab-font-ui);
   transition:
-    color 0.25s ease,
-    opacity 0.25s ease;
+    color 0.4s ease,
+    opacity 0.4s ease;
 }
 
 .arrowActive {

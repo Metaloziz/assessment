@@ -1,0 +1,145 @@
+.stage {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 0.55rem;
+  align-items: stretch;
+  min-height: 11.5rem;
+}
+
+.tab {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--bg) 48%, var(--bg-elevated));
+  overflow: hidden;
+  transition:
+    border-color 0.4s ease,
+    box-shadow 0.4s ease;
+}
+
+.tabActive {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+.tabOk {
+  border-color: color-mix(in srgb, var(--ok) 45%, var(--border));
+}
+
+.tabErr {
+  border-color: color-mix(in srgb, var(--danger) 50%, var(--border));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--danger) 25%, transparent);
+}
+
+.chrome {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.55rem;
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg) 55%, var(--bg-elevated));
+}
+
+.dots {
+  display: flex;
+  gap: 0.22rem;
+  flex: 0 0 auto;
+}
+
+.dot {
+  width: 0.38rem;
+  height: 0.38rem;
+  border-radius: 50%;
+  background: var(--text-faint);
+  opacity: 0.55;
+}
+
+.url {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding: 0.2rem 0.4rem;
+  border-radius: calc(var(--radius) - 2px);
+  background: var(--bg);
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-meta);
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color 0.4s ease;
+}
+
+.urlPhish {
+  color: var(--danger);
+}
+
+.body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.65rem 0.7rem;
+}
+
+.title {
+  margin: 0;
+  font-size: var(--lab-font-ui);
+  color: var(--text);
+}
+
+.meta {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-meta);
+  color: var(--text-faint);
+}
+
+.bridge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  min-width: 3.4rem;
+  padding: 0.2rem 0;
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-meta);
+  color: var(--text-faint);
+  transition:
+    color 0.4s ease,
+    opacity 0.4s ease;
+}
+
+.bridgeLive {
+  color: var(--danger);
+}
+
+.bridgeSafe {
+  color: var(--ok);
+}
+
+.bridgeArrow {
+  font-size: 1.1rem;
+  line-height: 1;
+  opacity: 0.85;
+}
+
+@media (max-width: 640px) {
+  .stage {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto;
+  }
+
+  .bridge {
+    flex-direction: row;
+    min-width: 0;
+    padding: 0.15rem 0;
+  }
+
+  .bridgeArrow {
+    transform: rotate(90deg);
+  }
+}

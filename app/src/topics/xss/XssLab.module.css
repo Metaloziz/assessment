@@ -1,0 +1,129 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  min-height: 11rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--bg) 48%, var(--bg-elevated));
+  overflow: hidden;
+  transition:
+    border-color 0.4s ease,
+    box-shadow 0.4s ease;
+}
+
+.pageActive {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+.pageHit {
+  border-color: color-mix(in srgb, var(--danger) 50%, var(--border));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--danger) 25%, transparent);
+}
+
+.pageSafe {
+  border-color: color-mix(in srgb, var(--ok) 45%, var(--border));
+}
+
+.chrome {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.55rem;
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg) 55%, var(--bg-elevated));
+}
+
+.dots {
+  display: flex;
+  gap: 0.22rem;
+  flex: 0 0 auto;
+}
+
+.dot {
+  width: 0.38rem;
+  height: 0.38rem;
+  border-radius: 50%;
+  background: var(--text-faint);
+  opacity: 0.55;
+}
+
+.url {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding: 0.2rem 0.4rem;
+  border-radius: calc(var(--radius) - 2px);
+  background: var(--bg);
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-meta);
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0.7rem 0.75rem 0.85rem;
+}
+
+.label {
+  margin: 0;
+  font-size: var(--lab-font-meta);
+  color: var(--text-faint);
+}
+
+.out {
+  position: relative;
+  min-height: 2.6rem;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  font-size: var(--lab-font-ui);
+  color: var(--text);
+  word-break: break-word;
+  transition: border-color 0.4s ease;
+}
+
+.out[data-phase='hit'] {
+  border-color: color-mix(in srgb, var(--danger) 40%, var(--border));
+}
+
+.out[data-phase='safe'] {
+  border-color: color-mix(in srgb, var(--ok) 40%, var(--border));
+}
+
+/* битая картинка из демо-payload не должна засорять стенд */
+.out img {
+  position: absolute;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.badge {
+  align-self: flex-start;
+  margin: 0;
+  padding: 0.28rem 0.55rem;
+  border-radius: var(--radius);
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-meta);
+  border: 1px solid var(--border);
+}
+
+.badgeErr {
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 45%, var(--border));
+  background: color-mix(in srgb, var(--danger) 12%, var(--bg));
+}
+
+.badgeOk {
+  color: var(--ok);
+  border-color: color-mix(in srgb, var(--ok) 45%, var(--border));
+  background: color-mix(in srgb, var(--ok) 12%, var(--bg));
+}

@@ -556,7 +556,7 @@ export const TOPIC_META: Record<
   },
   "149-rel-noopener-noreferrer-nofollow": {
     groupId: "security",
-    level: "junior",
+    level: "middle",
     sortInGroup: 2,
   },
   "150-authn-authz": {

@@ -84,6 +84,7 @@ import { IframeLab } from '../topics/iframe/IframeLab'
 import { BrowserEventsFeaturesLab } from '../topics/browser-events-features/BrowserEventsFeaturesLab'
 import { BrowserWebComponentsLab } from '../topics/browser-web-components/BrowserWebComponentsLab'
 import { XFrameOptionsLab } from '../topics/x-frame-options/XFrameOptionsLab'
+import { RelOpenerNofollowLab } from '../topics/rel-noopener-noreferrer-nofollow/RelOpenerNofollowLab'
 import { CorsLab } from '../topics/cors/CorsLab'
 import { NpmAuditLab } from '../topics/npm-audit/NpmAuditLab'
 import { JwtSecurityLab } from '../topics/jwt-security/JwtSecurityLab'
@@ -201,6 +202,7 @@ function TopicLab({ topicId }: { topicId: string; topic: TopicDetail }) {
   if (topicId === '268-browser-events-features') return <BrowserEventsFeaturesLab />
   if (topicId === '269-browser-web-components') return <BrowserWebComponentsLab />
   if (topicId === '151-x-frame-options') return <XFrameOptionsLab />
+  if (topicId === '149-rel-noopener-noreferrer-nofollow') return <RelOpenerNofollowLab />
   if (topicId === '07-cors') return <CorsLab />
   if (topicId === '08-npm-audit') return <NpmAuditLab />
   if (topicId === '09-jwt-security') return <JwtSecurityLab />
