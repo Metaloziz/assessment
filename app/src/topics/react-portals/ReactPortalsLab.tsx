@@ -17,24 +17,26 @@ type CaseId = 'trapped' | 'portal' | 'bubble'
 type Phase = 'idle' | 'open' | 'done'
 
 const CASES: Array<{ id: CaseId; label: string }> = [
-  { id: 'trapped', label: 'Без портала' },
-  { id: 'portal', label: 'createPortal' },
-  { id: 'bubble', label: 'Всплытие событий' },
+  { id: 'trapped', label: 'В карточке' },
+  { id: 'portal', label: 'В #modal-root' },
+  { id: 'bubble', label: 'Клик из портала' },
 ]
 
 const CODE_INTRO: Record<CaseId, string> = {
-  trapped: 'Модалка внутри `overflow: hidden` — оверлей обрезается карточкой.',
-  portal: '`createPortal` монтирует UI в `#modal-root`, React-родитель тот же.',
-  bubble: 'Клик в портале всплывает по React-дереву к `Card`, не по DOM `#modal-root`.',
+  trapped: 'Модалка внутри карточки с `overflow: hidden` — низ диалога обрезается.',
+  portal: '`createPortal` рисует UI в `#modal-root`, в React родитель всё ещё `Card`.',
+  bubble: 'Клик в портале доходит до `onClick` на `Card` по React-дереву, не по DOM host.',
 }
 
 const SNIPPET_TRAPPED: InteractiveSnippet = {
-  id: 'modal-trapped-v2',
+  id: 'modal-trapped-v3',
   label: 'src/ui/Modal.tsx',
-  note: 'Без портала children остаются в DOM карточки.',
+  note: 'Без портала разметка остаётся внутри DOM карточки.',
   executable: false,
   languageLabel: 'tsx',
-  code: `type Props = { open: boolean; children: React.ReactNode };
+  code: `import type { ReactNode } from 'react';
+
+type Props = { open: boolean; children: ReactNode };
 
 export const Modal = ({ open, children }: Props) => {
   if (!open) return null;
@@ -46,9 +48,9 @@ export const Modal = ({ open, children }: Props) => {
 }
 
 const SNIPPET_CARD: InteractiveSnippet = {
-  id: 'card-overflow-v2',
+  id: 'card-overflow-v3',
   label: 'src/ui/Card.tsx',
-  note: '`overflow: hidden` режет потомков без портала.',
+  note: '`overflow: hidden` обрезает потомков без портала.',
   executable: false,
   languageLabel: 'tsx',
   code: `import { useState } from 'react';
@@ -68,14 +70,15 @@ export const Card = () => {
 }
 
 const SNIPPET_PORTAL: InteractiveSnippet = {
-  id: 'modal-portal-v2',
+  id: 'modal-portal-v3',
   label: 'src/ui/Modal.tsx',
-  note: 'DOM-цель — `#modal-root`; в React Modal всё ещё ребёнок Card.',
+  note: 'DOM-цель — `#modal-root`; в React `Modal` всё ещё ребёнок `Card`.',
   executable: false,
   languageLabel: 'tsx',
   code: `import { createPortal } from 'react-dom';
+import type { ReactNode } from 'react';
 
-type Props = { open: boolean; children: React.ReactNode };
+type Props = { open: boolean; children: ReactNode };
 
 export const Modal = ({ open, children }: Props) => {
   if (!open) return null;
@@ -93,9 +96,9 @@ export const Modal = ({ open, children }: Props) => {
 }
 
 const SNIPPET_HOST: InteractiveSnippet = {
-  id: 'index-host-v2',
+  id: 'index-host-v3',
   label: 'index.html',
-  note: 'Отдельный host для оверлеев рядом с корнем приложения.',
+  note: 'Отдельный контейнер для оверлеев рядом с корнем приложения.',
   executable: false,
   languageLabel: 'html',
   code: `<body>
@@ -106,9 +109,9 @@ const SNIPPET_HOST: InteractiveSnippet = {
 }
 
 const SNIPPET_BUBBLE: InteractiveSnippet = {
-  id: 'portal-bubble-v2',
+  id: 'portal-bubble-v3',
   label: 'src/ui/Card.tsx',
-  note: 'Клик по кнопке в портале доходит до `onClick` на Card в React.',
+  note: 'Клик по кнопке в портале доходит до `onClick` на `Card` в React.',
   executable: false,
   languageLabel: 'tsx',
   code: `import { createPortal } from 'react-dom';
@@ -136,12 +139,12 @@ const CODE_SNIPPETS: Record<CaseId, InteractiveSnippet[]> = {
 }
 
 const PAIN =
-  'Модалки и дропдауны ломаются внутри `overflow` и чужих stacking context. Portal выносит DOM наружу, оставляя React-родителя прежним.'
+  'Диалог внутри карточки с `overflow: hidden` обрезается. Portal рисует его в другом месте DOM, а в React родитель остаётся прежним.'
 
 const CASE_BRIEF: Record<CaseId, ReactNode> = {
   trapped: (
     <>
-      Оверлей рисуется внутри <code>Card</code> — <code>overflow: hidden</code> обрезает диалог.
+      Оверлей рисуется внутри <code>Card</code> — <code>overflow: hidden</code> обрезает низ диалога.
     </>
   ),
   portal: (
@@ -151,7 +154,7 @@ const CASE_BRIEF: Record<CaseId, ReactNode> = {
   ),
   bubble: (
     <>
-      Кнопка в портале: клик всплывает к React-<code>Card</code>, хотя в DOM общего предка нет.
+      Кнопка в портале: клик доходит до React-<code>Card</code>, хотя в DOM общего предка нет.
     </>
   ),
 }
@@ -207,12 +210,12 @@ const OrderDialog = ({ variant, bubbleHint, onConfirm, onClose, dialogRef }: Dia
     </h2>
     <p className={styles.dialogLead}>
       {variant === 'trapped'
-        ? 'Диалог внутри карточки — нижняя часть и кнопки обрезаны overflow.'
+        ? 'Диалог внутри карточки — нижняя часть и кнопки обрезаны.'
         : 'Диалог в #modal-root: поверх сцены, вне overflow карточки.'}
     </p>
     {bubbleHint ? (
       <p className={styles.dialogHint}>
-        Клик по кнопке всплывёт к <code>Card</code> в React
+        Клик по кнопке дойдёт до <code>Card</code> в React
       </p>
     ) : null}
     <div className={styles.dialogActions}>
@@ -256,10 +259,10 @@ const PortalLiveViz = ({
     phase === 'idle'
       ? 'закрыто'
       : caseId === 'trapped'
-        ? 'в Card · clip'
+        ? 'внутри карточки · обрезан'
         : caseId === 'bubble'
-          ? 'portal · bubble → Card'
-          : 'portal · #modal-root'
+          ? 'портал · клик → карточка'
+          : 'портал · #modal-root'
 
   const dialog = open ? (
     <OrderDialog
@@ -322,8 +325,8 @@ const PortalLiveViz = ({
               </article>
               <p className={styles.clipNote}>
                 {usePortal
-                  ? 'Card: overflow hidden · в DOM карточки диалога нет'
-                  : 'Card: overflow hidden · диалог внутри → clip'}
+                  ? 'карточка: overflow hidden · в DOM карточки диалога нет'
+                  : 'карточка: overflow hidden · диалог внутри → обрезан'}
               </p>
             </div>
           </div>
@@ -337,7 +340,7 @@ const PortalLiveViz = ({
               .filter(Boolean)
               .join(' ')}
           >
-            {!usePortal || !open ? <p className={styles.hostEmpty}>host пуст</p> : null}
+            {!usePortal || !open ? <p className={styles.hostEmpty}>контейнер пуст</p> : null}
           </div>
         </div>
       </div>
@@ -389,13 +392,13 @@ export const ReactPortalsLab = () => {
   const finishCase = (id: CaseId) => {
     setPhase('done')
     if (id === 'trapped') {
-      log('warn', 'dialog ∈ Card → overflow обрезал слой')
+      log('warn', 'диалог внутри карточки — низ обрезан')
       setHint('без портала модалка остаётся внутри карточки')
     } else if (id === 'portal') {
-      log('ok', 'createPortal → #modal-root; Card не режет')
+      log('ok', 'диалог в #modal-root — карточка не режет')
       setHint('DOM вынесен, React-родитель Card прежний')
     } else {
-      log('ok', 'click в portal → всплытие к Card (React)')
+      log('ok', 'клик в портале дошёл до карточки по React')
       setHint('события идут по React-дереву, не по DOM host')
     }
   }
@@ -517,7 +520,7 @@ export const ReactPortalsLab = () => {
   )
 
   const code = (
-    <div className={styles.codePane}>
+    <div className={shell.codePane}>
       <div className={shell.row}>
         {CASES.map((c) => (
           <LabButton

@@ -751,7 +751,7 @@ export const TOPIC_META: Record<
   },
   "184-react-hoc": {
     groupId: "react",
-    level: "junior",
+    level: "middle",
     sortInGroup: 6,
   },
   "185-react-virtual-dom": {

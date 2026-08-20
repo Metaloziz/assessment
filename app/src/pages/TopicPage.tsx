@@ -108,6 +108,7 @@ import { LayoutCssModulesCssInJsLab } from '../topics/layout-css-modules-css-in-
 import { LayoutDesignSystemLab } from '../topics/layout-design-system/LayoutDesignSystemLab'
 import { LayoutA11yLab } from '../topics/layout-a11y/LayoutA11yLab'
 import { LayoutMicrodataLab } from '../topics/layout-microdata/LayoutMicrodataLab'
+import { ReactHocLab } from '../topics/react-hoc/ReactHocLab'
 import { ReactVirtualDomLab } from '../topics/react-virtual-dom/ReactVirtualDomLab'
 import { ReactOptimizationLab } from '../topics/react-optimization/ReactOptimizationLab'
 import { ReactErrorBoundariesLab } from '../topics/react-error-boundaries/ReactErrorBoundariesLab'
@@ -232,6 +233,7 @@ function TopicLab({ topicId }: { topicId: string; topic: TopicDetail }) {
   if (topicId === '176-layout-design-system') return <LayoutDesignSystemLab />
   if (topicId === '177-layout-a11y') return <LayoutA11yLab />
   if (topicId === '178-layout-microdata') return <LayoutMicrodataLab />
+  if (topicId === '184-react-hoc') return <ReactHocLab />
   if (topicId === '185-react-virtual-dom') return <ReactVirtualDomLab />
   if (topicId === '186-react-optimization') return <ReactOptimizationLab />
   if (topicId === '187-react-fragments') return <ReactFragmentsLab />

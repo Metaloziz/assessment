@@ -252,14 +252,6 @@
   margin-top: 0.25rem;
 }
 
-.codePane {
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  flex: 1;
-  gap: 0.55rem;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .orderCard,
   .modalHost,

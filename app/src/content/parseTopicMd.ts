@@ -221,6 +221,7 @@ export function parseTopicMd(id: string, raw: string, order: number): TopicDetai
       id === '176-layout-design-system' ||
       id === '177-layout-a11y' ||
       id === '178-layout-microdata' ||
+      id === '184-react-hoc' ||
       id === '185-react-virtual-dom' ||
       id === '186-react-optimization' ||
       id === '187-react-fragments' ||

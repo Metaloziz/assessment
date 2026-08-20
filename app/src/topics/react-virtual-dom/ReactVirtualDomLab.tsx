@@ -1,4 +1,4 @@
-import { useRef, useState, type MutableRefObject, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type MutableRefObject, type ReactNode } from 'react'
 import gsap from 'gsap'
 import { JsLabShell } from '../../components/lab/JsLabShell'
 import { LabButton } from '../../components/lab/LabButton'
@@ -6,55 +6,62 @@ import shell from '../../components/lab/JsLabShell.module.css'
 import { InteractiveCodePanel, type InteractiveSnippet } from '../../components/lab/InteractiveCodePanel'
 import { LabLogView } from '../../components/lab/LabLogView'
 import { useLabLog } from '../../components/lab/useLabLog'
-import { LabVizPanel, labVizStyles } from '../../components/lab/LabViz'
+import { LabVizPanel } from '../../components/lab/LabViz'
 import styles from './ReactVirtualDomLab.module.css'
 
 const TOPIC_ID = '185-react-virtual-dom'
 const STEP = 0.65
 
 type CaseId = 'naive' | 'diff' | 'skip'
-type Phase = 'idle' | 'render' | 'compare' | 'done'
+type Phase = 'idle' | 'focus' | 'apply' | 'done'
+type FocusOutcome = 'idle' | 'lost' | 'kept' | 'untouched'
 
 const CASES: Array<{ id: CaseId; label: string }> = [
-  { id: 'naive', label: 'Без VDOM' },
-  { id: 'diff', label: 'Diff → patch' },
+  { id: 'naive', label: 'Без снимка' },
+  { id: 'diff', label: 'Точечный patch' },
   { id: 'skip', label: 'Снимок тот же' },
 ]
 
 const CODE_INTRO: Record<CaseId, string> = {
-  naive: 'Каждый клик — `innerHTML` всего списка: Real DOM пересоздаётся целиком.',
-  diff: '`createElement` → снимок → `diff` → точечный `patch` текста.',
-  skip: 'Новый снимок равен старому — `commit` в Real DOM не пишет.',
+  naive: 'Каждый апдейт — полный `innerHTML`: узлы новые, фокус в поле пропадает.',
+  diff: 'Снимок → `diff` → в DOM пишем только текст числа; поле остаётся с фокусом.',
+  skip: 'Новый снимок равен старому — `commit` ничего не пишет, фокус на месте.',
 }
 
 const SNIPPET_NAIVE: InteractiveSnippet = {
   id: 'naive-innerhtml',
   label: 'src/ui/naiveCounter.ts',
-  note: 'Без снимка: любой `setCount` сносит и собирает разметку заново.',
+  note: 'Без снимка: любой апдейт сносит и собирает разметку заново.',
   executable: false,
   languageLabel: 'ts',
-  code: `export function mountNaive(root: HTMLElement) {
+  code: `export const mountNaive = (root: HTMLElement) => {
   let count = 0;
+  let name = 'Анна';
 
-  function paint() {
+  const paint = () => {
     // ═══════════════════════════════════════════
     // NAIVE ← полный rewrite Real DOM
     // ═══════════════════════════════════════════
     root.innerHTML = \`
       <div class="card">
         <h1>Счётчик</h1>
+        <input value="\${name}" />
         <span>\${count}</span>
         <button type="button">+1</button>
       </div>
-    \`; // ← все узлы новые: фокус / listeners теряются
+    \`; // ← все узлы новые: фокус теряется
+    const input = root.querySelector('input')!;
+    input.oninput = () => {
+      name = input.value;
+    };
     root.querySelector('button')!.onclick = () => {
       count += 1;
       paint();
     };
-  }
+  };
 
   paint();
-}`,
+};`,
 }
 
 const SNIPPET_VNODE: InteractiveSnippet = {
@@ -72,21 +79,20 @@ const SNIPPET_VNODE: InteractiveSnippet = {
 // ═══════════════════════════════════════════
 // VDOM ← описание узла в JS
 // ═══════════════════════════════════════════
-export function createElement(
+export const createElement = (
   type: string,
   props: Record<string, unknown> | null,
   ...children: Array<VNode | string>
-): VNode {
-  return { type, props: props ?? {}, children }; // ← ещё не DOM
-}
+): VNode => ({ type, props: props ?? {}, children }); // ← ещё не DOM
 
-export function renderCounter(count: number): VNode {
-  return createElement('div', { className: 'card' },
+export const renderCounter = (count: number, name: string): VNode =>
+  createElement(
+    'div',
+    { className: 'card' },
     createElement('h1', null, 'Счётчик'),
+    createElement('input', { value: name }),
     createElement('span', null, String(count)), // ← меняется текст
-    createElement('button', { type: 'button' }, '+1'),
-  );
-}`,
+  );`,
 }
 
 const SNIPPET_DIFF: InteractiveSnippet = {
@@ -98,69 +104,61 @@ const SNIPPET_DIFF: InteractiveSnippet = {
   code: `import type { VNode } from './createElement';
 
 type Patch =
-  | { op: 'text'; path: string; value: string }
+  | { op: 'text'; value: string }
   | { op: 'none' };
 
 // ═══════════════════════════════════════════
 // DIFF ← сравнить снимки до DOM
 // ═══════════════════════════════════════════
-export function diff(prev: VNode, next: VNode): Patch {
-  // упрощение: деревья одной формы, смотрим текст span
-  const prevText = String(prev.children[1]);
-  const nextText = String(next.children[1]);
+export const diff = (prev: VNode, next: VNode): Patch => {
+  const prevText = String(prev.children[2]);
+  const nextText = String(next.children[2]);
   if (prevText === nextText) return { op: 'none' }; // ← skip commit
-  return { op: 'text', path: 'div>span', value: nextText }; // ← patch
-}
+  return { op: 'text', value: nextText }; // ← patch
+};
 
-export function commit(root: HTMLElement, patch: Patch) {
+export const commit = (root: HTMLElement, patch: Patch) => {
   if (patch.op === 'none') return; // ← Real DOM не трогаем
   root.querySelector('span')!.textContent = patch.value; // ← одна запись
-}`,
+};`,
 }
 
 const CODE_SNIPPETS: Record<CaseId, InteractiveSnippet[]> = {
-  naive: [SNIPPET_NAIVE],
+  naive: [SNIPPET_NAIVE, SNIPPET_VNODE],
   diff: [SNIPPET_VNODE, SNIPPET_DIFF],
   skip: [SNIPPET_VNODE, SNIPPET_DIFF],
 }
 
 const PAIN =
-  'Real DOM дорог. Virtual DOM — снимок в JS: сравнили деревья и пишем в браузер только отличия (или ничего).'
+  'Настоящий DOM дорогой: лишний rewrite сносит фокус и слушатели. Снимок в JS сравнивают сначала — в браузер пишут только отличия или ничего.'
 
 const CASE_BRIEF: Record<CaseId, ReactNode> = {
   naive: (
     <>
-      Без снимка каждый апдейт пересоздаёт <code>card</code>, <code>h1</code>, <code>span</code> и{' '}
-      <code>button</code> через <code>innerHTML</code>.
+      После клика карточка собирается заново через <code>innerHTML</code> — курсор из поля пропадает.
     </>
   ),
   diff: (
     <>
-      Новый VDOM отличается только текстом <code>span</code> — в Real DOM уходит один{' '}
-      <code>patch</code>.
+      Меняется только число в <code>span</code>; поле с именем остаётся с фокусом.
     </>
   ),
   skip: (
     <>
-      Снимки совпали (<code>diff → none</code>) — колонка Real DOM остаётся без записи.
+      Число не менялось — снимки совпали, в Real DOM ничего не пишем.
     </>
   ),
 }
 
-function reducedMotion() {
-  return typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
-}
+const reducedMotion = () =>
+  typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
-function nodeCls(...mods: Array<string | false | undefined>) {
-  return [labVizStyles.node, ...mods.filter(Boolean)].join(' ')
-}
-
-function playTimeline(
+const playTimeline = (
   tlRef: MutableRefObject<gsap.core.Timeline | null>,
   steps: Array<() => void>,
   motion: ((tl: gsap.core.Timeline) => void) | null,
   onDone: () => void,
-) {
+) => {
   tlRef.current?.kill()
   if (reducedMotion()) {
     for (const step of steps) step()
@@ -173,198 +171,127 @@ function playTimeline(
   })
   tlRef.current = tl
   steps.forEach((step, i) => {
-    tl.call(step, undefined, i * STEP)
+    tl.call(step, [], i * STEP)
   })
   motion?.(tl)
 }
 
-type NodeKind = 'card' | 'h1' | 'span' | 'button'
-type NodeState = 'idle' | 'active' | 'ok' | 'warn'
+type StandState = {
+  count: number
+  name: string
+}
 
-type TreeState = Record<NodeKind, NodeState> & {
-  meta: string
-  spanText: string
+const paintCard = (root: HTMLElement, state: StandState, flash: 'none' | 'warn' | 'ok') => {
+  const flashCls =
+    flash === 'warn' ? styles.cardWarn : flash === 'ok' ? styles.cardOk : ''
+  root.innerHTML = `
+    <div data-card class="${styles.card} ${flashCls}">
+      <p class="${styles.cardEyebrow}">мини-UI</p>
+      <h2 class="${styles.cardTitle}">Счётчик</h2>
+      <label class="${styles.field}">
+        <span class="${styles.fieldLabel}">Имя</span>
+        <input class="${styles.input}" data-name type="text" value="${state.name.replace(/"/g, '&quot;')}" />
+      </label>
+      <p class="${styles.countRow}">
+        Кликов: <span class="${styles.count}" data-count>${state.count}</span>
+      </p>
+      <p class="${styles.cardHint}">Фокус в поле «Имя» — смотри, останется ли после апдейта</p>
+    </div>
+  `
+  const input = root.querySelector<HTMLInputElement>('[data-name]')
+  if (input) {
+    input.oninput = () => {
+      state.name = input.value
+    }
+  }
+}
+
+const focusName = (root: HTMLElement | null) => {
+  const input = root?.querySelector<HTMLInputElement>('[data-name]')
+  if (!input) return false
+  input.focus()
+  input.select()
+  return document.activeElement === input
+}
+
+const isNameFocused = (root: HTMLElement | null) => {
+  const input = root?.querySelector<HTMLInputElement>('[data-name]')
+  return Boolean(input && document.activeElement === input)
 }
 
 type VizProps = {
   phase: Phase
   caseId: CaseId
-  patchRef: MutableRefObject<HTMLDivElement | null>
+  focusOutcome: FocusOutcome
+  hostRef: MutableRefObject<HTMLDivElement | null>
+  flashRef: MutableRefObject<HTMLDivElement | null>
 }
 
-function treeState(phase: Phase, caseId: CaseId, side: 'vdom' | 'dom'): TreeState {
-  const done = phase === 'done'
-  const comparing = phase === 'compare' || done
-  const rendering = phase !== 'idle'
-
-  if (caseId === 'naive') {
-    return {
-      card: done ? 'warn' : rendering ? 'active' : 'idle',
-      h1: done ? 'warn' : rendering ? 'active' : 'idle',
-      span: done ? 'warn' : rendering ? 'active' : 'idle',
-      button: done ? 'warn' : rendering ? 'active' : 'idle',
-      meta: done ? 'все узлы новые' : rendering ? 'innerHTML…' : 'до клика',
-      spanText: done ? '1' : '0',
-    }
-  }
-
-  if (side === 'vdom') {
-    return {
-      card: comparing ? 'ok' : rendering ? 'active' : 'idle',
-      h1: comparing ? 'ok' : rendering ? 'active' : 'idle',
-      span: done
-        ? caseId === 'diff'
-          ? 'active'
-          : 'ok'
-        : comparing
-          ? 'active'
-          : rendering
-            ? 'active'
-            : 'idle',
-      button: comparing ? 'ok' : rendering ? 'active' : 'idle',
-      meta:
-        phase === 'idle'
-          ? 'старый снимок'
-          : phase === 'render'
-            ? 'новый снимок'
-            : caseId === 'skip'
-              ? 'equal'
-              : 'span ≠',
-      spanText: caseId === 'diff' && comparing ? '1' : '0',
-    }
-  }
-
-  // Real DOM
-  if (caseId === 'skip') {
-    return {
-      card: done ? 'ok' : 'idle',
-      h1: done ? 'ok' : 'idle',
-      span: done ? 'ok' : 'idle',
-      button: done ? 'ok' : 'idle',
-      meta: done ? 'commit: none' : 'ждёт diff',
-      spanText: '0',
-    }
-  }
-
-  return {
-    card: done ? 'ok' : 'idle',
-    h1: done ? 'ok' : 'idle',
-    span: done ? 'active' : comparing ? 'active' : 'idle',
-    button: done ? 'ok' : 'idle',
-    meta: done ? 'patch text' : comparing ? 'готов к patch' : 'ждёт diff',
-    spanText: done ? '1' : '0',
-  }
-}
-
-function stateClass(s: 'idle' | 'active' | 'ok' | 'warn') {
-  if (s === 'active') return labVizStyles.nodeActive
-  if (s === 'ok') return labVizStyles.nodeOk
-  if (s === 'warn') return styles.nodeWarn
-  return undefined
-}
-
-function TreeColumn({
-  title,
-  phase,
-  caseId,
-  side,
-  highlightRef,
-}: {
-  title: string
-  phase: Phase
-  caseId: CaseId
-  side: 'vdom' | 'dom'
-  highlightRef?: MutableRefObject<HTMLDivElement | null>
-}) {
-  const st = treeState(phase, caseId, side)
-  const nodes: Array<{ id: NodeKind; label: string; sub: string }> = [
-    { id: 'card', label: side === 'vdom' ? "div.card" : '<div>', sub: 'root' },
-    { id: 'h1', label: side === 'vdom' ? "h1" : '<h1>', sub: 'Счётчик' },
-    {
-      id: 'span',
-      label: side === 'vdom' ? 'span' : '<span>',
-      sub: st.spanText,
-    },
-    { id: 'button', label: side === 'vdom' ? 'button' : '<button>', sub: '+1' },
-  ]
-
-  return (
-    <div className={styles.col}>
-      <p className={styles.colTitle}>{title}</p>
-      <p className={styles.colMeta}>{st.meta}</p>
-      <div className={styles.tree}>
-        {nodes.map((n, i) => (
-          <div
-            key={n.id}
-            ref={n.id === 'span' && side === 'dom' ? highlightRef : undefined}
-            className={nodeCls(stateClass(st[n.id]), styles.leaf, i > 0 && styles.indent)}
-          >
-            <span className={labVizStyles.nodeLabel}>{n.label}</span>
-            <span className={labVizStyles.nodeSub}>{n.sub}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-function VdomViz({ phase, caseId, patchRef }: VizProps) {
-  const naive = caseId === 'naive'
+const VdomLiveViz = ({ phase, caseId, focusOutcome, hostRef, flashRef }: VizProps) => {
   const meta =
     phase === 'idle'
       ? 'до апдейта'
-      : phase === 'render'
-        ? 'render'
-        : phase === 'compare'
-          ? 'diff'
-          : caseId === 'naive'
-            ? 'full rewrite'
-            : caseId === 'skip'
-              ? 'commit skipped'
-              : 'patched'
+      : phase === 'focus'
+        ? 'фокус в поле'
+        : phase === 'apply'
+          ? caseId === 'naive'
+            ? 'полный rewrite'
+            : caseId === 'diff'
+              ? 'пишем только число'
+              : 'commit пропущен'
+          : focusOutcome === 'lost'
+            ? 'фокус сброшен'
+            : focusOutcome === 'untouched'
+              ? 'DOM не трогали'
+              : 'фокус на месте'
 
   return (
-    <LabVizPanel title="Снимок vs Real DOM" meta={meta}>
-      <div className={styles.layout}>
-        {naive ? (
-          <TreeColumn title="Real DOM" phase={phase} caseId={caseId} side="dom" highlightRef={patchRef} />
-        ) : (
-          <>
-            <TreeColumn title="Virtual DOM" phase={phase} caseId={caseId} side="vdom" />
-            <div className={styles.arrow} aria-hidden>
-              {phase === 'compare' || phase === 'done' ? 'diff' : '→'}
-            </div>
-            <TreeColumn
-              title="Real DOM"
-              phase={phase}
-              caseId={caseId}
-              side="dom"
-              highlightRef={patchRef}
-            />
-          </>
-        )}
+    <LabVizPanel title="Счётчик в браузере" meta={meta}>
+      <div className={styles.stage} ref={flashRef}>
+        <div ref={hostRef} className={styles.host} />
+        <p className={styles.receipt} data-tone={focusOutcome}>
+          {focusOutcome === 'idle' && 'Запусти прогон — увидишь, что стало с фокусом'}
+          {focusOutcome === 'lost' && 'Поле пересоздали · курсор пропал'}
+          {focusOutcome === 'kept' && 'Поле то же · курсор на месте'}
+          {focusOutcome === 'untouched' && 'Запись в DOM не нужна · фокус как был'}
+        </p>
       </div>
     </LabVizPanel>
   )
 }
 
-export function ReactVirtualDomLab() {
+export const ReactVirtualDomLab = () => {
   const { lines, log, clear } = useLabLog()
   const [caseId, setCaseId] = useState<CaseId>('naive')
   const [hint, setHint] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [phase, setPhase] = useState<Phase>('idle')
+  const [focusOutcome, setFocusOutcome] = useState<FocusOutcome>('idle')
+  const [paintTick, setPaintTick] = useState(0)
 
   const tlRef = useRef<gsap.core.Timeline | null>(null)
-  const patchRef = useRef<HTMLDivElement | null>(null)
+  const hostRef = useRef<HTMLDivElement | null>(null)
+  const flashRef = useRef<HTMLDivElement | null>(null)
+  const standRef = useRef<StandState>({ count: 0, name: 'Анна' })
+  const runGenRef = useRef(0)
+
+  useEffect(() => {
+    const root = hostRef.current
+    if (!root) return
+    standRef.current = { count: 0, name: 'Анна' }
+    paintCard(root, standRef.current, 'none')
+  }, [caseId, paintTick])
 
   const resetViz = () => {
     setPhase('idle')
     setHint(null)
-    if (patchRef.current) gsap.set(patchRef.current, { clearProps: 'transform,opacity' })
+    setFocusOutcome('idle')
+    setPaintTick((n) => n + 1)
+    if (flashRef.current) gsap.set(flashRef.current, { clearProps: 'transform,opacity' })
   }
 
   const selectCase = (next: CaseId) => {
+    runGenRef.current += 1
     tlRef.current?.kill()
     setBusy(false)
     setCaseId(next)
@@ -373,40 +300,93 @@ export function ReactVirtualDomLab() {
   }
 
   const run = () => {
+    const activeCase = caseId
+    const gen = ++runGenRef.current
+    tlRef.current?.kill()
     clear()
-    resetViz()
+    setHint(null)
+    setFocusOutcome('idle')
+    setPhase('idle')
     setBusy(true)
 
-    playTimeline(
-      tlRef,
-      [
-        () => setPhase('render'),
-        () => setPhase('compare'),
-        () => {
-          setPhase('done')
-          if (caseId === 'naive') {
-            log('warn', 'innerHTML: card + h1 + span + button пересозданы')
-            setHint('весь поддерево Real DOM новое — VDOM не участвовал')
-          } else if (caseId === 'diff') {
-            log('ok', 'diff: text span 0→1; commit: один textContent')
-            setHint('в Real DOM записали только span')
-          } else {
-            log('ok', 'diff: none — commit пропущен')
-            setHint('снимки равны, браузерный DOM не трогали')
-          }
+    const root = hostRef.current
+    if (root) {
+      standRef.current = { count: 0, name: standRef.current.name || 'Анна' }
+      paintCard(root, standRef.current, 'none')
+    }
+
+    // после paint — следующий кадр, чтобы input уже был в DOM
+    requestAnimationFrame(() => {
+      if (gen !== runGenRef.current) return
+      playTimeline(
+        tlRef,
+        [
+          () => {
+            if (gen !== runGenRef.current) return
+            setPhase('focus')
+            focusName(hostRef.current)
+          },
+          () => {
+            if (gen !== runGenRef.current) return
+            setPhase('apply')
+            const host = hostRef.current
+            const state = standRef.current
+            if (!host) return
+
+            if (activeCase === 'naive') {
+              state.count += 1
+              paintCard(host, state, 'warn')
+              log('warn', 'innerHTML: карточка целиком новая')
+            } else if (activeCase === 'diff') {
+              state.count += 1
+              const span = host.querySelector<HTMLElement>('[data-count]')
+              if (span) span.textContent = String(state.count)
+              const card = host.querySelector('[data-card]')
+              card?.classList.add(styles.cardOk)
+              card?.classList.remove(styles.cardWarn)
+              log('ok', 'в DOM записали только число в span')
+            } else {
+              log('ok', 'снимки равны — commit пропущен')
+            }
+          },
+          () => {
+            if (gen !== runGenRef.current) return
+            setPhase('done')
+            const kept = isNameFocused(hostRef.current)
+            if (activeCase === 'naive') {
+              setFocusOutcome('lost')
+              setHint('всё поддерево Real DOM новое — фокус сброшен')
+            } else if (activeCase === 'diff') {
+              setFocusOutcome(kept ? 'kept' : 'lost')
+              setHint(
+                kept
+                  ? 'точечный patch: поле то же, число обновлено'
+                  : 'ожидали сохранить фокус — проверь поле «Имя»',
+              )
+            } else {
+              setFocusOutcome(kept ? 'untouched' : 'lost')
+              setHint(
+                kept
+                  ? 'снимки совпали — браузерный DOM не трогали'
+                  : 'DOM не писали, но фокус уже не в поле',
+              )
+            }
+          },
+        ],
+        (tl) => {
+          if (!flashRef.current) return
+          gsap.set(flashRef.current, { opacity: 0.7, y: 6 })
+          tl.to(flashRef.current, { opacity: 1, y: 0 }, STEP * 2)
         },
-      ],
-      (tl) => {
-        if (!patchRef.current) return
-        if (caseId === 'skip') return
-        gsap.set(patchRef.current, { opacity: 0.55, y: caseId === 'naive' ? 0 : 6 })
-        tl.to(patchRef.current, { opacity: 1, y: 0 }, STEP * 2)
-      },
-      () => setBusy(false),
-    )
+        () => {
+          if (gen === runGenRef.current) setBusy(false)
+        },
+      )
+    })
   }
 
   const reset = () => {
+    runGenRef.current += 1
     tlRef.current?.kill()
     setBusy(false)
     clear()
@@ -443,11 +423,17 @@ export function ReactVirtualDomLab() {
       <p className={shell.pain}>{PAIN}</p>
       <p className={shell.hint}>{CASE_BRIEF[caseId]}</p>
 
-      <VdomViz phase={phase} caseId={caseId} patchRef={patchRef} />
+      <VdomLiveViz
+        phase={phase}
+        caseId={caseId}
+        focusOutcome={focusOutcome}
+        hostRef={hostRef}
+        flashRef={flashRef}
+      />
 
       {hint ? (
         <p className={shell.hint}>
-          Итог: <code>{hint}</code>
+          Итог: {hint}
         </p>
       ) : null}
       <LabLogView lines={lines} />
@@ -455,7 +441,7 @@ export function ReactVirtualDomLab() {
   )
 
   const code = (
-    <div className={styles.codePane}>
+    <div className={shell.codePane}>
       <div className={shell.row}>
         {CASES.map((c) => (
           <LabButton

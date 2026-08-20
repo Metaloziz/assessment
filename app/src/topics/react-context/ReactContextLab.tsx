@@ -25,26 +25,28 @@ type Phase = 'idle' | 'run' | 'done'
 type Theme = 'light' | 'dark'
 
 const CASES: Array<{ id: CaseId; label: string }> = [
-  { id: 'drill', label: 'Prop drilling' },
-  { id: 'context', label: 'Provider + useContext' },
-  { id: 'broadcast', label: 'Нестабильный value' },
+  { id: 'drill', label: 'Через props' },
+  { id: 'context', label: 'Через Provider' },
+  { id: 'broadcast', label: 'Лишний render' },
 ]
 
 const CODE_INTRO: Record<CaseId, string> = {
-  drill: '`theme` идёт через `Shell` и `Panel`, хотя им самим тема не нужна.',
+  drill: '`theme` проходит через `Shell` и `Panel`, хотя им самим тема не нужна.',
   context: '`ThemeProvider` отдаёт значение; `ThemeBadge` читает через `useContext`.',
-  broadcast: 'Новый объект в `value` на каждый тик — все потребители ре-рендерятся.',
+  broadcast: 'Новый объект в `value` на каждый тик — все потребители перерисовываются.',
 }
 
 const SNIPPET_DRILL: InteractiveSnippet = {
-  id: 'theme-drill',
+  id: 'theme-drill-v2',
   label: 'src/App.tsx',
   note: 'Промежуточные слои только прокидывают `theme`.',
   executable: false,
   languageLabel: 'tsx',
-  code: `type Theme = 'light' | 'dark';
+  code: `import type { ReactNode } from 'react';
 
-type ShellProps = { theme: Theme; children: React.ReactNode };
+type Theme = 'light' | 'dark';
+
+type ShellProps = { theme: Theme; children: ReactNode };
 type PanelProps = { theme: Theme };
 
 export const Shell = ({ theme, children }: ShellProps) => (
@@ -70,7 +72,7 @@ export const App = () => {
 }
 
 const SNIPPET_BADGE_DRILL: InteractiveSnippet = {
-  id: 'badge-drill',
+  id: 'badge-drill-v2',
   label: 'src/ui/ThemeBadge.tsx',
   note: 'Лист получает тему только через props.',
   executable: false,
@@ -84,7 +86,7 @@ export const ThemeBadge = ({ theme }: Props) => (
 }
 
 const SNIPPET_CONTEXT: InteractiveSnippet = {
-  id: 'theme-context',
+  id: 'theme-context-v2',
   label: 'src/theme/ThemeContext.tsx',
   note: '`createContext` + `Provider`; лист читает без drill.',
   executable: false,
@@ -111,14 +113,15 @@ export const ThemeBadge = () => {
 }
 
 const SNIPPET_APP_CONTEXT: InteractiveSnippet = {
-  id: 'app-context',
+  id: 'app-context-v2',
   label: 'src/App.tsx',
   note: '`Shell` / `Panel` больше не знают про `theme`.',
   executable: false,
   languageLabel: 'tsx',
-  code: `import { ThemeProvider, ThemeBadge } from './theme/ThemeContext';
+  code: `import type { ReactNode } from 'react';
+import { ThemeProvider, ThemeBadge } from './theme/ThemeContext';
 
-export const Shell = ({ children }: { children: React.ReactNode }) => (
+export const Shell = ({ children }: { children: ReactNode }) => (
   <div className="shell">{children}</div>
 );
 
@@ -138,7 +141,7 @@ export const App = () => (
 }
 
 const SNIPPET_BROADCAST: InteractiveSnippet = {
-  id: 'unstable-value',
+  id: 'unstable-value-v2',
   label: 'src/app/AppContext.tsx',
   note: 'Новый объект в `value` на рендер → лишний broadcast потребителям.',
   executable: false,
@@ -174,7 +177,7 @@ export const ThemeBadge = () => {
 }
 
 const SNIPPET_SPLIT: InteractiveSnippet = {
-  id: 'split-hint',
+  id: 'split-hint-v2',
   label: 'src/theme/ThemeContext.tsx',
   note: 'Узкий контекст: меняется только то, на что подписаны.',
   executable: false,
@@ -196,7 +199,7 @@ const CODE_SNIPPETS: Record<CaseId, InteractiveSnippet[]> = {
 }
 
 const PAIN =
-  'Сквозные данные (тема, user) не должны раздувать props каждого слоя. Context отдаёт значение вниз; нестабильный `value` раздувает ре-рендеры.'
+  'Тему или пользователя часто нужно в листьях. Тащить через каждый слой неудобно; `Context` отдаёт значение вниз. Новый объект в `value` на каждый рендер раздувает обновления.'
 
 const CASE_BRIEF: Record<CaseId, ReactNode> = {
   drill: (
@@ -207,14 +210,12 @@ const CASE_BRIEF: Record<CaseId, ReactNode> = {
   ),
   context: (
     <>
-      <code>ThemeProvider</code> отдаёт тему; промежуточные узлы без <code>useContext</code> props не
-      тащат.
+      <code>ThemeProvider</code> отдаёт тему; промежуточные слои props с темой не тащат.
     </>
   ),
   broadcast: (
     <>
-      bump <code>tick</code> создаёт новый объект в <code>value</code> — <code>ThemeBadge</code>{' '}
-      ре-рендерится, хотя <code>theme</code> тот же.
+      Тик счётчика создаёт новый объект в <code>value</code> — бейдж перерисовывается, хотя тема та же.
     </>
   ),
 }
@@ -283,7 +284,7 @@ const ThemeBadgeLive = ({
         {theme}
       </span>
       <span className={styles.nodeMeta}>
-        {mode === 'drill' ? 'props' : mode === 'broadcast' ? 'useContext · bag' : 'useContext'}
+        {mode === 'drill' ? 'из props' : mode === 'broadcast' ? 'из общего мешка' : 'из Context'}
       </span>
     </div>
   )
@@ -294,10 +295,10 @@ const ContextLiveViz = ({ caseId, phase, theme, tick, flash, drillPropsVisible }
     phase === 'idle'
       ? 'ожидание'
       : caseId === 'drill'
-        ? 'drill · props ↓'
+        ? 'тема идёт через props'
         : caseId === 'context'
-          ? 'Provider → useContext'
-          : `value · tick ${tick}`
+          ? 'Provider отдаёт тему'
+          : `тик ${tick} · бейдж обновился`
 
   const tree = (
     <div className={styles.tree}>
@@ -328,7 +329,7 @@ const ContextLiveViz = ({ caseId, phase, theme, tick, flash, drillPropsVisible }
           )}
         </div>
         <p className={styles.nodeHint}>
-          {caseId === 'drill' ? 'прокидывает props' : 'layout · не читает Context'}
+          {caseId === 'drill' ? 'передаёт theme дальше' : 'layout · тему сам не читает'}
         </p>
 
         <div
@@ -345,7 +346,7 @@ const ContextLiveViz = ({ caseId, phase, theme, tick, flash, drillPropsVisible }
             )}
           </div>
           <p className={styles.nodeHint}>
-            {caseId === 'drill' ? 'ещё один слой drill' : 'не подписан на Context'}
+            {caseId === 'drill' ? 'ещё один слой props' : 'тему сам не читает'}
           </p>
 
           <ThemeBadgeLive mode={caseId} themeProp={theme} flash={flash.badge} />
@@ -420,14 +421,14 @@ export const ReactContextLab = () => {
   const finishCase = (id: CaseId) => {
     setPhase('done')
     if (id === 'drill') {
-      log('warn', 'Shell + Panel тащат theme только ради Badge')
-      setHint('prop drilling через слои без своей нужды в theme')
+      log('warn', 'Shell и Panel тащат theme только ради бейджа')
+      setHint('тема идёт через слои, которым она не нужна')
     } else if (id === 'context') {
-      log('ok', 'Provider → ThemeBadge; Shell/Panel без props theme')
+      log('ok', 'Provider → ThemeBadge; Shell и Panel без theme')
       setHint('useContext читает ближайший Provider')
     } else {
-      log('warn', 'tick++ → новый value → ThemeBadge render')
-      setHint('нестабильный объект в value раздувает обновления')
+      log('warn', 'тик++ → новый value → бейдж перерисовался')
+      setHint('новый объект в value раздувает обновления')
     }
   }
 
@@ -446,11 +447,11 @@ export const ReactContextLab = () => {
         [
           () => {
             pulse({ shell: true })
-            log('info', 'Shell получает theme')
+            log('info', 'Shell получил theme')
           },
           () => {
             pulse({ panel: true })
-            log('info', 'Panel получает theme')
+            log('info', 'Panel получил theme')
           },
           () => {
             pulse({ badge: true })
@@ -476,7 +477,7 @@ export const ReactContextLab = () => {
           () => {
             pulse({ badge: true })
             setTheme('light')
-            log('ok', 'ThemeBadge ← useContext')
+            log('ok', 'ThemeBadge прочитал тему из Context')
           },
           () => {
             finishCase('context')
@@ -500,7 +501,7 @@ export const ReactContextLab = () => {
         () => {
           setTick(1)
           pulse({ badge: true })
-          log('warn', 'tick → 1 · Badge re-render')
+          log('warn', 'тик → 1 · бейдж перерисовался')
         },
         () => {
           setTick(2)
@@ -574,7 +575,7 @@ export const ReactContextLab = () => {
   )
 
   const code = (
-    <div className={styles.codePane}>
+    <div className={shell.codePane}>
       <div className={shell.row}>
         {CASES.map((c) => (
           <LabButton
@@ -600,7 +601,7 @@ export const ReactContextLab = () => {
   return (
     <JsLabShell
       title="React Context"
-      lead="Живой стенд: prop drilling vs `Provider` + `useContext`, и лишний broadcast от нестабильного `value`."
+      lead="Живой стенд: тема через props vs через `Provider` + `useContext`, и лишний render от нестабильного `value`."
       problem={problem}
       code={code}
     />
