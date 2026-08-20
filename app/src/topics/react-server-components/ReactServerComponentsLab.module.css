@@ -1,56 +1,65 @@
-.stack {
+.stage {
   display: flex;
   flex-direction: column;
-  align-items: stretch;
-  gap: 0.3rem;
+  gap: 0.55rem;
   min-height: 12rem;
 }
 
-.node {
-  width: 100%;
-  min-width: 0;
-  text-align: left;
-  transition:
-    border-color 0.4s ease,
-    color 0.4s ease,
-    box-shadow 0.4s ease,
-    background 0.4s ease;
-}
-
-.arrow {
-  display: block;
-  text-align: center;
-  font-size: var(--lab-font-meta);
-  color: var(--text-faint);
-  line-height: 1;
-}
-
-.tree {
+.frame {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
-  margin-bottom: 0.55rem;
-  padding: 0.55rem 0.65rem;
+  gap: 0.55rem;
+  padding: 0.65rem 0.75rem;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: color-mix(in srgb, var(--bg-elevated) 88%, transparent);
+  opacity: 0.55;
+  transition:
+    border-color 0.4s ease,
+    box-shadow 0.4s ease,
+    opacity 0.4s ease,
+    background 0.4s ease;
 }
 
-.treeRow {
+.frameOn {
+  opacity: 1;
+  border-color: color-mix(in srgb, var(--ok) 40%, var(--border));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--ok) 18%, transparent);
+  background:
+    radial-gradient(
+      ellipse 70% 50% at 8% 0%,
+      color-mix(in srgb, var(--ok) 12%, transparent),
+      transparent 55%
+    ),
+    color-mix(in srgb, var(--bg-elevated) 92%, transparent);
+}
+
+.frameErr {
+  border-color: color-mix(in srgb, var(--danger) 45%, var(--border));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--danger) 16%, transparent);
+  background:
+    radial-gradient(
+      ellipse 70% 50% at 8% 0%,
+      color-mix(in srgb, var(--danger) 12%, transparent),
+      transparent 55%
+    ),
+    color-mix(in srgb, var(--bg-elevated) 92%, transparent);
+}
+
+.frameHead {
   display: flex;
   align-items: center;
   gap: 0.45rem;
+}
+
+.frameTitle {
   font-size: var(--lab-font-meta);
-  color: var(--text-muted);
-  font-family: var(--font-mono);
-  line-height: 1.35;
+  color: var(--text);
+  font-weight: var(--font-weight-medium);
 }
 
-.treeRowActive {
-  color: var(--accent-bright);
-}
-
-.treeBadge {
+.badgeServer,
+.badgeClient {
   flex-shrink: 0;
   padding: 0.08rem 0.35rem;
   border-radius: var(--radius-sm);
@@ -61,54 +70,138 @@
 }
 
 .badgeServer {
-  flex-shrink: 0;
-  padding: 0.08rem 0.35rem;
-  border-radius: var(--radius-sm);
-  font-size: var(--font-size-ui-xs);
-  font-family: var(--font-sans);
-  font-weight: var(--font-weight-medium);
-  line-height: 1.3;
   color: var(--ok);
   background: color-mix(in srgb, var(--ok) 14%, transparent);
   border: 1px solid color-mix(in srgb, var(--ok) 35%, transparent);
 }
 
 .badgeClient {
-  flex-shrink: 0;
-  padding: 0.08rem 0.35rem;
-  border-radius: var(--radius-sm);
-  font-size: var(--font-size-ui-xs);
-  font-family: var(--font-sans);
-  font-weight: var(--font-weight-medium);
-  line-height: 1.3;
   color: var(--accent-bright);
   background: color-mix(in srgb, var(--accent) 14%, transparent);
   border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
 }
 
-.badgeErr {
-  flex-shrink: 0;
-  padding: 0.08rem 0.35rem;
-  border-radius: var(--radius-sm);
-  font-size: var(--font-size-ui-xs);
-  font-family: var(--font-sans);
-  font-weight: var(--font-weight-medium);
-  line-height: 1.3;
-  color: var(--danger);
-  background: color-mix(in srgb, var(--danger) 12%, transparent);
-  border: 1px solid color-mix(in srgb, var(--danger) 35%, transparent);
+.list {
+  margin: 0;
+  padding: 0.35rem 0 0.15rem 1.1rem;
+  font-size: var(--lab-font-meta);
+  color: var(--text-faint);
+  line-height: 1.45;
+  transition: color 0.4s ease;
 }
 
-.codePane {
+.listOn {
+  color: var(--text-muted);
+}
+
+.island {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem 0.55rem;
+  margin-top: 0.15rem;
+  padding: 0.5rem 0.6rem;
+  border: 1px dashed color-mix(in srgb, var(--accent) 35%, var(--border));
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+  opacity: 0.45;
+  transition:
+    opacity 0.4s ease,
+    border-color 0.4s ease,
+    box-shadow 0.4s ease,
+    background 0.4s ease;
+}
+
+.islandOn {
+  opacity: 0.85;
+}
+
+.islandLive {
+  opacity: 1;
+  border-style: solid;
+  border-color: color-mix(in srgb, var(--accent) 50%, var(--border));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 20%, transparent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.demoBtn {
+  appearance: none;
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--border));
+  border-radius: var(--radius-sm);
+  padding: 0.28rem 0.55rem;
+  font: inherit;
+  font-size: var(--font-size-ui-xs);
+  color: var(--text);
+  background: color-mix(in srgb, var(--bg) 70%, var(--accent));
+  cursor: default;
+}
+
+.demoBtn:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.demoBtn:not(:disabled) {
+  cursor: pointer;
+}
+
+.islandMeta {
+  font-size: var(--font-size-ui-xs);
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+}
+
+.noIsland {
+  margin: 0.15rem 0 0;
+  font-size: var(--lab-font-meta);
+  color: var(--text-faint);
+}
+
+.brokenBody {
   display: flex;
   flex-direction: column;
-  min-height: 0;
-  flex: 1;
-  gap: 0.55rem;
+  gap: 0.35rem;
+  padding: 0.25rem 0 0.1rem;
+}
+
+.brokenText {
+  margin: 0;
+  font-size: var(--lab-font-meta);
+  color: var(--text-muted);
+}
+
+.errNote {
+  margin: 0;
+  font-size: var(--lab-font-meta);
+  color: var(--danger);
+}
+
+.receipt {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.45rem 0.55rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--bg) 70%, transparent);
+  font-size: var(--lab-font-meta);
+  font-family: var(--font-mono);
+  color: var(--text-faint);
+  line-height: 1.4;
+}
+
+.receiptOn {
+  color: var(--text-muted);
+}
+
+.receiptErr {
+  color: var(--danger);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .node {
+  .frame,
+  .list,
+  .island {
     transition: none;
   }
 }

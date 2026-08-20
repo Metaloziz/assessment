@@ -16,32 +16,32 @@ type CaseId = 'phases' | 'interrupt' | 'links'
 type Phase = 'idle' | 'step1' | 'step2' | 'done'
 
 const CASES: Array<{ id: CaseId; label: string }> = [
-  { id: 'phases', label: 'Render · Commit' },
-  { id: 'interrupt', label: 'Прерывание' },
-  { id: 'links', label: 'child · sibling' },
+  { id: 'phases', label: 'Черновик · экран' },
+  { id: 'interrupt', label: 'Срочный ввод' },
+  { id: 'links', label: 'Обход дерева' },
 ]
 
 const CODE_INTRO: Record<CaseId, string> = {
-  phases: 'Render собирает черновик fiber; commit — единственная фаза записи в DOM.',
-  interrupt: 'Срочное обновление переключает work loop; черновик не доходит до commit.',
-  links: 'Reconciler обходит дерево по связям child / sibling / return, без глубокого стека.',
+  phases: 'Сначала черновик дерева в памяти; в DOM пишут только на commit.',
+  interrupt: 'Фоновый render можно прервать: срочный ввод важнее незавершённого списка.',
+  links: 'Следующий узел — по стрелкам вниз, вправо, вверх; без глубокого стека.',
 }
 
 const SNIPPET_FIBER: InteractiveSnippet = {
   id: 'fiber-node',
   label: 'src/fiber/types.ts',
-  note: 'У каждого узла — связный список и пара alternate для double buffering.',
+  note: 'Узел работы: связи и пара current / черновик.',
   executable: false,
   languageLabel: 'ts',
   code: `export type Fiber = {
   type: string | (() => unknown) | null;
   key: string | null;
   pendingProps: Record<string, unknown>;
-  stateNode: HTMLElement | null; // ← host-компонент
+  stateNode: HTMLElement | null; // ← host на экране
   child: Fiber | null;           // ← первый ребёнок
   sibling: Fiber | null;         // ← сосед справа
   return: Fiber | null;          // ← родитель
-  alternate: Fiber | null;       // ← current ↔ workInProgress
+  alternate: Fiber | null;       // ← экран ↔ черновик
   flags: number;
 };`,
 }
@@ -49,58 +49,57 @@ const SNIPPET_FIBER: InteractiveSnippet = {
 const SNIPPET_WORK_LOOP: InteractiveSnippet = {
   id: 'work-loop',
   label: 'src/fiber/workLoop.ts',
-  note: 'Один fiber за итерацию; concurrent-режим может yield между шагами.',
+  note: 'Один узел за шаг; можно отдать кадр браузеру.',
   executable: false,
   languageLabel: 'ts',
   code: `import type { Fiber } from './types';
 
 let workInProgress: Fiber | null = null;
 
-export function performUnitOfWork(fiber: Fiber): Fiber | null {
-  beginWork(fiber); // ← render компонента / host
+export const performUnitOfWork = (fiber: Fiber): Fiber | null => {
+  beginWork(fiber); // ← render узла
   if (fiber.child) return fiber.child;
-  return completeUnitOfWork(fiber); // ← sibling или return
-}
+  return completeUnitOfWork(fiber); // ← сосед или родитель
+};
 
-export function workLoopConcurrent() {
+export const workLoopConcurrent = () => {
   while (workInProgress && !shouldYield()) {
     workInProgress = performUnitOfWork(workInProgress)!;
   }
-  // ← нет времени / пришло срочное — сохранить WIP и выйти
-}`,
+  // ← нет времени / срочное — сохранить черновик и выйти
+};`,
 }
 
 const SNIPPET_COMMIT: InteractiveSnippet = {
   id: 'commit-root',
   label: 'src/fiber/commitRoot.ts',
-  note: 'Commit синхронный: мутации DOM, layout effects, затем passive.',
+  note: 'Commit короткий: запись в DOM, layout, затем effects.',
   executable: false,
   languageLabel: 'ts',
-  code: `export function commitRoot(root: Fiber) {
-  // ← render уже закончился, DOM ещё старый
+  code: `export const commitRoot = (root: Fiber) => {
+  // ← render закончен, экран ещё старый
   commitBeforeMutationEffects(root);
-  commitMutationEffects(root); // ← единственное место записи в DOM
-  root.current = root;         // ← WIP становится current
+  commitMutationEffects(root); // ← единственная запись в DOM
+  root.current = root;         // ← черновик стал current
   commitLayoutEffects(root);   // ← useLayoutEffect
   schedulePassiveEffects(root); // ← useEffect после paint
-}`,
+};`,
 }
 
 const SNIPPET_PRIORITY: InteractiveSnippet = {
   id: 'scheduler-lanes',
   label: 'src/scheduler/lanes.ts',
-  note: 'Ввод и клики получают более высокий lane, чем фоновый список.',
+  note: 'Ввод важнее фоновой смены вкладки.',
   executable: false,
   languageLabel: 'ts',
   code: `export const SyncLane = 1;
 export const InputContinuousLane = 4;
 export const TransitionLane = 64;
 
-export function requestUpdateLane(source: 'input' | 'transition') {
-  return source === 'input' ? InputContinuousLane : TransitionLane;
-}
+export const requestUpdateLane = (source: 'input' | 'transition') =>
+  source === 'input' ? InputContinuousLane : TransitionLane;
 
-// ← срочный lane прерывает незавершённый render с TransitionLane`,
+// ← срочный lane прерывает незавершённый render`,
 }
 
 const CODE_SNIPPETS: Record<CaseId, InteractiveSnippet[]> = {
@@ -110,38 +109,34 @@ const CODE_SNIPPETS: Record<CaseId, InteractiveSnippet[]> = {
 }
 
 const PAIN =
-  'Fiber разбивает обновление на шаги: render собирает черновик дерева без DOM, commit применяет правки синхронно — между узлами work loop может отдать кадр браузеру.'
+  'React не переписывает экран одним махом: сначала собирает черновик по узлам, потом коротко пишет в DOM. Между узлами можно отдать кадр браузеру.'
 
 const CASE_BRIEF: Record<CaseId, ReactNode> = {
   phases: (
     <>
-      Пока идёт <strong>render</strong>, на экране остаётся старый DOM; запись в DOM — только в{' '}
-      <strong>commit</strong>.
+      Пока идёт черновик, на экране старый UI; новая картинка — только после <code>commit</code>.
     </>
   ),
   interrupt: (
     <>
-      Длинный render списка (<code>transition</code>) прерывается срочным вводом — черновик отбрасывается,
-      commit идёт только для актуального state.
+      Длинный список в фоне прерывается вводом — черновик списка выбрасывают, на экран идёт актуальный query.
     </>
   ),
   links: (
     <>
-      Обход дерева <code>App → Header, Main → Item</code>: вниз по <code>child</code>, вправо по{' '}
-      <code>sibling</code>, вверх по <code>return</code>.
+      Путь <code>App → Header, Main → Item</code>: вниз к ребёнку, вправо к соседу, вверх к родителю.
     </>
   ),
 }
 
-function reducedMotion() {
-  return typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
-}
+const reducedMotion = () =>
+  typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
-function playTimeline(
+const playTimeline = (
   tlRef: MutableRefObject<gsap.core.Timeline | null>,
   steps: Array<() => void>,
   onDone: () => void,
-) {
+) => {
   tlRef.current?.kill()
   if (reducedMotion()) {
     for (const step of steps) step()
@@ -158,14 +153,13 @@ function playTimeline(
   })
 }
 
-function phaseCls(active: boolean, done: boolean, warn = false) {
+const phaseCls = (active: boolean, done: boolean) => {
   if (!active && !done) return [styles.phaseBlock, styles.phaseBlockIdle].join(' ')
-  if (warn) return [styles.phaseBlock, styles.phaseBlockWarn].join(' ')
   if (active) return [styles.phaseBlock, styles.phaseBlockActive].join(' ')
   return [styles.phaseBlock, styles.phaseBlockDone].join(' ')
 }
 
-function PhasesViz({ phase }: { phase: Phase }) {
+const PhasesViz = ({ phase }: { phase: Phase }) => {
   const renderActive = phase === 'step1'
   const commitActive = phase === 'step2'
   const finished = phase === 'done'
@@ -173,23 +167,31 @@ function PhasesViz({ phase }: { phase: Phase }) {
 
   return (
     <LabVizPanel
-      title="Две фазы обновления"
-      meta={phase === 'idle' ? 'до update' : phase === 'step1' ? 'render' : phase === 'step2' ? 'commit' : 'готово'}
+      title="Черновик и экран"
+      meta={
+        phase === 'idle'
+          ? 'до обновления'
+          : phase === 'step1'
+            ? 'черновик'
+            : phase === 'step2'
+              ? 'запись на экран'
+              : 'готово'
+      }
     >
       <div className={styles.layout}>
         <div className={styles.col}>
-          <p className={styles.colHead}>Work in progress</p>
-          <p className={styles.colSub}>черновик fiber-дерева</p>
+          <p className={styles.colHead}>Черновик</p>
+          <p className={styles.colSub}>дерево в памяти</p>
           <div className={styles.phaseStack}>
             <div className={phaseCls(renderActive, finished && !renderActive)}>
               <p className={styles.phaseTitle}>Render</p>
               <p className={styles.phaseBody}>
-                reconcile, hooks, flags — DOM <strong>не</strong> меняется
+                согласование и флаги — экран <strong>не</strong> трогаем
               </p>
             </div>
             <div className={phaseCls(commitActive, finished)}>
               <p className={styles.phaseTitle}>Commit</p>
-              <p className={styles.phaseBody}>mutation + layout effects — запись в DOM</p>
+              <p className={styles.phaseBody}>запись в DOM · layout · effects</p>
             </div>
           </div>
         </div>
@@ -198,121 +200,104 @@ function PhasesViz({ phase }: { phase: Phase }) {
           <span className={styles.midArrow} aria-hidden>
             {phase === 'idle' ? '→' : '⇄'}
           </span>
-          <p className={styles.midLabel}>DOM отстаёт до commit</p>
+          <p className={styles.midLabel}>экран отстаёт до commit</p>
         </div>
 
         <div className={styles.col}>
-          <p className={styles.colHead}>Real DOM</p>
+          <p className={styles.colHead}>Экран</p>
           <p className={styles.colSub}>что видит пользователь</p>
           <div className={styles.domStrip}>
-            <p className={styles.domLabel}>экран</p>
+            <p className={styles.domLabel}>сейчас</p>
             <p className={[styles.domValue, domStale ? styles.domStale : styles.domFresh].join(' ')}>
               {domStale ? 'старый UI (v1)' : 'новый UI (v2)'}
             </p>
             {renderActive ? (
-              <p className={styles.phaseBody}>render идёт — DOM ещё v1</p>
+              <p className={styles.phaseBody}>черновик идёт — экран ещё v1</p>
             ) : commitActive ? (
               <p className={styles.phaseBody}>commit пишет v2</p>
             ) : finished ? (
-              <p className={styles.phaseBody}>current ← workInProgress</p>
+              <p className={styles.phaseBody}>черновик стал current</p>
             ) : (
-              <p className={styles.phaseBody}>ожидает update</p>
+              <p className={styles.phaseBody}>ждёт обновление</p>
             )}
           </div>
         </div>
       </div>
 
-      <div
-        className={[
-          styles.verdict,
-          finished ? styles.verdictActive : styles.verdictIdle,
-          finished && styles.verdictOk,
-        ].join(' ')}
-      >
-        {finished ? (
-          <>
-            <p className={styles.verdictTitle}>DOM обновился один раз</p>
-            <p className={styles.verdictText}>
-              Весь render мог занять много кадров, но пользователь увидел v2 только после синхронного commit.
-            </p>
-          </>
-        ) : (
-          <p className={styles.verdictText}>Render и commit — разные проходы; путать их — типичная ошибка.</p>
-        )}
-      </div>
+      <p className={[styles.tag, finished ? styles.tagOk : styles.tagMuted].join(' ')}>
+        {finished ? 'экран обновился один раз · после commit' : 'render и commit — разные проходы'}
+      </p>
     </LabVizPanel>
   )
 }
 
-function InterruptViz({ phase }: { phase: Phase }) {
-  const started = phase !== 'idle'
-  const interrupted = phase === 'step2' || phase === 'done'
+const InterruptViz = ({ phase }: { phase: Phase }) => {
+  const listActive = phase === 'step1'
+  const urgentActive = phase === 'step2' || phase === 'done'
+  const listDiscarded = phase === 'step2' || phase === 'done'
   const finished = phase === 'done'
 
   return (
     <LabVizPanel
-      title="Scheduler и прерывание"
+      title="Кто важнее"
       meta={
         phase === 'idle'
-          ? 'очередь'
+          ? 'два обновления'
           : phase === 'step1'
-            ? 'render списка'
+            ? 'фоновый список'
             : phase === 'step2'
-              ? 'срочный ввод'
-              : 'commit срочного'
+              ? 'ввод вытесняет'
+              : 'commit ввода'
       }
     >
-      <div className={styles.queue}>
-        <div
-          className={[
-            styles.queueRow,
-            phase === 'step1' && styles.queueRowActive,
-            interrupted && styles.queueRowDiscarded,
-          ].join(' ')}
-        >
-          <span className={styles.queueTag}>TransitionLane · низкий</span>
-          <p className={styles.queueBody}>Render большого списка (fiber 1…N)</p>
+      <div className={styles.fork}>
+        <div className={styles.forkTop}>
+          <p className={styles.forkTopLabel}>планировщик</p>
         </div>
 
-        <div
-          className={[
-            styles.queueRow,
-            phase === 'step2' && styles.queueRowUrgent,
-            finished && styles.queueRowDone,
-          ].join(' ')}
-        >
-          <span className={styles.queueTag}>InputLane · срочный</span>
-          <p className={styles.queueBody}>setQuery("react") — ввод в поле</p>
+        <div className={styles.forkArms}>
+          <div
+            className={[
+              styles.forkBranch,
+              listActive && styles.forkBranchActive,
+              listDiscarded && styles.forkBranchDiscarded,
+            ]
+              .filter(Boolean)
+              .join(' ')}
+          >
+            <p className={styles.forkTag}>фон · можно ждать</p>
+            <p className={styles.forkBody}>длинный список</p>
+            <p className={styles.forkMeta}>{listDiscarded ? 'черновик выброшен' : 'render…'}</p>
+          </div>
+
+          <div
+            className={[
+              styles.forkBranch,
+              urgentActive && styles.forkBranchUrgent,
+              finished && styles.forkBranchDone,
+            ]
+              .filter(Boolean)
+              .join(' ')}
+          >
+            <p className={styles.forkTag}>срочно · ввод</p>
+            <p className={styles.forkBody}>setQuery("react")</p>
+            <p className={styles.forkMeta}>{finished ? 'дошёл до commit' : urgentActive ? 'перехват' : 'в очереди'}</p>
+          </div>
+        </div>
+
+        <div className={[styles.forkSink, finished && styles.forkSinkOk].filter(Boolean).join(' ')}>
+          <p className={styles.forkSinkLabel}>на экран</p>
+          <p className={styles.forkSinkBody}>
+            {finished ? 'актуальный query · без полуготового списка' : 'commit только у победителя'}
+          </p>
         </div>
       </div>
 
-      <div
-        className={[
-          styles.verdict,
-          started ? styles.verdictActive : styles.verdictIdle,
-          finished && styles.verdictWarn,
-        ].join(' ')}
-        style={{ marginTop: '0.65rem' }}
-      >
-        {finished ? (
-          <>
-            <p className={styles.verdictTitle}>Черновик списка отброшен</p>
-            <p className={styles.verdictText}>
-              Work loop переключился на ввод; незавершённый transition-render не дошёл до commit. На экране —
-              актуальный query, не «полуготовый» список.
-            </p>
-          </>
-        ) : interrupted ? (
-          <>
-            <p className={styles.verdictTitle}>Yield → новый lane</p>
-            <p className={styles.verdictText}>Scheduler прервал transition и поднял срочное обновление.</p>
-          </>
-        ) : phase === 'step1' ? (
-          <p className={styles.verdictText}>Work loop обрабатывает fiber-узлы списка…</p>
-        ) : (
-          <p className={styles.verdictText}>Два обновления с разным приоритетом в одной очереди.</p>
-        )}
-      </div>
+      <p className={[styles.tag, finished ? styles.tagWarn : styles.tagMuted].join(' ')}>
+        {finished
+          ? 'срочный lane вытеснил фоновый render'
+          : 'две ветки · ввод важнее списка'}
+      </p>
     </LabVizPanel>
   )
 }
@@ -320,13 +305,13 @@ function InterruptViz({ phase }: { phase: Phase }) {
 type FiberId = 'app' | 'header' | 'main' | 'item'
 
 const TRAVERSAL: Array<{ id: FiberId; link: string }> = [
-  { id: 'app', link: 'child → Header' },
-  { id: 'header', link: 'sibling → Main' },
-  { id: 'main', link: 'child → Item' },
-  { id: 'item', link: 'return → Main → App' },
+  { id: 'app', link: 'вниз → Header' },
+  { id: 'header', link: 'вправо → Main' },
+  { id: 'main', link: 'вниз → Item' },
+  { id: 'item', link: 'вверх → Main → App' },
 ]
 
-function LinksViz({ phase }: { phase: Phase }) {
+const LinksViz = ({ phase }: { phase: Phase }) => {
   const activeIndex =
     phase === 'idle' ? -1 : phase === 'step1' ? 0 : phase === 'step2' ? 2 : TRAVERSAL.length - 1
   const finished = phase === 'done'
@@ -348,14 +333,14 @@ function LinksViz({ phase }: { phase: Phase }) {
 
   return (
     <LabVizPanel
-      title="Обход fiber-дерева"
-      meta={phase === 'idle' ? 'дерево' : phase === 'done' ? 'обход завершён' : `шаг · ${currentLink}`}
+      title="Обход по стрелкам"
+      meta={phase === 'idle' ? 'дерево' : phase === 'done' ? 'обход готов' : currentLink}
     >
       <div className={styles.fiberTree}>
         <div className={styles.fiberRow}>
           <div className={nodeCls('app')}>
             <span className={styles.fiberName}>App</span>
-            <span className={styles.fiberType}>function</span>
+            <span className={styles.fiberType}>компонент</span>
           </div>
         </div>
         <div className={styles.fiberRow}>
@@ -387,40 +372,35 @@ function LinksViz({ phase }: { phase: Phase }) {
         ))}
       </div>
 
-      <div
-        className={[
-          styles.verdict,
-          phase !== 'idle' ? styles.verdictActive : styles.verdictIdle,
-          finished && styles.verdictOk,
-        ].join(' ')}
-      >
-        {finished ? (
-          <>
-            <p className={styles.verdictTitle}>Итеративный work loop</p>
-            <p className={styles.verdictText}>
-              Между любым шагом reconciler может yield — стек JS не растёт с глубиной дерева.
-            </p>
-          </>
-        ) : (
-          <p className={styles.verdictText}>Следующий fiber выбирается по child → sibling → return.</p>
-        )}
-      </div>
+      <p className={[styles.tag, finished ? styles.tagOk : styles.tagMuted].join(' ')}>
+        {finished
+          ? 'между шагами можно отдать кадр · стек JS не растёт'
+          : 'следующий узел: ребёнок → сосед → родитель'}
+      </p>
     </LabVizPanel>
   )
 }
 
-export function ReactFiberLab() {
+const STEPS_COUNT: Record<CaseId, number> = {
+  phases: 3,
+  interrupt: 3,
+  links: 3,
+}
+
+export const ReactFiberLab = () => {
   const { lines, log, clear } = useLabLog()
   const [caseId, setCaseId] = useState<CaseId>('phases')
   const [hint, setHint] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [phase, setPhase] = useState<Phase>('idle')
+  const [stepIndex, setStepIndex] = useState(0)
 
   const tlRef = useRef<gsap.core.Timeline | null>(null)
 
   const resetViz = () => {
     setPhase('idle')
     setHint(null)
+    setStepIndex(0)
   }
 
   const selectCase = (next: CaseId) => {
@@ -433,58 +413,53 @@ export function ReactFiberLab() {
 
   const finishCase = (id: CaseId) => {
     if (id === 'phases') {
-      log('ok', 'commit · DOM v1 → v2')
-      setHint('render не трогал DOM')
+      log('ok', 'экран: v1 → v2')
+      setHint('черновик не трогал DOM')
     } else if (id === 'interrupt') {
-      log('warn', 'transition отброшен · commit input')
-      setHint('срочный lane прервал render')
+      log('warn', 'список выброшен · commit ввода')
+      setHint('срочный ввод вытеснил фон')
     } else {
-      log('ok', 'обход child/sibling/return')
-      setHint('work loop без глубокого стека')
+      log('ok', 'обход: вниз · вправо · вверх')
+      setHint('цикл без глубокого стека')
     }
   }
 
-  const runStepsForCase = (id: CaseId): Array<() => void> => {
-    if (id === 'phases') {
-      return [
-        () => setPhase('step1'),
-        () => setPhase('step2'),
-        () => {
-          setPhase('done')
-          finishCase(id)
-        },
-      ]
+  const applyStep = (id: CaseId, index: number) => {
+    if (index === 1) setPhase('step1')
+    else if (index === 2) setPhase('step2')
+    else if (index >= 3) {
+      setPhase('done')
+      finishCase(id)
     }
-    if (id === 'interrupt') {
-      return [
-        () => setPhase('step1'),
-        () => setPhase('step2'),
-        () => {
-          setPhase('done')
-          finishCase(id)
-        },
-      ]
-    }
-    return [
-      () => setPhase('step1'),
-      () => setPhase('step2'),
-      () => {
-        setPhase('done')
-        finishCase(id)
-      },
-    ]
   }
 
   const run = () => {
     clear()
     resetViz()
     setBusy(true)
+    const total = STEPS_COUNT[caseId]
 
     playTimeline(
       tlRef,
-      runStepsForCase(caseId),
+      Array.from({ length: total }, (_, i) => () => {
+        const next = i + 1
+        setStepIndex(next)
+        applyStep(caseId, next)
+      }),
       () => setBusy(false),
     )
+  }
+
+  const stepOnce = () => {
+    if (busy) return
+    tlRef.current?.kill()
+    const total = STEPS_COUNT[caseId]
+    if (stepIndex >= total) return
+    if (stepIndex === 0) clear()
+    const next = stepIndex + 1
+    setStepIndex(next)
+    applyStep(caseId, next)
+    if (next >= total) setBusy(false)
   }
 
   const reset = () => {
@@ -516,6 +491,13 @@ export function ReactFiberLab() {
         <LabButton variant="primary" disabled={busy} onClick={run}>
           Запустить
         </LabButton>
+        <LabButton
+          variant="secondary"
+          disabled={busy || stepIndex >= STEPS_COUNT[caseId]}
+          onClick={stepOnce}
+        >
+          Шаг
+        </LabButton>
         <LabButton variant="secondary" disabled={busy} onClick={reset}>
           Сброс
         </LabButton>
@@ -542,7 +524,7 @@ export function ReactFiberLab() {
   )
 
   const code = (
-    <div className={styles.codePane}>
+    <div className={shell.codePane}>
       <div className={shell.row}>
         {CASES.map((c) => (
           <LabButton
@@ -568,7 +550,7 @@ export function ReactFiberLab() {
   return (
     <JsLabShell
       title="Fiber"
-      lead="Единица работы, две фазы и прерываемый work loop — как React успевает откликаться на ввод."
+      lead="Карточки узлов, черновик без DOM и короткий commit — как React успевает отвечать на ввод."
       problem={problem}
       code={code}
     />

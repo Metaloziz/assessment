@@ -6,37 +6,37 @@ import shell from '../../components/lab/JsLabShell.module.css'
 import { InteractiveCodePanel, type InteractiveSnippet } from '../../components/lab/InteractiveCodePanel'
 import { LabLogView } from '../../components/lab/LabLogView'
 import { useLabLog } from '../../components/lab/useLabLog'
-import { LabVizPanel, LabNode, type LabNodeState } from '../../components/lab/LabViz'
+import { LabVizPanel } from '../../components/lab/LabViz'
 import styles from './ReactServerComponentsLab.module.css'
 
 const TOPIC_ID = '199-react-server-components'
 const STEP = 0.6
 
 type CaseId = 'server' | 'island' | 'broken'
-type Phase = 'idle' | 'render' | 'flight' | 'hydrate' | 'done'
+type Phase = 'idle' | 'render' | 'flight' | 'done'
 
 const CASES: Array<{ id: CaseId; label: string }> = [
-  { id: 'server', label: 'Server tree' },
-  { id: 'island', label: 'Client island' },
-  { id: 'broken', label: 'useState на сервере' },
+  { id: 'server', label: 'Только сервер' },
+  { id: 'island', label: 'Остров кнопки' },
+  { id: 'broken', label: 'Хук без границы' },
 ]
 
 const CODE_INTRO: Record<CaseId, string> = {
-  server: 'Server Components: fetch на сервере, в клиентский бандл JS не попадает.',
-  island: '`use client` — граница: только AddToCart уезжает в бандл и гидратируется.',
-  broken: "useState в Server Component — ошибка: нужен 'use client'.",
+  server: 'Список и страница живут на сервере — в клиентский бандл их JS не попадает.',
+  island: "Кнопка с `'use client'` — островок: только она едет в бандл и получает клики.",
+  broken: "`useState` в файле без `'use client'` — серверный компонент так нельзя.",
 }
 
 const SNIPPET_PAGE: InteractiveSnippet = {
   id: 'page-server',
   label: 'app/products/page.tsx',
-  note: 'Server Component: async fetch и статическая разметка.',
+  note: 'Серверная страница: async fetch и разметка каталога.',
   executable: false,
   languageLabel: 'tsx',
   code: `import { ProductList } from './ProductList';
 import { AddToCart } from './AddToCart';
 
-export default async function ProductsPage() {
+const ProductsPage = async () => {
   const products = await db.products.findMany(); // ← только сервер
 
   return (
@@ -46,13 +46,15 @@ export default async function ProductsPage() {
       <AddToCart productId={products[0].id} />
     </main>
   );
-}`,
+};
+
+export default ProductsPage;`,
 }
 
 const SNIPPET_LIST: InteractiveSnippet = {
   id: 'product-list',
   label: 'ProductList.tsx',
-  note: 'Server Component без директивы — не попадает в client bundle.',
+  note: 'Без директивы — серверный список, в бандл не едет.',
   executable: false,
   languageLabel: 'tsx',
   code: `type Item = { id: string; title: string; price: number };
@@ -66,13 +68,13 @@ export const ProductList = ({ items }: Props) => (
       </li>
     ))}
   </ul>
-); // ← server-only, без 'use client'`,
+); // ← server-only`,
 }
 
 const SNIPPET_CLIENT: InteractiveSnippet = {
   id: 'add-to-cart',
   label: 'AddToCart.tsx',
-  note: 'Client Component: хуки и обработчики — JS в бандле.',
+  note: 'Островок: хук и клик — JS в бандле.',
   executable: false,
   languageLabel: 'tsx',
   code: `'use client';
@@ -88,14 +90,14 @@ export const AddToCart = ({ productId }: Props) => {
     <button type="button" onClick={() => setAdded(true)}>
       {added ? 'В корзине' : 'Добавить'} · {productId}
     </button>
-  ); // ← client island · hydrate
+  ); // ← остров · гидратация
 };`,
 }
 
 const SNIPPET_BROKEN: InteractiveSnippet = {
   id: 'broken-counter',
   label: 'Counter.tsx',
-  note: 'Server Component не может вызывать useState.',
+  note: 'Серверный файл не может вызывать useState.',
   executable: false,
   languageLabel: 'tsx',
   code: `import { useState } from 'react';
@@ -119,28 +121,26 @@ const CODE_SNIPPETS: Record<CaseId, InteractiveSnippet[]> = {
 
 const PAIN = (
   <>
-    Server Components рендерятся на сервере и не попадают в клиентский бандл. Client Components с{' '}
-    <code>'use client'</code> гидратируются в браузере как «острова» внутри серверного дерева.
+    Страница — серверная рама: список рисуется на сервере и не раздувает бандл. Клики и{' '}
+    <code>useState</code> живут только в островках с <code>'use client'</code>.
   </>
 )
 
 const CASE_BRIEF: Record<CaseId, ReactNode> = {
   server: (
     <>
-      <code>ProductList</code> и <code>page.tsx</code> — только сервер; Flight отдаёт разметку без их
-      JS.
+      Каталог без кнопки: в бандл не уходит ни одного client-модуля — только разметка с сервера.
     </>
   ),
   island: (
     <>
-      Список — server-only; <code>AddToCart</code> с <code>'use client'</code> попадает в бандл и
-      получает listeners после гидратации.
+      Список остаётся на сервере; кнопка «Добавить» — островок, который гидратируют в браузере.
     </>
   ),
   broken: (
     <>
-      <code>useState</code> в файле без <code>'use client'</code> — сборка/рантайм ругается на
-      Server Component.
+      Счётчик с <code>useState</code> без <code>'use client'</code> — сборка останавливается на
+      серверном файле.
     </>
   ),
 }
@@ -171,163 +171,121 @@ const playTimeline = (
   motion?.(tl)
 }
 
-const nodeState = (active: boolean, done: boolean, err = false): LabNodeState => {
-  if (err && done) return 'err'
-  if (active) return 'active'
-  if (done) return 'ok'
-  return 'idle'
-}
-
-type TreeRow = { name: string; kind: 'server' | 'client' | 'err'; indent?: number }
-
-const TREE: Record<CaseId, TreeRow[]> = {
-  server: [
-    { name: 'ProductsPage', kind: 'server' },
-    { name: 'ProductList', kind: 'server', indent: 1 },
-  ],
-  island: [
-    { name: 'ProductsPage', kind: 'server' },
-    { name: 'ProductList', kind: 'server', indent: 1 },
-    { name: 'AddToCart', kind: 'client', indent: 1 },
-  ],
-  broken: [{ name: 'Counter', kind: 'err' }],
-}
-
 type VizProps = {
   caseId: CaseId
   phase: Phase
-  focusRef: MutableRefObject<HTMLDivElement | null>
+  frameRef: MutableRefObject<HTMLDivElement | null>
+  islandRef: MutableRefObject<HTMLDivElement | null>
+  added: boolean
+  onAdd: () => void
 }
 
-const ComponentTree = ({ caseId, phase }: { caseId: CaseId; phase: Phase }) => {
-  const activeIdx =
-    phase === 'render'
-      ? 0
-      : phase === 'flight' || phase === 'hydrate'
-        ? caseId === 'broken'
-          ? 0
-          : 1
-        : phase === 'done'
-          ? caseId === 'island'
-            ? 2
-            : 0
-          : -1
-
-  return (
-    <div className={styles.tree} aria-label="Дерево компонентов">
-      {TREE[caseId].map((row, i) => (
-        <div
-          key={row.name}
-          className={`${styles.treeRow}${activeIdx === i ? ` ${styles.treeRowActive}` : ''}`}
-          style={{ paddingLeft: `${(row.indent ?? 0) * 0.85}rem` }}
-        >
-          <span
-            className={
-              row.kind === 'client'
-                ? styles.badgeClient
-                : row.kind === 'err'
-                  ? styles.badgeErr
-                  : styles.badgeServer
-            }
-          >
-            {row.kind === 'client' ? 'client' : row.kind === 'err' ? 'ошибка' : 'server'}
-          </span>
-          <span>{row.name}</span>
-        </div>
-      ))}
-    </div>
-  )
-}
-
-const RscViz = ({ caseId, phase, focusRef }: VizProps) => {
-  const renderOn = phase === 'render' || phase === 'flight' || phase === 'hydrate' || phase === 'done'
-  const flightOn = phase === 'flight' || phase === 'hydrate' || phase === 'done'
+const RscViz = ({ caseId, phase, frameRef, islandRef, added, onAdd }: VizProps) => {
+  const renderOn = phase === 'render' || phase === 'flight' || phase === 'done'
+  const flightOn = phase === 'flight' || phase === 'done'
   const done = phase === 'done'
   const isBroken = caseId === 'broken'
-  const hasClient = caseId === 'island'
-
-  const serverSub = !renderOn
-    ? 'ожидание'
-    : isBroken
-      ? 'useState ✗'
-      : caseId === 'server'
-        ? 'fetch + list'
-        : 'fetch + list + slot'
-  const flightSub = !flightOn
-    ? '—'
-    : isBroken
-      ? 'build error'
-      : 'RSC payload'
-  const bundleSub = !done
-    ? hasClient
-      ? 'ожидание'
-      : '0 client modules'
-    : hasClient
-      ? 'AddToCart.tsx'
-      : '0 client modules'
-  const browserSub = !done
-    ? '—'
-    : isBroken
-      ? 'сборка упала'
-      : hasClient
-        ? 'list + hydrate island'
-        : 'list без JS'
+  const hasIsland = caseId === 'island'
 
   const meta =
     phase === 'idle'
       ? 'ожидание'
       : phase === 'render'
-        ? 'RSC render'
+        ? isBroken
+          ? 'сервер · ошибка хука'
+          : 'сервер рисует раму'
         : phase === 'flight'
-          ? 'Flight'
-          : phase === 'hydrate'
-            ? hasClient
-              ? 'hydrate island'
-              : 'skip hydrate'
-            : isBroken
-              ? 'ошибка'
-              : hasClient
-                ? 'остров живой'
-                : 'server-only'
+          ? isBroken
+            ? 'Flight не собран'
+            : 'Flight → браузер'
+          : isBroken
+            ? 'сборка упала'
+            : hasIsland
+              ? 'островок живой'
+              : 'бандл пуст'
+
+  const bundleLine = !done
+    ? 'бандл: —'
+    : isBroken
+      ? 'бандл: сборка не прошла'
+      : hasIsland
+        ? 'бандл: AddToCart.tsx'
+        : 'бандл: 0 client-модулей'
 
   return (
-    <LabVizPanel title="RSC на запрос" meta={meta}>
-      <ComponentTree caseId={caseId} phase={phase} />
-      <div className={styles.stack}>
-        <LabNode
-          className={styles.node}
-          label="сервер"
-          sub={serverSub}
-          state={nodeState(phase === 'render', renderOn && phase !== 'render', isBroken && done)}
-        />
-        <span className={styles.arrow} aria-hidden>
-          ↓
-        </span>
-        <LabNode
-          className={styles.node}
-          label="Flight"
-          sub={flightSub}
-          state={nodeState(phase === 'flight', flightOn && phase !== 'flight', isBroken && done)}
-        />
-        <span className={styles.arrow} aria-hidden>
-          ↓
-        </span>
-        <LabNode
-          className={styles.node}
-          label="client bundle"
-          sub={bundleSub}
-          state={nodeState(phase === 'hydrate', done && hasClient, isBroken && done)}
-        />
-        <span className={styles.arrow} aria-hidden>
-          ↓
-        </span>
-        <LabNode
-          ref={focusRef}
-          className={styles.node}
-          label="браузер"
-          sub={browserSub}
-          state={nodeState(false, done && !isBroken, isBroken && done)}
-        />
+    <LabVizPanel title="Каталог: рама и остров" meta={meta}>
+      <div className={styles.stage}>
+        <div
+          ref={frameRef}
+          className={`${styles.frame}${renderOn ? ` ${styles.frameOn}` : ''}${
+            isBroken && done ? ` ${styles.frameErr}` : ''
+          }`}
+        >
+          <div className={styles.frameHead}>
+            <span className={styles.badgeServer}>сервер</span>
+            <span className={styles.frameTitle}>
+              {isBroken ? 'Counter.tsx' : 'Каталог'}
+            </span>
+          </div>
+
+          {isBroken ? (
+            <div className={styles.brokenBody}>
+              <p className={styles.brokenText}>
+                <code>useState</code> без <code>'use client'</code>
+              </p>
+              {done ? <p className={styles.errNote}>сборка остановилась</p> : null}
+            </div>
+          ) : (
+            <>
+              <ul
+                className={`${styles.list}${renderOn ? ` ${styles.listOn}` : ''}`}
+                aria-label="Список с сервера"
+              >
+                <li>Багет — 80 ₽</li>
+                <li>Чиабатта — 90 ₽</li>
+              </ul>
+
+              {hasIsland ? (
+                <div
+                  ref={islandRef}
+                  className={`${styles.island}${flightOn ? ` ${styles.islandOn}` : ''}${
+                    done ? ` ${styles.islandLive}` : ''
+                  }`}
+                >
+                  <span className={styles.badgeClient}>остров</span>
+                  <button
+                    type="button"
+                    className={styles.demoBtn}
+                    disabled={!done}
+                    onClick={onAdd}
+                  >
+                    {done ? (added ? 'В корзине · p1' : 'Добавить · p1') : 'Добавить'}
+                  </button>
+                  <span className={styles.islandMeta}>
+                    {done ? 'клики работают' : flightOn ? 'ждёт JS' : 'слот'}
+                  </span>
+                </div>
+              ) : (
+                <p className={styles.noIsland}>
+                  {renderOn ? 'кнопки-острова нет — только серверная разметка' : '…'}
+                </p>
+              )}
+            </>
+          )}
+        </div>
+
+        <div className={styles.receipt}>
+          <span className={flightOn || done ? styles.receiptOn : undefined}>
+            {flightOn || done
+              ? isBroken
+                ? 'Flight: ошибка'
+                : 'Flight: рама + ссылки на острова'
+              : 'Flight: —'}
+          </span>
+          <span className={done ? (isBroken ? styles.receiptErr : styles.receiptOn) : undefined}>
+            {bundleLine}
+          </span>
+        </div>
       </div>
     </LabVizPanel>
   )
@@ -339,14 +297,18 @@ export const ReactServerComponentsLab = () => {
   const [hint, setHint] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [phase, setPhase] = useState<Phase>('idle')
+  const [added, setAdded] = useState(false)
 
   const tlRef = useRef<gsap.core.Timeline | null>(null)
-  const focusRef = useRef<HTMLDivElement | null>(null)
+  const frameRef = useRef<HTMLDivElement | null>(null)
+  const islandRef = useRef<HTMLDivElement | null>(null)
 
   const resetViz = () => {
     setPhase('idle')
     setHint(null)
-    if (focusRef.current) gsap.set(focusRef.current, { clearProps: 'transform,opacity' })
+    setAdded(false)
+    if (frameRef.current) gsap.set(frameRef.current, { clearProps: 'transform,opacity' })
+    if (islandRef.current) gsap.set(islandRef.current, { clearProps: 'transform,opacity' })
   }
 
   const selectCase = (next: CaseId) => {
@@ -362,7 +324,7 @@ export const ReactServerComponentsLab = () => {
     resetViz()
     setBusy(true)
 
-    const hasClient = caseId === 'island'
+    const hasIsland = caseId === 'island'
     const isBroken = caseId === 'broken'
 
     playTimeline(
@@ -370,41 +332,32 @@ export const ReactServerComponentsLab = () => {
       [
         () => {
           setPhase('render')
-          if (isBroken) log('warn', 'Counter: useState без use client')
-          else log('ok', 'RSC render · fetch на сервере')
+          if (isBroken) log('warn', 'сервер: useState без границы')
+          else log('ok', 'сервер: fetch и список')
         },
         () => {
           setPhase('flight')
-          if (isBroken) log('err', 'Flight не собран · build error')
-          else log('info', 'Flight → серверные узлы')
-        },
-        () => {
-          if (hasClient) {
-            setPhase('hydrate')
-            log('info', 'AddToCart.tsx → client bundle')
-          } else if (!isBroken) {
-            setPhase('hydrate')
-            log('info', 'client bundle: 0 server modules')
-          }
+          if (isBroken) log('err', 'Flight не собран')
+          else log('info', 'Flight: рама ушла в браузер')
         },
         () => {
           setPhase('done')
           if (isBroken) {
-            log('err', 'сборка: useState in Server Component')
+            log('err', 'сборка: хук в Server Component')
             setHint('нужен use client')
-          } else if (hasClient) {
-            log('ok', 'hydrate AddToCart · listeners')
-            setHint('остров гидратирован')
+          } else if (hasIsland) {
+            log('ok', 'островок AddToCart гидратирован')
+            setHint('клики только у островка')
           } else {
-            log('ok', 'ProductList без client JS')
-            setHint('server-only дерево')
+            log('ok', 'бандл пуст — список без client JS')
+            setHint('вся рама осталась на сервере')
           }
         },
       ],
       (tl) => {
         tl.call(
           () => {
-            const el = focusRef.current
+            const el = frameRef.current
             if (!el) return
             gsap.fromTo(
               el,
@@ -413,8 +366,23 @@ export const ReactServerComponentsLab = () => {
             )
           },
           undefined,
-          STEP * 3 + 0.08,
+          0.08,
         )
+        if (hasIsland) {
+          tl.call(
+            () => {
+              const el = islandRef.current
+              if (!el) return
+              gsap.fromTo(
+                el,
+                { opacity: 0.45, y: 5 },
+                { opacity: 1, y: 0, duration: 0.5, ease: 'power2.inOut' },
+              )
+            },
+            undefined,
+            STEP * 2 + 0.08,
+          )
+        }
       },
       () => setBusy(false),
     )
@@ -457,7 +425,14 @@ export const ReactServerComponentsLab = () => {
       <p className={shell.pain}>{PAIN}</p>
       <p className={shell.hint}>{CASE_BRIEF[caseId]}</p>
 
-      <RscViz caseId={caseId} phase={phase} focusRef={focusRef} />
+      <RscViz
+        caseId={caseId}
+        phase={phase}
+        frameRef={frameRef}
+        islandRef={islandRef}
+        added={added}
+        onAdd={() => setAdded(true)}
+      />
 
       {hint ? (
         <p className={shell.hint}>
@@ -469,7 +444,7 @@ export const ReactServerComponentsLab = () => {
   )
 
   const code = (
-    <div className={styles.codePane}>
+    <div className={shell.codePane}>
       <div className={shell.row}>
         {CASES.map((c) => (
           <LabButton
@@ -495,7 +470,7 @@ export const ReactServerComponentsLab = () => {
   return (
     <JsLabShell
       title="Server components"
-      lead="Server Components — сервер и Flight без client JS; `'use client'` — остров с бандлом и гидратацией."
+      lead="Рама страницы на сервере без лишнего JS; `'use client'` — островок с бандлом и кликами."
       problem={problem}
       code={code}
     />

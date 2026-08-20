@@ -6,103 +6,103 @@
 
 # 2. Главное в одну фразу
 
-Fiber — внутренняя единица работы React: каждый узел UI описан объектом со связями `child` / `sibling` / `return`, а reconciler обходит их в цикле, который можно прервать и позже продолжить, прежде чем синхронно применить правки к DOM на этапе commit.
+Fiber — как React держит каждый кусок UI карточкой в связном списке и обрабатывает обновление по шагам: сначала черновик без записи в DOM, потом короткий commit на экран.
 
 ---
 
 # 3. Суть
 
-> **Fiber** — не «ещё один Virtual DOM», а **структура данных и планировщик** поверх дерева элементов. Каждый узел UI — объект `Fiber` с типом, props, очередью обновлений и **связным списком** указателей: `child` (первый ребёнок), `sibling` (сосед справа), `return` (родитель). Так React обходит дерево без рекурсивного стека и может **остановиться между узлами**.
+> **Fiber** — внутренняя «карточка работы» React на каждый узел UI (компонент или `div`). У карточки есть связи: вниз к первому ребёнку (`child`), вправо к соседу (`sibling`), вверх к родителю (`return`). Reconciler идёт по этим стрелкам **по одной карточке**, а не ныряет рекурсией в глубокий стек JS — поэтому между карточками можно **остановиться** и отдать кадр браузеру.
 >
-> Обновление делится на **две фазы**. **Render** (reconcile): вызовы компонентов, diff, построение «черновика» дерева — **без** записи в DOM; работа идёт по fiber-узлам и может **yield** (отдать кадр браузеру). **Commit**: короткий синхронный проход — мутации DOM, ref, layout effects, `useLayoutEffect`; прервать commit нельзя.
+> Зачем: длинный список или тяжёлый экран не должны намертво блокировать ввод. React сначала собирает **черновик** дерева в памяти (фаза **render**), а в браузер пишет только потом — коротким синхронным проходом (**commit**). Пока идёт render, на экране ещё старая картинка; это ожидаемо.
 >
-> Планировщик (**Scheduler**) назначает приоритет (lanes): ввод пользователя и анимации важнее фонового списка. Срочное обновление может **прервать** незавершённый render и начать reconcile заново с новым снимком; устаревший черновик отбрасывается (`alternate` хранит пару current/workInProgress).
+> Как: планировщик (**Scheduler**) ставит обновления в очередь с приоритетом: клик и ввод важнее фоновой смены вкладки. Срочное может **прервать** незавершённый render — черновик выбрасывают и начинают заново с актуальным state. Пара `current` / `workInProgress` (`alternate`) — «что на экране» и «что рисуем сейчас».
 >
-> Ловушка: Fiber ≠ reconciliation (правила `type`/`key` те же) и ≠ «Virtual DOM» (снимок элементов). Fiber отвечает за **когда и как по шагам** выполнять reconcile и **когда** писать в DOM; `startTransition` / `useDeferredValue` — API поверх этой модели, а не «магическое ускорение».
+> Ловушка: Fiber — не «ещё один Virtual DOM» и не сами правила `type`/`key` (это reconciliation). Fiber отвечает за **когда** и **по каким шагам** крутить работу и **когда** трогать DOM. `startTransition` / `useDeferredValue` — ручки поверх этой модели, не отдельный движок.
 
 ---
 
 # 4. Самое главное запомнить
 
-- Один **Fiber** = один узел работы (компонент или host `div`/`span`), не «один DOM-узел на всё приложение».
-- Обход дерева: вниз по `child`, вверх по `return`, вправо по `sibling` — **итеративный** work loop, не глубокий стек.
-- **Render** можно прервать; **commit** — атомарный и синхронный для браузера.
-- DOM, ref и layout-эффекты меняются **только в commit**, не во время render.
+- Один Fiber ≈ один узел работы (компонент или host-элемент), не «один DOM на всё приложение».
+- Обход: вниз `child` → вправо `sibling` → вверх `return`; цикл итеративный, стек JS не растёт с глубиной.
+- **Render** можно прервать и отложить; **commit** короткий и синхронный — его не режут на кадры.
+- В DOM, ref и layout-эффекты пишут **только в commit**, не во время render.
 - Два дерева: **current** (на экране) и **workInProgress** (черновик); после commit черновик становится current.
-- Reconciliation (UPDATE/MOVE/REPLACE) живёт **внутри** render-фазы; Fiber добавляет очередь, приоритеты и yield между узлами.
+- Reconciliation (UPDATE / MOVE / REPLACE) живёт **внутри** render; Fiber добавляет очередь, приоритеты и паузы между узлами.
+- `startTransition` помечает обновление как «можно подождать» — срочный ввод может вытеснить его черновик.
 
 ---
 
 # 5. Описание
 
 ```text
-update (setState / dispatch)
+setState / dispatch
         ↓
-  Scheduler → priority / lane
+  Scheduler → приоритет (lane)
         ↓
-  render phase (может yield)
-    work loop: fiber → child → sibling → return
-    reconcile, hooks, memo — DOM не трогаем
+  render (можно остановиться)
+    карточка → child → sibling → return
+    reconcile, hooks — DOM не трогаем
         ↓
-  commit phase (синхронно)
-    mutation → layout → passive (useEffect)
+  commit (синхронно)
+    запись в DOM → layout → useEffect
         ↓
   current ← workInProgress
 ```
 
-## Fiber-узел (упрощённо)
+## Карточка Fiber
+
+Каждый узел UI — объект со связями (схема полей, не публичный API):
 
 ```js
-// схема полей, не публичный API
 const fiber = {
-  type: 'div',           // string | function | null
+  type: 'div',
   key: null,
   pendingProps: { className: 'card' },
-  stateNode: domNode,    // у host-компонента — HTMLElement
+  stateNode: domNode,    // у host — HTMLElement
   child: null,           // первый ребёнок
-  sibling: null,         // следующий брат
-  return: parentFiber,
+  sibling: null,         // сосед справа
+  return: parentFiber,   // родитель
   alternate: otherTree,  // current ↔ workInProgress
-  flags: /* Placement | Update | Deletion … */,
+  flags: /* Placement | Update | … */,
 };
 ```
 
-`alternate` — **double buffering**: пока идёт render, на экране остаётся `current`, черновик собирается в `workInProgress`. После успешного commit указатели меняются местами.
+`alternate` — **два буфера**: пока собирают черновик, пользователь видит `current`. После удачного commit указатели меняются местами — новый экран появляется целиком, без «полусобранного» DOM.
 
-## Work loop
-
-Reconciler не рекурсирует «вглубь стека JS» на всё дерево — он крутит цикл «один fiber за шаг»:
+## Work loop: по одной карточке
 
 ```text
-beginWork(fiber)  →  descend to child
+beginWork(fiber)  →  спуститься к child
   …
-completeWork    →  if no child, go sibling
+completeWork      →  нет ребёнка? идти к sibling
   …
-  if no sibling → return to parent.return
+  нет sibling?    →  вернуться к return (родитель)
 ```
 
-Между итерациями concurrent-режим проверяет: «есть ли время в кадре / пришло ли срочное обновление?» → **yield**, сохранить `workInProgress` и вернуть управление браузеру.
+Между шагами concurrent-режим спрашивает: «есть ли ещё время в кадре / не пришло ли срочное?» → можно **yield** (отдать управление браузеру), сохранив `workInProgress`.
 
-## Render vs Commit
+## Render и commit
 
 | Фаза | Что происходит | DOM |
 | --- | --- | --- |
-| **Render** | `render` компонентов, diff, план `flags`, hooks (часть) | **не меняется** |
-| **Commit** | применить `flags`, ref, `useLayoutEffect`, затем passive effects | **меняется** |
+| **Render** | вызовы компонентов, diff, план `flags`, часть hooks | **не меняется** |
+| **Commit** | применить `flags`, ref, `useLayoutEffect`, затем passive | **меняется** |
 
-Поэтому во время долгого render UI может ещё показывать **старое** состояние — это ожидаемо, не «завис React». Новая картинка появляется одним commit-пакетом (или несколькими commit при streaming SSR — отдельная тема).
+Пока render долгий, UI может показывать **старое** состояние — это не «завис React», а разделение фаз. Новая картинка выходит пакетом на commit.
 
 ## Приоритет и прерывание
 
 ```jsx
-// низкий приоритет — можно отложить / прервать
+// можно отложить / прервать
 startTransition(() => setTab(next));
 
-// ввод — обычно срочнее фонового списка
+// ввод обычно срочнее фонового списка
 <input onChange={(e) => setQuery(e.target.value)} />
 ```
 
-Срочное обновление (клик, ввод) получает более высокий lane → Scheduler **переключает** work loop на новую задачу; незавершённый render большого списка **не доводят до commit** и начинают reconcile с актуальным state.
+Срочный lane переключает work loop: незавершённый render большого списка **не доводят до commit** — начинают reconcile с актуальным state. Иначе пользователь видел бы устаревший или «полуготовый» черновик.
 
 ## Связь с соседними темами
 
@@ -110,23 +110,23 @@ startTransition(() => setTab(next));
 | --- | --- |
 | Virtual DOM / elements | JS-снимок после `render()` |
 | Reconciliation | Правила UPDATE / MOVE / REPLACE по `type` и `key` |
-| **Fiber** | Единица работы, обход, прерывания, `alternate` |
-| Scheduler | Приоритет, когда продолжить work loop |
+| **Fiber** | Единица работы, обход, паузы, `alternate` |
+| Scheduler | Приоритет и когда продолжить цикл |
 | Commit | Единственное место записи в DOM |
 
 ## Что проверить в коде
 
-- Долгий render (тяжёлый список без `memo`) + ввод в поле: при concurrent UI ввода не должен «залипать» так же, как при синхронном блокирующем render (сравнить с/без `startTransition` на смену вкладки).
-- `useLayoutEffect` vs `useEffect`: layout — **до** paint в commit; effect — после, уже на отрисованном кадре.
-- Strict Mode (dev): двойной invoke render — про **проверку** side effects, не про «два commit в prod».
+- Тяжёлый список без `memo` + ввод в поле: с `startTransition` на смене вкладки ввод отзывчивее, чем при полностью синхронном блокирующем render.
+- `useLayoutEffect` vs `useEffect`: layout — в commit **до** paint; effect — после, уже на отрисованном кадре.
+- Strict Mode (dev): двойной вызов render — проверка побочных эффектов, не «два commit в production».
 
 ---
 
 # 6. Ссылки
 
 - [React — Render and Commit](https://react.dev/learn/render-and-commit)
-- [React blog — React Fiber Architecture (2017)](https://github.com/acdlite/react-fiber-architecture) — историческое описание мотивации
+- [React blog — React Fiber Architecture (2017)](https://github.com/acdlite/react-fiber-architecture) — мотивация и модель
 - [React — `startTransition`](https://react.dev/reference/react/startTransition)
 - [React — `useDeferredValue`](https://react.dev/reference/react/useDeferredValue)
 - [React (legacy) — Reconciliation](https://legacy.reactjs.org/docs/reconciliation.html) — эвристики diff внутри render
-- [React RFC — React 18](https://github.com/reactjs/rfcs/blob/main/text/0212-react-18.md) — concurrent features поверх Fiber
+- [React RFC — React 18](https://github.com/reactjs/rfcs/blob/main/text/0212-react-18.md) — concurrent поверх Fiber

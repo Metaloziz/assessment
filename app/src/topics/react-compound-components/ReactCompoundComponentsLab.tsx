@@ -1,16 +1,9 @@
 import {
-  Children,
-  cloneElement,
   createContext,
-  isValidElement,
   useContext,
-  useRef,
   useState,
-  type MutableRefObject,
-  type ReactElement,
   type ReactNode,
 } from 'react'
-import gsap from 'gsap'
 import { JsLabShell } from '../../components/lab/JsLabShell'
 import { LabButton } from '../../components/lab/LabButton'
 import shell from '../../components/lab/JsLabShell.module.css'
@@ -21,25 +14,96 @@ import { LabVizPanel } from '../../components/lab/LabViz'
 import styles from './ReactCompoundComponentsLab.module.css'
 
 const TOPIC_ID = '193-react-compound-components'
-const STEP = 0.6
 
-type CaseId = 'compound' | 'clone' | 'items'
-type Phase = 'idle' | 'run' | 'done'
-type TabId = 'profile' | 'alerts'
+type CaseId = 'fixed' | 'compound'
+type Phase = 'idle' | 'ready'
+type TabId = 'buns' | 'cakes'
 
 const CASES: Array<{ id: CaseId; label: string }> = [
-  { id: 'compound', label: 'Context' },
-  { id: 'clone', label: 'cloneElement' },
-  { id: 'items', label: 'items[]' },
+  { id: 'fixed', label: 'без паттерна' },
+  { id: 'compound', label: 'compound' },
 ]
 
-const CODE_INTRO: Record<CaseId, string> = {
-  compound: '`Tabs` — `Provider`; `Tab` / `Panel` читают `active` через `useContext`. Между ними — своя разметка.',
-  clone: '`Children.map` + `cloneElement` впрыскивает props только прямым детям — обёртка ломает связь.',
-  items: 'Закрытый `items[]`: список и панели рисует сам виджет, слота «между» нет.',
+const TREE: Record<CaseId, string> = {
+  fixed: `<Bakery>
+  <header>
+    <h1>Булочная «Утро»</h1>
+    <span>с печи</span>     ← только в шапке
+  </header>
+  <Tabs items={[…]} />    ← меню и карточка внутри
+</Bakery>`,
+  compound: `<Tabs>                      ← Provider
+  <Tabs.Tab>Булки</Tabs.Tab>
+  <Tabs.Tab>Сладкое</Tabs.Tab>
+  <span>с печи</span>        ← слот между частями
+  <Tabs.Panel>…</Tabs.Panel>
+</Tabs>`,
 }
 
-const SNIPPET_TABS_CTX: InteractiveSnippet = {
+const CODE_INTRO: Record<CaseId, string> = {
+  fixed: 'Закрытый `items[]`: виджет сам рисует меню и карточку — бейдж «с печи» только в шапке.',
+  compound: '`Tabs` — `Provider`; вкладки меню читают `active`. Между ними — бейдж как обычный JSX.',
+}
+
+const SNIPPET_TABS_FIXED: InteractiveSnippet = {
+  id: 'tabs-items',
+  label: 'src/ui/Tabs.tsx',
+  note: 'Layout закрыт: слота между меню и карточкой нет.',
+  executable: false,
+  languageLabel: 'tsx',
+  code: `import { useState, type ReactNode } from 'react';
+
+type Item = { id: string; label: string; panel: ReactNode };
+type Props = { items: Item[]; defaultId: string };
+
+export const Tabs = ({ items, defaultId }: Props) => {
+  const [active, setActive] = useState(defaultId);
+  const current = items.find((item) => item.id === active);
+
+  // ═══════════════════════════════════════════
+  // FIXED ← меню и карточку рисует сам виджет
+  // ═══════════════════════════════════════════
+  return (
+    <div>
+      <div className="tabList">
+        {items.map((item) => (
+          <button key={item.id} type="button" onClick={() => setActive(item.id)}>
+            {item.label}
+          </button>
+        ))}
+      </div>
+      <div>{current?.panel}</div>
+    </div>
+  );
+};`,
+}
+
+const SNIPPET_BAKERY_FIXED: InteractiveSnippet = {
+  id: 'bakery-fixed',
+  label: 'src/bakery/Menu.tsx',
+  note: '«с печи» только в шапке — внутрь `Tabs` вставить нельзя.',
+  executable: false,
+  languageLabel: 'tsx',
+  code: `import { Tabs } from '../ui/Tabs';
+
+export const Menu = () => (
+  <section>
+    <header>
+      <h1>Булочная «Утро»</h1>
+      <span className="chip">с печи</span> {/* ← только снаружи */}
+    </header>
+    <Tabs
+      defaultId="buns"
+      items={[
+        { id: 'buns', label: 'Булки', panel: 'Багет · чиабатта · булочка' },
+        { id: 'cakes', label: 'Сладкое', panel: 'Круассан · булочка с корицей' },
+      ]}
+    />
+  </section>
+);`,
+}
+
+const SNIPPET_TABS_COMPOUND: InteractiveSnippet = {
   id: 'tabs-context',
   label: 'src/ui/Tabs.tsx',
   note: 'Узкий `Context` внутри виджета; дети не ждут `active` снаружи.',
@@ -56,7 +120,7 @@ export const Tabs = ({ defaultId, children }: TabsProps) => {
   const [active, setActive] = useState(defaultId);
   return (
     <TabsContext.Provider value={{ active, setActive }}>
-      {children} {/* ← композиция вызывающего */}
+      {children} {/* ← разметку решает вызывающий */}
     </TabsContext.Provider>
   );
 };
@@ -64,7 +128,7 @@ export const Tabs = ({ defaultId, children }: TabsProps) => {
 type TabProps = { id: string; children: ReactNode };
 
 export const Tab = ({ id, children }: TabProps) => {
-  const ctx = useContext(TabsContext); // ← не props с App
+  const ctx = useContext(TabsContext); // ← не props из App
   if (!ctx) return <button type="button" disabled>{children}</button>;
   return (
     <button
@@ -89,243 +153,75 @@ Tabs.Tab = Tab;
 Tabs.Panel = Panel;`,
 }
 
-const SNIPPET_SETTINGS_CTX: InteractiveSnippet = {
-  id: 'settings-compound',
-  label: 'src/settings/Settings.tsx',
-  note: 'Бейдж стоит между списком и панелью — слот есть, потому что это JSX.',
+const SNIPPET_BAKERY_COMPOUND: InteractiveSnippet = {
+  id: 'bakery-compound',
+  label: 'src/bakery/Menu.tsx',
+  note: 'Бейдж «с печи» между меню и карточкой — обычный JSX-слот.',
   executable: false,
   languageLabel: 'tsx',
   code: `import { Tabs } from '../ui/Tabs';
 
-export const Settings = () => (
-  <Tabs defaultId="profile">
+export const Menu = () => (
+  <Tabs defaultId="buns">
     <div className="tabList">
-      <Tabs.Tab id="profile">Профиль</Tabs.Tab>
-      <Tabs.Tab id="alerts">Уведомления</Tabs.Tab>
+      <Tabs.Tab id="buns">Булки</Tabs.Tab>
+      <Tabs.Tab id="cakes">Сладкое</Tabs.Tab>
     </div>
-    <span className="chip">beta</span> {/* ← между List и Panel */}
-    <Tabs.Panel id="profile">Имя · email</Tabs.Panel>
-    <Tabs.Panel id="alerts">Письма и пуши</Tabs.Panel>
+    <span className="chip">с печи</span> {/* ← между Tab и Panel */}
+    <Tabs.Panel id="buns">Багет · чиабатта · булочка</Tabs.Panel>
+    <Tabs.Panel id="cakes">Круассан · булочка с корицей</Tabs.Panel>
   </Tabs>
-);`,
-}
-
-const SNIPPET_TABS_CLONE: InteractiveSnippet = {
-  id: 'tabs-clone',
-  label: 'src/ui/Tabs.tsx',
-  note: '`cloneElement` видит только прямых детей родителя.',
-  executable: false,
-  languageLabel: 'tsx',
-  code: `import { Children, cloneElement, isValidElement, useState } from 'react';
-
-type TabsProps = { defaultId: string; children: React.ReactNode };
-
-export const Tabs = ({ defaultId, children }: TabsProps) => {
-  const [active, setActive] = useState(defaultId);
-
-  // ═══════════════════════════════════════════
-  // CLONE ← впрыск только прямым детям
-  // ═══════════════════════════════════════════
-  return Children.map(children, (child) => {
-    if (!isValidElement(child)) return child;
-    return cloneElement(child, { active, onSelect: setActive });
-  });
-};
-
-type TabProps = {
-  id: string;
-  children: React.ReactNode;
-  active?: string;
-  onSelect?: (id: string) => void;
-};
-
-export const Tab = ({ id, children, active, onSelect }: TabProps) => (
-  <button
-    type="button"
-    aria-selected={active === id}
-    disabled={!onSelect}
-    onClick={() => onSelect?.(id)}
-  >
-    {children}
-  </button>
-);`,
-}
-
-const SNIPPET_SETTINGS_CLONE: InteractiveSnippet = {
-  id: 'settings-clone',
-  label: 'src/settings/Settings.tsx',
-  note: 'Обёртка `tabRow` получает props; `Tab` остаётся без `onSelect`.',
-  executable: false,
-  languageLabel: 'tsx',
-  code: `import { Tabs, Tab, Panel } from '../ui/Tabs';
-
-export const Settings = () => (
-  <Tabs defaultId="profile">
-    <div className="tabRow"> {/* ← cloneElement впрыскивает сюда */}
-      <Tab id="profile">Профиль</Tab>
-      <Tab id="alerts">Уведомления</Tab>
-    </div>
-    <Panel id="profile">Имя · email</Panel>
-    <Panel id="alerts">Письма и пуши</Panel>
-  </Tabs>
-);`,
-}
-
-const SNIPPET_TABS_ITEMS: InteractiveSnippet = {
-  id: 'tabs-items',
-  label: 'src/ui/Tabs.tsx',
-  note: 'Виджет сам рисует список и панели из массива — layout закрыт.',
-  executable: false,
-  languageLabel: 'tsx',
-  code: `import { useState, type ReactNode } from 'react';
-
-type Item = { id: string; label: string; panel: ReactNode };
-
-type Props = { items: Item[]; defaultId: string };
-
-export const Tabs = ({ items, defaultId }: Props) => {
-  const [active, setActive] = useState(defaultId);
-  const current = items.find((item) => item.id === active);
-
-  // ═══════════════════════════════════════════
-  // ITEMS ← нет слота между списком и панелью
-  // ═══════════════════════════════════════════
-  return (
-    <div>
-      <div className="tabList">
-        {items.map((item) => (
-          <button
-            key={item.id}
-            type="button"
-            aria-selected={active === item.id}
-            onClick={() => setActive(item.id)}
-          >
-            {item.label}
-          </button>
-        ))}
-      </div>
-      <div>{current?.panel}</div>
-    </div>
-  );
-};`,
-}
-
-const SNIPPET_SETTINGS_ITEMS: InteractiveSnippet = {
-  id: 'settings-items',
-  label: 'src/settings/Settings.tsx',
-  note: '`beta` можно поставить только рядом с виджетом, не между вкладками и панелью.',
-  executable: false,
-  languageLabel: 'tsx',
-  code: `import { Tabs } from '../ui/Tabs';
-
-export const Settings = () => (
-  <section>
-    <header>
-      <h1>Настройки</h1>
-      <span className="chip">beta</span> {/* ← только снаружи */}
-    </header>
-    <Tabs
-      defaultId="profile"
-      items={[
-        { id: 'profile', label: 'Профиль', panel: 'Имя · email' },
-        { id: 'alerts', label: 'Уведомления', panel: 'Письма и пуши' },
-      ]}
-    />
-  </section>
 );`,
 }
 
 const CODE_SNIPPETS: Record<CaseId, InteractiveSnippet[]> = {
-  compound: [SNIPPET_TABS_CTX, SNIPPET_SETTINGS_CTX],
-  clone: [SNIPPET_TABS_CLONE, SNIPPET_SETTINGS_CLONE],
-  items: [SNIPPET_TABS_ITEMS, SNIPPET_SETTINGS_ITEMS],
+  fixed: [SNIPPET_TABS_FIXED, SNIPPET_BAKERY_FIXED],
+  compound: [SNIPPET_TABS_COMPOUND, SNIPPET_BAKERY_COMPOUND],
 }
 
 const PAIN: ReactNode = (
   <>
-    Виджет вроде вкладок должен делить <code>active</code> между детьми и оставить layout вызывающему. Закрытый{' '}
-    <code>items[]</code> и <code>cloneElement</code> это ломают по-разному.
+    Меню булочной должно делить активный раздел и оставить место под бейдж «с печи». Закрытый{' '}
+    <code>items[]</code> и compound через <code>Context</code> решают это по-разному.
   </>
 )
 
 const CASE_BRIEF: Record<CaseId, ReactNode> = {
+  fixed: (
+    <>
+      <strong>Запустить</strong> — витрина и живое меню. «с печи» только в шапке; внутрь виджета слота нет.
+    </>
+  ),
   compound: (
     <>
-      <code>Tabs</code> через <code>Context</code>: бейдж стоит между списком и <code>Panel</code>, вкладки переключаются.
+      <strong>Запустить</strong> — дерево и витрина. «с печи» между вкладками и карточкой; переключай меню.
     </>
   ),
-  clone: (
-    <>
-      <code>cloneElement</code> отдаёт <code>onSelect</code> обёртке <code>tabRow</code> — <code>Tab</code> не связан.
-    </>
-  ),
-  items: (
-    <>
-      <code>items[]</code> рисует список и панели сам: <code>beta</code> помещается только в шапку карточки.
-    </>
-  ),
+}
+
+const PANELS: Record<TabId, { title: string; lead: string; price: string }> = {
+  buns: { title: 'Булки', lead: 'Багет · чиабатта · булочка', price: 'от 45 ₽' },
+  cakes: { title: 'Сладкое', lead: 'Круассан · булочка с корицей', price: 'от 90 ₽' },
+}
+
+const TAB_LABEL: Record<TabId, string> = {
+  buns: 'Булки',
+  cakes: 'Сладкое',
 }
 
 type TabsValue = { active: TabId; setActive: (id: TabId) => void }
 
 const TabsCtx = createContext<TabsValue | null>(null)
 
-const reducedMotion = () =>
-  typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
-
-const playTimeline = (
-  tlRef: MutableRefObject<gsap.core.Timeline | null>,
-  steps: Array<() => void>,
-  motion: ((tl: gsap.core.Timeline) => void) | null,
-  onDone: () => void,
-) => {
-  tlRef.current?.kill()
-  if (reducedMotion()) {
-    for (const step of steps) step()
-    onDone()
-    return
-  }
-  const tl = gsap.timeline({
-    defaults: { duration: 0.55, ease: 'power2.inOut' },
-    onComplete: onDone,
-  })
-  tlRef.current = tl
-  steps.forEach((step, i) => {
-    tl.call(step, undefined, i * STEP)
-  })
-  motion?.(tl)
-}
-
-const PANELS: Record<TabId, { title: string; lead: string }> = {
-  profile: { title: 'Профиль', lead: 'Имя · email' },
-  alerts: { title: 'Уведомления', lead: 'Письма и пуши' },
-}
-
-const CtxTab = ({
-  id,
-  children,
-  flash,
-  disabled,
-}: {
-  id: TabId
-  children: ReactNode
-  flash: boolean
-  disabled: boolean
-}) => {
+const CtxTab = ({ id, children }: { id: TabId; children: ReactNode }) => {
   const ctx = useContext(TabsCtx)
   const selected = ctx?.active === id
   return (
     <button
       type="button"
-      className={[
-        styles.tab,
-        selected ? styles.tabActive : '',
-        flash ? styles.tabFlash : '',
-      ]
-        .filter(Boolean)
-        .join(' ')}
+      className={[styles.tab, selected ? styles.tabActive : ''].filter(Boolean).join(' ')}
       aria-selected={selected}
-      disabled={disabled || !ctx}
+      disabled={!ctx}
       onClick={() => ctx?.setActive(id)}
     >
       {children}
@@ -339,418 +235,171 @@ const CtxPanel = ({ id }: { id: TabId }) => {
   const panel = PANELS[id]
   return (
     <div className={styles.panel}>
-      <p className={styles.panelTitle}>{panel.title}</p>
+      <div className={styles.panelTop}>
+        <p className={styles.panelTitle}>{panel.title}</p>
+        <span className={styles.price}>{panel.price}</span>
+      </div>
       <p className={styles.panelLead}>{panel.lead}</p>
     </div>
   )
 }
 
-type CloneInjected = { active: TabId; onSelect: (id: TabId) => void }
-
-const CloneTab = ({
-  id,
-  children,
-  active,
-  onSelect,
-  flash,
-}: {
-  id: TabId
-  children: ReactNode
-  active?: TabId
-  onSelect?: (id: TabId) => void
-  flash?: boolean
-}) => {
-  const selected = onSelect != null && active === id
-  return (
-    <button
-      type="button"
-      className={[
-        styles.tab,
-        selected ? styles.tabActive : '',
-        onSelect == null ? styles.tabDead : '',
-        flash ? styles.tabFlash : '',
-      ]
-        .filter(Boolean)
-        .join(' ')}
-      aria-selected={selected}
-      disabled={!onSelect}
-      onClick={() => onSelect?.(id)}
-    >
-      {children}
-    </button>
-  )
-}
-
-const ClonePanel = ({
-  id,
-  active,
-  children,
-}: {
-  id: TabId
-  active?: TabId
-  children: ReactNode
-} & Partial<Pick<CloneInjected, 'onSelect'>>) => {
-  if (active !== id) return null
-  return <div className={styles.panel}>{children}</div>
-}
-
-const CloneRow = ({
-  children,
-  flash,
-  rowRef,
-}: {
-  children: ReactNode
-  flash: boolean
-  rowRef: MutableRefObject<HTMLDivElement | null>
-} & Partial<CloneInjected>) => (
-  <div
-    ref={rowRef}
-    className={[styles.tabWrap, flash ? styles.tabWrapFlash : ''].filter(Boolean).join(' ')}
-  >
-    {children}
-  </div>
-)
-
-const CloneTabs = ({
-  active,
-  onSelect,
-  flash,
-  tabFlash,
-  rowRef,
-}: {
-  active: TabId
-  onSelect: (id: TabId) => void
-  flash: boolean
-  tabFlash: TabId | null
-  rowRef: MutableRefObject<HTMLDivElement | null>
-}) => {
-  const children = [
-    <CloneRow key="row" flash={flash} rowRef={rowRef}>
-      <CloneTab id="profile" flash={tabFlash === 'profile'}>
-        Профиль
-      </CloneTab>
-      <CloneTab id="alerts" flash={tabFlash === 'alerts'}>
-        Уведомления
-      </CloneTab>
-    </CloneRow>,
-    <ClonePanel key="profile" id="profile">
-      <p className={styles.panelTitle}>{PANELS.profile.title}</p>
-      <p className={styles.panelLead}>{PANELS.profile.lead}</p>
-    </ClonePanel>,
-    <ClonePanel key="alerts" id="alerts">
-      <p className={styles.panelTitle}>{PANELS.alerts.title}</p>
-      <p className={styles.panelLead}>{PANELS.alerts.lead}</p>
-    </ClonePanel>,
-  ]
-
-  return (
-    <>
-      {Children.map(children, (child) => {
-        if (!isValidElement(child)) return child
-        return cloneElement(child as ReactElement<Partial<CloneInjected>>, {
-          active,
-          onSelect,
-        })
-      })}
-    </>
-  )
-}
-
-const Chip = ({
-  tone,
-  chipRef,
-}: {
-  tone: 'ok' | 'warn'
-  chipRef: MutableRefObject<HTMLSpanElement | null>
-}) => (
-  <span
-    ref={chipRef}
-    className={[styles.chip, tone === 'warn' ? styles.chipWarn : ''].filter(Boolean).join(' ')}
-  >
-    beta
+const Chip = ({ tone }: { tone: 'ok' | 'warn' }) => (
+  <span className={[styles.chip, tone === 'warn' ? styles.chipWarn : ''].filter(Boolean).join(' ')}>
+    с печи
   </span>
 )
 
-type VizProps = {
-  caseId: CaseId
-  phase: Phase
-  active: TabId
-  chipVisible: boolean
-  wrapFlash: boolean
-  tabFlash: TabId | null
-  busy: boolean
-  onSelect: (id: TabId) => void
-  chipRef: MutableRefObject<HTMLSpanElement | null>
-  wrapRef: MutableRefObject<HTMLDivElement | null>
-}
+const BakeryHeader = ({ chipInHeader }: { chipInHeader?: boolean }) => (
+  <header className={styles.header}>
+    <div className={styles.brand}>
+      <span className={styles.brandMark} aria-hidden />
+      <div className={styles.brandText}>
+        <strong>Булочная «Утро»</strong>
+        <span className={styles.brandSub}>витрина на сегодня</span>
+      </div>
+    </div>
+    {chipInHeader ? (
+      <div className={styles.headerExtra}>
+        <Chip tone="warn" />
+      </div>
+    ) : null}
+  </header>
+)
 
-const CompoundLiveViz = ({
-  caseId,
-  phase,
+const FixedMount = ({
   active,
-  chipVisible,
-  wrapFlash,
-  tabFlash,
-  busy,
   onSelect,
-  chipRef,
-  wrapRef,
-}: VizProps) => {
-  const meta =
-    phase === 'idle'
-      ? 'ожидание'
-      : caseId === 'compound'
-        ? 'Context · слот между'
-        : caseId === 'clone'
-          ? 'cloneElement · обёртка'
-          : 'items[] · слот снаружи'
-
-  const receipt =
-    caseId === 'compound'
-      ? 'Tabs.Provider → Tab / Panel · chip ∈ JSX'
-      : caseId === 'clone'
-        ? 'cloneElement → tabRow · Tab без onSelect'
-        : 'items[] · chip ∈ header'
-
-  const cardTone = phase === 'done' ? (caseId === 'compound' ? styles.cardOk : styles.cardWarn) : ''
-
-  const itemsTabs = (
-    <>
+  onInteract,
+}: {
+  active: TabId
+  onSelect: (id: TabId) => void
+  onInteract: () => void
+}) => (
+  <section className={styles.card}>
+    <BakeryHeader chipInHeader />
+    <div className={styles.body}>
       <div className={styles.tabList}>
-        {(['profile', 'alerts'] as TabId[]).map((id) => (
+        {(['buns', 'cakes'] as TabId[]).map((id) => (
           <button
             key={id}
             type="button"
-            className={[
-              styles.tab,
-              active === id ? styles.tabActive : '',
-              tabFlash === id ? styles.tabFlash : '',
-            ]
-              .filter(Boolean)
-              .join(' ')}
+            className={[styles.tab, active === id ? styles.tabActive : ''].filter(Boolean).join(' ')}
             aria-selected={active === id}
-            disabled={busy}
-            onClick={() => onSelect(id)}
+            onClick={() => {
+              onSelect(id)
+              onInteract()
+            }}
           >
-            {id === 'profile' ? 'Профиль' : 'Уведомления'}
+            {TAB_LABEL[id]}
           </button>
         ))}
       </div>
       <div className={styles.panel}>
-        <p className={styles.panelTitle}>{PANELS[active].title}</p>
+        <div className={styles.panelTop}>
+          <p className={styles.panelTitle}>{PANELS[active].title}</p>
+          <span className={styles.price}>{PANELS[active].price}</span>
+        </div>
         <p className={styles.panelLead}>{PANELS[active].lead}</p>
       </div>
-    </>
-  )
+    </div>
+  </section>
+)
 
-  const body =
-    caseId === 'compound' ? (
-      <TabsCtx.Provider value={{ active, setActive: onSelect }}>
+const CompoundMount = ({
+  active,
+  onSelect,
+  onInteract,
+}: {
+  active: TabId
+  onSelect: (id: TabId) => void
+  onInteract: () => void
+}) => (
+  <section className={styles.card}>
+    <BakeryHeader />
+    <div className={styles.body}>
+      <TabsCtx.Provider
+        value={{
+          active,
+          setActive: (id) => {
+            onSelect(id)
+            onInteract()
+          },
+        }}
+      >
         <div className={styles.tabList}>
-          <CtxTab id="profile" flash={tabFlash === 'profile'} disabled={busy}>
-            Профиль
-          </CtxTab>
-          <CtxTab id="alerts" flash={tabFlash === 'alerts'} disabled={busy}>
-            Уведомления
-          </CtxTab>
+          <CtxTab id="buns">Булки</CtxTab>
+          <CtxTab id="cakes">Сладкое</CtxTab>
         </div>
-        {chipVisible ? <Chip tone="ok" chipRef={chipRef} /> : null}
-        <CtxPanel id="profile" />
-        <CtxPanel id="alerts" />
+        <Chip tone="ok" />
+        <CtxPanel id="buns" />
+        <CtxPanel id="cakes" />
       </TabsCtx.Provider>
-    ) : caseId === 'clone' ? (
-      <CloneTabs
-        active={active}
-        onSelect={onSelect}
-        flash={wrapFlash}
-        tabFlash={tabFlash}
-        rowRef={wrapRef}
-      />
-    ) : (
-      itemsTabs
-    )
-
-  return (
-    <LabVizPanel title="Настройки" meta={meta}>
-      <div className={styles.stage}>
-        <section className={[styles.card, cardTone].filter(Boolean).join(' ')}>
-          <header className={styles.header}>
-            <div className={styles.brand}>
-              <span className={styles.brandMark} aria-hidden />
-              <strong>Настройки</strong>
-            </div>
-            {caseId === 'items' && chipVisible ? (
-              <div className={styles.headerExtra}>
-                <Chip tone="warn" chipRef={chipRef} />
-              </div>
-            ) : null}
-          </header>
-          <div className={styles.body}>{body}</div>
-        </section>
-        <p className={styles.receipt}>{receipt}</p>
-      </div>
-    </LabVizPanel>
-  )
-}
+    </div>
+  </section>
+)
 
 export const ReactCompoundComponentsLab = () => {
   const { lines, log, clear } = useLabLog()
-  const [caseId, setCaseId] = useState<CaseId>('compound')
-  const [hint, setHint] = useState<string | null>(null)
-  const [busy, setBusy] = useState(false)
+  const [caseId, setCaseId] = useState<CaseId>('fixed')
   const [phase, setPhase] = useState<Phase>('idle')
-  const [active, setActive] = useState<TabId>('profile')
-  const [chipVisible, setChipVisible] = useState(false)
-  const [wrapFlash, setWrapFlash] = useState(false)
-  const [tabFlash, setTabFlash] = useState<TabId | null>(null)
-
-  const tlRef = useRef<gsap.core.Timeline | null>(null)
-  const chipRef = useRef<HTMLSpanElement | null>(null)
-  const wrapRef = useRef<HTMLDivElement | null>(null)
-
-  const resetViz = () => {
-    setPhase('idle')
-    setHint(null)
-    setActive('profile')
-    setChipVisible(false)
-    setWrapFlash(false)
-    setTabFlash(null)
-    if (chipRef.current) gsap.set(chipRef.current, { clearProps: 'transform,opacity' })
-    if (wrapRef.current) gsap.set(wrapRef.current, { clearProps: 'transform' })
-  }
+  const [active, setActive] = useState<TabId>('buns')
+  const [hint, setHint] = useState<string | null>(null)
+  const [interacted, setInteracted] = useState(false)
 
   const selectCase = (next: CaseId) => {
-    tlRef.current?.kill()
-    setBusy(false)
     setCaseId(next)
     clear()
-    resetViz()
-  }
-
-  const finishCase = (id: CaseId) => {
-    setPhase('done')
-    setTabFlash(null)
-    if (id === 'compound') {
-      log('ok', 'chip между List и Panel · active=alerts')
-      setHint('Context связывает Tab/Panel; JSX оставляет слот вызывающему')
-    } else if (id === 'clone') {
-      log('warn', 'onSelect ушёл в tabRow · Tab без связи')
-      setHint('cloneElement не проходит через обёртку')
-    } else {
-      log('warn', 'beta в header · слота между списком и панелью нет')
-      setHint('items[] закрывает layout виджета')
-    }
+    setPhase('idle')
+    setActive('buns')
+    setHint(null)
+    setInteracted(false)
   }
 
   const run = () => {
     clear()
-    resetViz()
-    setBusy(true)
-    setPhase('run')
+    setActive('buns')
+    setInteracted(false)
+    setPhase('ready')
 
-    if (caseId === 'compound') {
-      playTimeline(
-        tlRef,
-        [
-          () => {
-            setChipVisible(true)
-            log('info', 'Tabs Provider · active=profile')
-          },
-          () => {
-            log('ok', 'chip ∈ JSX между Tab и Panel')
-          },
-          () => {
-            setActive('alerts')
-            setTabFlash('alerts')
-            finishCase('compound')
-          },
-        ],
-        (tl) => {
-          tl.call(
-            () => {
-              const el = chipRef.current
-              if (!el) return
-              gsap.fromTo(el, { opacity: 0.4, y: 6 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.inOut' })
-            },
-            undefined,
-            0.08,
-          )
-        },
-        () => setBusy(false),
-      )
-      return
+    if (caseId === 'fixed') {
+      log('info', 'items[] · меню и карточку рисует виджет')
+      log('warn', '«с печи» только в шапке · слота между частями нет')
+      setHint('переключи меню — бейдж остаётся в шапке витрины')
+    } else {
+      log('info', 'Tabs Provider · вкладки читают Context')
+      log('ok', '«с печи» между меню и карточкой · слот в JSX')
+      setHint('переключи меню — бейдж остаётся между частями')
     }
-
-    if (caseId === 'clone') {
-      playTimeline(
-        tlRef,
-        [
-          () => {
-            log('info', 'cloneElement → прямые дети Tabs')
-          },
-          () => {
-            setWrapFlash(true)
-            log('warn', 'props → tabRow, не Tab')
-          },
-          () => {
-            setTabFlash('alerts')
-            finishCase('clone')
-          },
-        ],
-        (tl) => {
-          tl.call(
-            () => {
-              const el = wrapRef.current
-              if (!el) return
-              gsap.fromTo(el, { y: 3 }, { y: 0, duration: 0.5, ease: 'power2.inOut' })
-            },
-            undefined,
-            STEP + 0.08,
-          )
-        },
-        () => setBusy(false),
-      )
-      return
-    }
-
-    playTimeline(
-      tlRef,
-      [
-        () => {
-          setChipVisible(true)
-          log('info', 'Tabs items[] · layout внутри виджета')
-        },
-        () => {
-          log('warn', 'chip только в header')
-        },
-        () => {
-          setActive('alerts')
-          setTabFlash('alerts')
-          finishCase('items')
-        },
-      ],
-      (tl) => {
-        tl.call(
-          () => {
-            const el = chipRef.current
-            if (!el) return
-            gsap.fromTo(el, { opacity: 0.4, y: -4 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.inOut' })
-          },
-          undefined,
-          0.08,
-        )
-      },
-      () => setBusy(false),
-    )
   }
 
   const reset = () => {
-    tlRef.current?.kill()
-    setBusy(false)
     clear()
-    setCaseId('compound')
-    resetViz()
+    setCaseId('fixed')
+    setPhase('idle')
+    setActive('buns')
+    setHint(null)
+    setInteracted(false)
   }
+
+  const onInteract = () => {
+    if (interacted) return
+    setInteracted(true)
+    if (caseId === 'fixed') {
+      log('ok', 'меню живое · «с печи» по-прежнему в шапке')
+      setHint('без паттерна layout закрыт — бейдж нельзя вставить между частями')
+    } else {
+      log('ok', 'меню живое · «с печи» между Tab и Panel')
+      setHint('compound: Context связывает части, JSX оставляет слот')
+    }
+  }
+
+  const meta =
+    phase === 'idle'
+      ? 'ожидание'
+      : caseId === 'fixed'
+        ? 'items[] · бейдж в шапке'
+        : 'Context · бейдж в слоте'
 
   const problem = (
     <div className={shell.panel}>
@@ -761,7 +410,6 @@ export const ReactCompoundComponentsLab = () => {
             variant="ghost"
             size="sm"
             active={caseId === c.id}
-            disabled={busy}
             onClick={() => selectCase(c.id)}
           >
             {c.label}
@@ -770,10 +418,10 @@ export const ReactCompoundComponentsLab = () => {
       </div>
 
       <div className={shell.row}>
-        <LabButton variant="primary" disabled={busy} onClick={run}>
+        <LabButton variant="primary" onClick={run}>
           Запустить
         </LabButton>
-        <LabButton variant="secondary" disabled={busy} onClick={reset}>
+        <LabButton variant="secondary" onClick={reset}>
           Сброс
         </LabButton>
       </div>
@@ -781,33 +429,41 @@ export const ReactCompoundComponentsLab = () => {
       <p className={shell.pain}>{PAIN}</p>
       <p className={shell.hint}>{CASE_BRIEF[caseId]}</p>
 
-      <CompoundLiveViz
-        caseId={caseId}
-        phase={phase}
-        active={active}
-        chipVisible={chipVisible}
-        wrapFlash={wrapFlash}
-        tabFlash={tabFlash}
-        busy={busy}
-        onSelect={(id) => {
-          if (busy || caseId === 'clone') return
-          setActive(id)
-        }}
-        chipRef={chipRef}
-        wrapRef={wrapRef}
-      />
+      <LabVizPanel title="Булочная «Утро»" meta={meta}>
+        <div className={styles.stage}>
+          {phase === 'ready' ? (
+            <pre className={styles.treePreview} tabIndex={0}>
+              {TREE[caseId]}
+            </pre>
+          ) : (
+            <p className={styles.placeholder}>дерево разметки появится после запуска</p>
+          )}
 
-      {hint ? (
-        <p className={shell.hint}>
-          Итог: <code>{hint}</code>
-        </p>
-      ) : null}
+          <div
+            className={[styles.mount, phase === 'ready' ? styles.mountLive : '']
+              .filter(Boolean)
+              .join(' ')}
+            data-empty={phase === 'idle' ? 'true' : undefined}
+          >
+            {phase === 'ready' ? (
+              caseId === 'fixed' ? (
+                <FixedMount active={active} onSelect={setActive} onInteract={onInteract} />
+              ) : (
+                <CompoundMount active={active} onSelect={setActive} onInteract={onInteract} />
+              )
+            ) : null}
+          </div>
+          {phase === 'idle' ? <p className={styles.mountHint}>витрина пуста до запуска</p> : null}
+        </div>
+      </LabVizPanel>
+
+      {hint ? <p className={shell.hint}>Итог: {hint}</p> : null}
       <LabLogView lines={lines} />
     </div>
   )
 
   const code = (
-    <div className={styles.codePane}>
+    <div className={shell.codePane}>
       <div className={shell.row}>
         {CASES.map((c) => (
           <LabButton
@@ -833,7 +489,7 @@ export const ReactCompoundComponentsLab = () => {
   return (
     <JsLabShell
       title="Compound components"
-      lead="Живой стенд: вкладки через внутренний `Context`, хрупкий `cloneElement` и закрытый `items[]`."
+      lead="Витрина булочной: закрытый `items[]` vs compound через `Context` — дерево разметки и живое меню."
       problem={problem}
       code={code}
     />
