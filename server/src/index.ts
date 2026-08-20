@@ -14,6 +14,7 @@ import { wsDebugLabRoutes } from './routes/wsDebugLab.js'
 import { progressRoutes } from './routes/progress.js'
 import { perfLabRoutes } from './routes/perfLab.js'
 import { cookiesLabRoutes } from './routes/cookiesLab.js'
+import { csrfLabRoutes } from './routes/csrfLab.js'
 import { ssrLabRoutes } from './routes/ssrLab.js'
 import { sqlClient } from './db.js'
 
@@ -23,7 +24,7 @@ await app.register(cors, {
   origin: env.corsOrigins,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token'],
 })
 
 await app.register(healthRoutes)
@@ -32,6 +33,7 @@ await app.register(corsLabRoutes)
 await app.register(httpLabRoutes)
 await app.register(apiFirstLabRoutes)
 await app.register(cookiesLabRoutes)
+await app.register(csrfLabRoutes)
 await app.register(dbLabRoutes)
 await app.register(cacheLabRoutes)
 await app.register(workersLabRoutes)

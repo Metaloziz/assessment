@@ -1,0 +1,58 @@
+.balanceRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-3);
+  margin-bottom: var(--space-3);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--border);
+}
+
+.balanceLabel {
+  color: var(--text-muted);
+  font-size: var(--lab-font-meta);
+}
+
+.balanceValue {
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-lead);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-heading);
+  transition:
+    color 0.4s ease,
+    text-shadow 0.4s ease;
+}
+
+.balanceOk {
+  color: var(--ok);
+}
+
+.balanceBlocked {
+  color: var(--danger);
+}
+
+.flow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem 0.35rem;
+  min-height: 3.2rem;
+}
+
+.arrow {
+  flex: 0 0 auto;
+  color: var(--text-faint);
+  font-size: var(--lab-font-ui);
+  transition:
+    color 0.4s ease,
+    opacity 0.4s ease;
+}
+
+.arrowActive {
+  color: var(--accent-bright);
+}
+
+.arrowErr {
+  color: var(--danger);
+}
