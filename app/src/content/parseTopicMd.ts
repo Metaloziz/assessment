@@ -195,6 +195,7 @@ export function parseTopicMd(id: string, raw: string, order: number): TopicDetai
       id === '147-logging-server-debug-browser' ||
       id === '06-logging-nodes' ||
       id === '151-x-frame-options' ||
+      id === '149-rel-noopener-noreferrer-nofollow' ||
       id === '07-cors' ||
       id === '08-npm-audit' ||
       id === '09-jwt-security' ||
