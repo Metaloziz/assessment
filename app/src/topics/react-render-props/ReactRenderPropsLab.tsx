@@ -1,6 +1,5 @@
 import {
   useCallback,
-  useEffect,
   useMemo,
   useRef,
   useState,
@@ -24,28 +23,26 @@ const TRAIL_COUNT = 12
 const LAG = 0.05
 const LAG_REDUCED = 0.14
 
-type CaseId = 'fixed' | 'render' | 'hook'
+type CaseId = 'fixed' | 'render'
 type Phase = 'idle' | 'run' | 'done'
 type FlowStep = 'engine' | 'api' | 'ui'
 
 type PointerApi = { x: number; y: number; inside: boolean }
 
 const CASES: Array<{ id: CaseId; label: string }> = [
-  { id: 'fixed', label: 'встроенный UI' },
-  { id: 'render', label: 'render' },
-  { id: 'hook', label: 'usePointer' },
+  { id: 'fixed', label: 'без паттерна' },
+  { id: 'render', label: 'render-prop' },
 ]
 
 const CODE_INTRO: Record<CaseId, string> = {
-  fixed: '`PointerZone` сам рисует координаты по центру — layout закрыт, chip в угол не поставить.',
-  render: 'Движок зовёт `render(api)`; dot и chip в углу решает колбэк вызывающего.',
-  hook: '`usePointer(ref)` отдаёт тот же `api`, UI остаётся в `Heatmap` без обёртки.',
+  fixed: '`PointerZone` сам рисует координаты по центру — другой экран не переиспользует логику с своим UI.',
+  render: 'Один `PointerZone` с `render(api)`; `Heatmap` и `Tracker` подставляют разный JSX на том же api.',
 }
 
 const SNIPPET_ZONE_FIXED: InteractiveSnippet = {
   id: 'pointer-zone-fixed',
   label: 'src/ui/PointerZone.tsx',
-  note: 'Нет render-prop — виджет сам решает, как показать координаты.',
+  note: 'Логика и UI слиты: layout закрыт, второй экран копировать нельзя.',
   executable: false,
   languageLabel: 'tsx',
   code: `import { useState } from 'react';
@@ -84,7 +81,7 @@ export const PointerZone = () => {
 const SNIPPET_HEATMAP_FIXED: InteractiveSnippet = {
   id: 'heatmap-fixed',
   label: 'src/dashboard/Heatmap.tsx',
-  note: 'Heatmap не управляет разметкой внутри зоны — chip в угол не вставить.',
+  note: 'Heatmap только монтирует виджет — chip в угол или крест не вставить.',
   executable: false,
   languageLabel: 'tsx',
   code: `import { PointerZone } from '../ui/PointerZone';
@@ -93,7 +90,7 @@ export const Heatmap = () => (
   <section>
     <header>
       <h1>Heatmap</h1>
-      {/* chip «live» хочется сюда или в угол зоны — API не даёт */}
+      {/* свой UI внутри зоны — API не даёт */}
     </header>
     <PointerZone />
   </section>
@@ -103,7 +100,7 @@ export const Heatmap = () => (
 const SNIPPET_ZONE_RENDER: InteractiveSnippet = {
   id: 'pointer-zone-render',
   label: 'src/ui/PointerZone.tsx',
-  note: 'Движок держит listeners; UI отдаёт prop `render`.',
+  note: 'Движок держит listeners; UI отдаёт prop `render` — один компонент, много экранов.',
   executable: false,
   languageLabel: 'tsx',
   code: `import { useState, type ReactNode } from 'react';
@@ -139,7 +136,7 @@ export const PointerZone = ({ render }: Props) => {
 const SNIPPET_HEATMAP_RENDER: InteractiveSnippet = {
   id: 'heatmap-render',
   label: 'src/dashboard/Heatmap.tsx',
-  note: 'Dot с шлейфом и chip в углу — всё в колбэке `render`.',
+  note: 'UI №1: dot с шлейфом и chip в углу — тот же `PointerZone`.',
   executable: false,
   languageLabel: 'tsx',
   code: `import { PointerZone } from '../ui/PointerZone';
@@ -150,7 +147,7 @@ export const Heatmap = () => (
       inside ? (
         <>
           <span className="dot" style={{ left: x, top: y }} />
-          <span className="chip">live · {x},{y}</span> {/* ← свой layout */}
+          <span className="chip">live · {x},{y}</span>
         </>
       ) : (
         <p>Наведите на зону</p>
@@ -160,105 +157,52 @@ export const Heatmap = () => (
 );`,
 }
 
-const SNIPPET_USE_POINTER: InteractiveSnippet = {
-  id: 'use-pointer',
-  label: 'src/hooks/usePointer.ts',
-  note: 'Listeners в hook — UI остаётся в теле родителя.',
+const SNIPPET_TRACKER_RENDER: InteractiveSnippet = {
+  id: 'tracker-render',
+  label: 'src/tools/Tracker.tsx',
+  note: 'UI №2: крест и полоска снизу — тот же движок, другой JSX.',
   executable: false,
   languageLabel: 'tsx',
-  code: `import { useEffect, useState, type RefObject } from 'react';
+  code: `import { PointerZone } from '../ui/PointerZone';
 
-export type PointerApi = { x: number; y: number; inside: boolean };
-
-export const usePointer = (ref: RefObject<HTMLElement | null>) => {
-  const [api, setApi] = useState<PointerApi>({ x: 0, y: 0, inside: false });
-
-  // ═══════════════════════════════════════════
-  // HOOK ← та же логика без render-колбэка
-  // ═══════════════════════════════════════════
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-
-    const onMove = (e: MouseEvent) => {
-      const rect = el.getBoundingClientRect();
-      setApi({
-        x: Math.round(e.clientX - rect.left),
-        y: Math.round(e.clientY - rect.top),
-        inside: true,
-      });
-    };
-    const onLeave = () => setApi((prev) => ({ ...prev, inside: false }));
-
-    el.addEventListener('mousemove', onMove);
-    el.addEventListener('mouseleave', onLeave);
-    return () => {
-      el.removeEventListener('mousemove', onMove);
-      el.removeEventListener('mouseleave', onLeave);
-    };
-  }, [ref]);
-
-  return api;
-};`,
-}
-
-const SNIPPET_HEATMAP_HOOK: InteractiveSnippet = {
-  id: 'heatmap-hook',
-  label: 'src/dashboard/Heatmap.tsx',
-  note: 'Нет `PointerZone` — разметка и hook в одном компоненте.',
-  executable: false,
-  languageLabel: 'tsx',
-  code: `import { useRef } from 'react';
-import { usePointer } from '../hooks/usePointer';
-
-export const Heatmap = () => {
-  const ref = useRef<HTMLDivElement>(null);
-  const api = usePointer(ref); // ← логика отдельно, UI здесь
-
-  return (
-    <div ref={ref} className="zone">
-      {api.inside ? (
+export const Tracker = () => (
+  <PointerZone
+    render={({ x, y, inside }) =>
+      inside ? (
         <>
-          <span className="dot" style={{ left: api.x, top: api.y }} />
-          <span className="chip">live · {api.x},{api.y}</span>
+          <span className="vline" style={{ left: x }} />
+          <span className="hline" style={{ top: y }} />
+          <footer className="hud">x={x} · y={y}</footer>
         </>
       ) : (
         <p>Наведите на зону</p>
-      )}
-    </div>
-  );
-};`,
+      )
+    }
+  />
+);`,
 }
 
 const CODE_SNIPPETS: Record<CaseId, InteractiveSnippet[]> = {
   fixed: [SNIPPET_ZONE_FIXED, SNIPPET_HEATMAP_FIXED],
-  render: [SNIPPET_ZONE_RENDER, SNIPPET_HEATMAP_RENDER],
-  hook: [SNIPPET_USE_POINTER, SNIPPET_HEATMAP_HOOK],
+  render: [SNIPPET_ZONE_RENDER, SNIPPET_HEATMAP_RENDER, SNIPPET_TRACKER_RENDER],
 }
 
 const PAIN: ReactNode = (
   <>
-    Render-prop делит роли: <code>PointerZone</code> знает про курсор и отдаёт{' '}
-    <code>{'{ x, y, inside }'}</code>, а экран через <code>(api) =&gt; JSX</code> решает, где dot и
-    chip. Без колбэка layout зашит внутри движка.
+    Без паттерна логика и разметка слиты. Render-prop: один <code>PointerZone</code> отдаёт{' '}
+    <code>{'{ x, y, inside }'}</code>, а экраны через <code>(api) =&gt; JSX</code> рисуют разный UI.
   </>
 )
 
 const CASE_BRIEF: Record<CaseId, ReactNode> = {
   fixed: (
     <>
-      Встроенный UI: координаты только по центру зоны — chip «live» в угол не поставить.
+      Без паттерна: координаты только по центру — второй экран со своим layout переиспользовать нельзя.
     </>
   ),
   render: (
     <>
-      <code>render(api)</code>: dot догоняет курсор с шлейфом, chip «live» — в углу, layout ваш.
-    </>
-  ),
-  hook: (
-    <>
-      <code>usePointer(ref)</code> — тот же кастомный UI, но логика в hook, без{' '}
-      <code>PointerZone</code> в дереве.
+      Один движок <code>render(api)</code>: слева Heatmap (dot + chip), справа Tracker (крест + HUD).
     </>
   ),
 }
@@ -266,18 +210,12 @@ const CASE_BRIEF: Record<CaseId, ReactNode> = {
 const LEGEND: Record<CaseId, ReactNode> = {
   fixed: (
     <>
-      <code>PointerZone</code> → фиксированный JSX внутри · api не выходит наружу
+      <code>PointerZone</code> → фиксированный JSX · api не выходит наружу
     </>
   ),
   render: (
     <>
-      <code>PointerZone</code> → <code>render(api)</code> → ваш JSX · api ={' '}
-      <code>{'{ x, y, inside }'}</code>
-    </>
-  ),
-  hook: (
-    <>
-      <code>usePointer(ref)</code> → api в <code>Heatmap</code> · без render-колбэка
+      <code>PointerZone</code> → <code>render(api)</code> → Heatmap · Tracker
     </>
   ),
 }
@@ -429,50 +367,48 @@ const FlowRow = ({ caseId, activeStep }: { caseId: CaseId; activeStep: FlowStep 
     )
   }
 
-  if (caseId === 'render') {
-    return (
-      <div className={styles.flow}>
-        <span className={[styles.flowStep, activeStep === 'engine' ? styles.flowStepActive : ''].filter(Boolean).join(' ')}>
-          PointerZone
-        </span>
-        <span className={styles.flowArrow} aria-hidden>
-          →
-        </span>
-        <span className={[styles.flowStep, activeStep === 'api' ? styles.flowStepActive : ''].filter(Boolean).join(' ')}>
-          render(api)
-        </span>
-        <span className={styles.flowArrow} aria-hidden>
-          →
-        </span>
-        <span className={[styles.flowStep, activeStep === 'ui' ? styles.flowStepActive : ''].filter(Boolean).join(' ')}>
-          ваш JSX
-        </span>
-      </div>
-    )
-  }
-
   return (
     <div className={styles.flow}>
       <span className={[styles.flowStep, activeStep === 'engine' ? styles.flowStepActive : ''].filter(Boolean).join(' ')}>
-        usePointer(ref)
+        PointerZone
       </span>
       <span className={styles.flowArrow} aria-hidden>
         →
       </span>
       <span className={[styles.flowStep, activeStep === 'api' ? styles.flowStepActive : ''].filter(Boolean).join(' ')}>
-        api
+        render(api)
       </span>
       <span className={styles.flowArrow} aria-hidden>
         →
       </span>
       <span className={[styles.flowStep, activeStep === 'ui' ? styles.flowStepActive : ''].filter(Boolean).join(' ')}>
-        JSX в Heatmap
+        Heatmap · Tracker
       </span>
     </div>
   )
 }
 
-const CustomPointerUi = ({
+const FixedPointerUi = ({
+  liveCoords,
+  inside,
+}: {
+  liveCoords: { x: number; y: number }
+  inside: boolean
+}) =>
+  inside ? (
+    <div className={styles.fixedReadout}>
+      <p className={styles.fixedCoords}>
+        {Math.round(liveCoords.x)},{Math.round(liveCoords.y)}
+      </p>
+      <p className={styles.fixedNote}>только по центру · другой UI нельзя</p>
+    </div>
+  ) : (
+    <div className={styles.zoneIdle}>
+      <p className={styles.zoneHint}>Наведите курсор — layout задаёт сам PointerZone.</p>
+    </div>
+  )
+
+const HeatmapUi = ({
   liveCoords,
   dotFlash,
   chipVisible,
@@ -509,31 +445,30 @@ const CustomPointerUi = ({
     </div>
   ) : (
     <div className={styles.zoneIdle}>
-      <p className={styles.zoneHint}>
-        Наведите курсор — dot догоняет с шлейфом, chip «live» в углу рисует ваш колбэк.
-      </p>
+      <p className={styles.zoneHint}>Наведите — dot + chip в углу</p>
     </div>
   )
 
-const FixedPointerUi = ({
+const TrackerUi = ({
   liveCoords,
+  hudVisible,
   inside,
 }: {
   liveCoords: { x: number; y: number }
+  hudVisible: boolean
   inside: boolean
 }) =>
   inside ? (
-    <div className={styles.fixedReadout}>
-      <p className={styles.fixedCoords}>
-        {Math.round(liveCoords.x)},{Math.round(liveCoords.y)}
-      </p>
-      <p className={styles.fixedNote}>только по центру · chip в угол нельзя</p>
+    <div className={styles.pointerLayer}>
+      <span className={styles.vline} style={{ left: liveCoords.x }} aria-hidden />
+      <span className={styles.hline} style={{ top: liveCoords.y }} aria-hidden />
+      <span className={[styles.hud, hudVisible ? '' : styles.hudHidden].filter(Boolean).join(' ')}>
+        x={Math.round(liveCoords.x)} · y={Math.round(liveCoords.y)}
+      </span>
     </div>
   ) : (
     <div className={styles.zoneIdle}>
-      <p className={styles.zoneHint}>
-        Наведите курсор — координаты по центру, layout задаёт сам PointerZone.
-      </p>
+      <p className={styles.zoneHint}>Наведите — крест + HUD</p>
     </div>
   )
 
@@ -547,6 +482,7 @@ const PointerZoneShell = ({
   disabled,
   dotFlash,
   chipVisible,
+  hudVisible,
   dotRef,
   chipWrapRef,
   trailRefs,
@@ -561,6 +497,7 @@ const PointerZoneShell = ({
   disabled: boolean
   dotFlash: boolean
   chipVisible: boolean
+  hudVisible: boolean
   dotRef: MutableRefObject<HTMLSpanElement | null>
   chipWrapRef: MutableRefObject<HTMLSpanElement | null>
   trailRefs: Array<MutableRefObject<HTMLSpanElement | null>>
@@ -568,10 +505,6 @@ const PointerZoneShell = ({
 }) => {
   const insideRef = useRef(api.inside)
   insideRef.current = api.inside
-
-  const bindZone = (el: HTMLDivElement | null) => {
-    zoneRef.current = el
-  }
 
   const onPointerMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const next = readPointer(e.currentTarget, e)
@@ -587,55 +520,53 @@ const PointerZoneShell = ({
     onLeave()
   }
 
-  useEffect(() => {
-    if (disabled || caseId !== 'hook') return
-    const el = zoneRef.current
-    if (!el) return
-
-    const move = (e: MouseEvent) => {
-      const next = readPointer(el, e)
-      if (insideRef.current) onMove(next)
-      else {
-        insideRef.current = true
-        onEnter(next)
-      }
-    }
-    const leave = () => {
-      insideRef.current = false
-      onLeave()
-    }
-
-    el.addEventListener('mousemove', move)
-    el.addEventListener('mouseleave', leave)
-    return () => {
-      el.removeEventListener('mousemove', move)
-      el.removeEventListener('mouseleave', leave)
-    }
-  }, [caseId, disabled, onEnter, onMove, onLeave, zoneRef])
-
   const zoneClass = [styles.zone, api.inside ? styles.zoneActive : ''].filter(Boolean).join(' ')
-  const isHook = caseId === 'hook'
+
+  if (caseId === 'fixed') {
+    return (
+      <div
+        ref={zoneRef}
+        className={zoneClass}
+        onMouseMove={!disabled ? onPointerMove : undefined}
+        onMouseLeave={!disabled ? onPointerLeave : undefined}
+      >
+        <FixedPointerUi liveCoords={liveCoords} inside={api.inside} />
+      </div>
+    )
+  }
+
+  const zoneHandlers = disabled
+    ? {}
+    : { onMouseMove: onPointerMove, onMouseLeave: onPointerLeave }
 
   return (
-    <div
-      ref={isHook ? bindZone : undefined}
-      className={zoneClass}
-      onMouseMove={!isHook && !disabled ? onPointerMove : undefined}
-      onMouseLeave={!isHook && !disabled ? onPointerLeave : undefined}
-    >
-      {caseId === 'fixed' ? (
-        <FixedPointerUi liveCoords={liveCoords} inside={api.inside} />
-      ) : (
-        <CustomPointerUi
-          liveCoords={liveCoords}
-          inside={api.inside}
-          dotFlash={dotFlash}
-          chipVisible={chipVisible}
-          dotRef={dotRef}
-          chipWrapRef={chipWrapRef}
-          trailRefs={trailRefs}
-        />
-      )}
+    <div className={styles.reuseGrid}>
+      <article className={styles.reuseCard}>
+        <header className={styles.reuseHead}>
+          <strong>Heatmap</strong>
+          <span className={styles.apiTag}>render(api)</span>
+        </header>
+        <div ref={zoneRef} className={zoneClass} {...zoneHandlers}>
+          <HeatmapUi
+            liveCoords={liveCoords}
+            inside={api.inside}
+            dotFlash={dotFlash}
+            chipVisible={chipVisible}
+            dotRef={dotRef}
+            chipWrapRef={chipWrapRef}
+            trailRefs={trailRefs}
+          />
+        </div>
+      </article>
+      <article className={styles.reuseCard}>
+        <header className={styles.reuseHead}>
+          <strong>Tracker</strong>
+          <span className={styles.apiTag}>тот же api</span>
+        </header>
+        <div className={zoneClass} {...zoneHandlers}>
+          <TrackerUi liveCoords={liveCoords} hudVisible={hudVisible} inside={api.inside} />
+        </div>
+      </article>
     </div>
   )
 }
@@ -648,6 +579,7 @@ type VizProps = {
   liveCoords: { x: number; y: number }
   dotFlash: boolean
   chipVisible: boolean
+  hudVisible: boolean
   busy: boolean
   onEnter: (next: PointerApi) => void
   onMove: (next: PointerApi) => void
@@ -666,6 +598,7 @@ const RenderPropsLiveViz = ({
   liveCoords,
   dotFlash,
   chipVisible,
+  hudVisible,
   busy,
   onEnter,
   onMove,
@@ -676,30 +609,17 @@ const RenderPropsLiveViz = ({
   zoneRef,
 }: VizProps) => {
   const meta =
-    phase === 'idle'
-      ? 'ожидание'
-      : caseId === 'fixed'
-        ? 'встроенный UI'
-        : caseId === 'render'
-          ? 'render(api) → UI'
-          : 'usePointer(ref)'
+    phase === 'idle' ? 'ожидание' : caseId === 'fixed' ? 'встроенный UI' : 'один движок · 2 UI'
 
   const receipt =
     caseId === 'fixed'
       ? 'PointerZone · readout ∈ center · no slot'
-      : caseId === 'render'
-        ? 'render(api) · chip ∈ corner · dot chase'
-        : 'usePointer · flat Heatmap · dot chase'
+      : 'render(api) · Heatmap + Tracker · один api'
 
-  const cardTone =
-    phase === 'done'
-      ? caseId === 'fixed'
-        ? styles.cardWarn
-        : styles.cardOk
-      : ''
+  const cardTone = phase === 'done' ? (caseId === 'fixed' ? styles.cardWarn : styles.cardOk) : ''
 
   return (
-    <LabVizPanel title="Heatmap" meta={meta}>
+    <LabVizPanel title={caseId === 'fixed' ? 'Heatmap' : 'Переиспользование'} meta={meta}>
       <div className={styles.stage}>
         <FlowRow caseId={caseId} activeStep={flowStep} />
         <p className={styles.legend}>{LEGEND[caseId]}</p>
@@ -707,40 +627,33 @@ const RenderPropsLiveViz = ({
           <header className={styles.header}>
             <div className={styles.brand}>
               <span className={styles.brandMark} aria-hidden />
-              <strong>Heatmap</strong>
+              <strong>{caseId === 'fixed' ? 'Heatmap' : 'PointerZone'}</strong>
             </div>
             <div className={styles.headerExtra}>
               {caseId === 'fixed' ? (
-                <span className={styles.roleTag}>вызывающий · без доступа к layout</span>
-              ) : caseId === 'render' ? (
-                <>
-                  <span className={styles.apiTag}>render(api)</span>
-                  <span className={styles.roleTag}>вы · layout</span>
-                </>
+                <span className={styles.roleTag}>логика + UI слиты</span>
               ) : (
                 <>
-                  <span className={styles.apiTag}>usePointer</span>
-                  <span className={styles.roleTag}>вы · UI + hook</span>
+                  <span className={styles.apiTag}>render(api)</span>
+                  <span className={styles.roleTag}>2 экрана · разный JSX</span>
                 </>
               )}
             </div>
           </header>
           <div className={styles.body}>
-            {caseId !== 'hook' ? (
-              <div
-                className={[
-                  styles.engineBar,
-                  flowStep === 'engine' || flowStep === 'api' ? styles.engineBarActive : '',
-                ]
-                  .filter(Boolean)
-                  .join(' ')}
-              >
-                {caseId === 'fixed' ? 'PointerZone · listeners + state' : 'PointerZone · render(api)'}
-              </div>
-            ) : null}
-            {caseId !== 'fixed' ? (
+            <div
+              className={[
+                styles.engineBar,
+                flowStep === 'engine' || flowStep === 'api' ? styles.engineBarActive : '',
+              ]
+                .filter(Boolean)
+                .join(' ')}
+            >
+              {caseId === 'fixed' ? 'PointerZone · listeners + state + JSX' : 'PointerZone · listeners + state → render(api)'}
+            </div>
+            {caseId === 'render' ? (
               <div className={[styles.uiBar, flowStep === 'ui' ? styles.engineBarActive : ''].filter(Boolean).join(' ')}>
-                ваш UI · dot + chip «live»
+                Heatmap: dot + chip · Tracker: крест + HUD
               </div>
             ) : null}
             <PointerZoneShell
@@ -753,6 +666,7 @@ const RenderPropsLiveViz = ({
               disabled={busy}
               dotFlash={dotFlash}
               chipVisible={chipVisible}
+              hudVisible={hudVisible}
               dotRef={dotRef}
               chipWrapRef={chipWrapRef}
               trailRefs={trailRefs}
@@ -777,6 +691,7 @@ export const ReactRenderPropsLab = () => {
   const [liveCoords, setLiveCoords] = useState({ x: 0, y: 0 })
   const [dotFlash, setDotFlash] = useState(false)
   const [chipVisible, setChipVisible] = useState(false)
+  const [hudVisible, setHudVisible] = useState(false)
 
   const tlRef = useRef<gsap.core.Timeline | null>(null)
   const dotRef = useRef<HTMLSpanElement | null>(null)
@@ -819,6 +734,7 @@ export const ReactRenderPropsLab = () => {
     }
     setDotFlash(false)
     setChipVisible(false)
+    setHudVisible(false)
     chaseRef.current.reset()
     if (chipWrapRef.current) gsap.set(chipWrapRef.current, { clearProps: 'transform,opacity' })
   }, [])
@@ -837,14 +753,11 @@ export const ReactRenderPropsLab = () => {
     setDotFlash(false)
     setFlowStep('ui')
     if (id === 'fixed') {
-      log('warn', 'readout ∈ center · chip slot нет')
+      log('warn', 'readout ∈ center · slot нет')
       setHint('без render-prop layout закрыт внутри PointerZone')
-    } else if (id === 'render') {
-      log('ok', 'render(api) · chip ∈ corner · dot chase')
-      setHint('движок отдаёт api; dot и chip рисует колбэк')
     } else {
-      log('ok', 'usePointer · без PointerZone')
-      setHint('hook — та же логика; UI остаётся в Heatmap')
+      log('ok', 'render(api) · Heatmap + Tracker')
+      setHint('один движок — два экрана с разным UI')
     }
   }
 
@@ -857,8 +770,12 @@ export const ReactRenderPropsLab = () => {
       pushVisual(next, true)
       setLiveCoords({ x: next.x, y: next.y })
       setApiSafe(next)
+      if (caseId === 'render') {
+        setChipVisible(true)
+        setHudVisible(true)
+      }
     },
-    [pushVisual, setApiSafe],
+    [caseId, pushVisual, setApiSafe],
   )
 
   const onPointerMove = useCallback(
@@ -889,12 +806,15 @@ export const ReactRenderPropsLab = () => {
           pushVisual(next, true)
           setLiveCoords({ x: next.x, y: next.y })
           setApi(next)
-          log('info', caseId === 'hook' ? 'usePointer · inside=true' : 'PointerZone · inside=true')
+          log('info', 'PointerZone · inside=true')
         },
         () => {
           setFlowStep(caseId === 'fixed' ? 'ui' : 'api')
-          if (caseId !== 'fixed') setChipVisible(true)
-          log(caseId === 'fixed' ? 'warn' : 'ok', caseId === 'fixed' ? 'coords ∈ center' : 'chip live · corner')
+          if (caseId === 'render') {
+            setChipVisible(true)
+            setHudVisible(true)
+          }
+          log(caseId === 'fixed' ? 'warn' : 'ok', caseId === 'fixed' ? 'coords ∈ center' : 'api → 2 UI')
         },
         () => {
           setFlowStep('ui')
@@ -902,7 +822,7 @@ export const ReactRenderPropsLab = () => {
           pushVisual(next)
           setLiveCoords({ x: next.x, y: next.y })
           setApi(next)
-          if (caseId !== 'fixed') setDotFlash(true)
+          if (caseId === 'render') setDotFlash(true)
           finishCase(caseId)
         },
       ],
@@ -968,6 +888,7 @@ export const ReactRenderPropsLab = () => {
         liveCoords={liveCoords}
         dotFlash={dotFlash}
         chipVisible={chipVisible}
+        hudVisible={hudVisible}
         busy={busy}
         onEnter={onPointerEnter}
         onMove={onPointerMove}
@@ -1014,7 +935,7 @@ export const ReactRenderPropsLab = () => {
   return (
     <JsLabShell
       title="Render-props"
-      lead="Сначала встроенный UI, затем `render(api)` и `usePointer`: кто держит логику, кто рисует dot и chip."
+      lead="Сначала без паттерна, затем один `PointerZone` с `render(api)` и два экрана с разным UI."
       problem={problem}
       code={code}
     />

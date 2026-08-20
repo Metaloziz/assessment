@@ -1,5 +1,5 @@
 .stage {
-  min-height: 15rem;
+  min-height: 16.5rem;
 }
 
 .flow {
@@ -299,6 +299,74 @@
   color: var(--text-faint);
 }
 
+.reuseGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.55rem;
+}
+
+.reuseCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.reuseHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.35rem;
+  font-size: var(--lab-font-ui);
+  color: var(--text);
+}
+
+.vline {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  margin-left: -0.5px;
+  background: color-mix(in srgb, var(--accent) 55%, transparent);
+  pointer-events: none;
+}
+
+.hline {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  margin-top: -0.5px;
+  background: color-mix(in srgb, var(--accent) 55%, transparent);
+  pointer-events: none;
+}
+
+.hud {
+  position: absolute;
+  left: 0.45rem;
+  right: 0.45rem;
+  bottom: 0.45rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-meta);
+  color: var(--ok);
+  padding: 0.14rem 0.4rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid color-mix(in srgb, var(--ok) 40%, var(--border));
+  background: color-mix(in srgb, var(--ok) 12%, transparent);
+  pointer-events: none;
+  transition:
+    opacity 0.35s ease,
+    transform 0.35s ease;
+}
+
+.hudHidden {
+  opacity: 0;
+  transform: translateY(4px);
+}
+
 .codePane {
   display: flex;
   flex-direction: column;
@@ -307,12 +375,19 @@
   gap: 0.55rem;
 }
 
+@media (max-width: 640px) {
+  .reuseGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .card,
   .zone,
   .cursorDot,
   .trailDot,
   .chip,
+  .hud,
   .flowStep {
     transition: none;
   }

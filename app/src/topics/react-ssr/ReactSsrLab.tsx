@@ -1,405 +1,196 @@
-import { useRef, useState, type MutableRefObject, type ReactNode } from 'react'
-import gsap from 'gsap'
+import { useRef, useState, type ReactNode } from 'react'
+import { hydrateRoot, type Root } from 'react-dom/client'
 import { JsLabShell } from '../../components/lab/JsLabShell'
 import { LabButton } from '../../components/lab/LabButton'
 import shell from '../../components/lab/JsLabShell.module.css'
 import { InteractiveCodePanel, type InteractiveSnippet } from '../../components/lab/InteractiveCodePanel'
 import { LabLogView } from '../../components/lab/LabLogView'
 import { useLabLog } from '../../components/lab/useLabLog'
-import { LabVizPanel, LabNode, type LabNodeState } from '../../components/lab/LabViz'
+import { LabVizPanel } from '../../components/lab/LabViz'
+import { apiJson } from '../../lib/apiBase'
 import styles from './ReactSsrLab.module.css'
 
 const TOPIC_ID = '192-react-ssr'
-const STEP = 0.6
 
-type CaseId = 'csr' | 'ssr' | 'mismatch'
-type Phase = 'idle' | 'html' | 'js' | 'done'
+type Phase = 'idle' | 'html' | 'hydrated'
+type SsrHelloResponse = { ok: true; html: string; ts: string }
 
-const CASES: Array<{ id: CaseId; label: string }> = [
-  { id: 'csr', label: 'CSR' },
-  { id: 'ssr', label: 'SSR + hydrate' },
-  { id: 'mismatch', label: 'Mismatch' },
-]
-
-const CODE_INTRO: Record<CaseId, string> = {
-  csr: 'Пустой `#root` и `createRoot` — UI появляется только после JS.',
-  ssr: '`renderToString` кладёт HTML в ответ; клиент вызывает `hydrateRoot`.',
-  mismatch: 'Сервер и клиент отдают разный текст — гидратация ругается.',
-}
-
-const SNIPPET_INDEX: InteractiveSnippet = {
-  id: 'index-csr',
-  label: 'index.html',
-  note: 'CSR: в `#root` нет разметки приложения.',
-  executable: false,
-  languageLabel: 'html',
-  code: `<body>
-  <div id="root"></div> <!-- ← пусто до JS -->
-  <script type="module" src="/src/entry-client.tsx"></script>
-</body>`,
-}
-
-const SNIPPET_CLIENT_CSR: InteractiveSnippet = {
-  id: 'entry-client-csr',
-  label: 'src/entry-client.tsx',
-  note: '`createRoot` монтирует дерево с нуля в пустой `#root`.',
-  executable: false,
-  languageLabel: 'tsx',
-  code: `import { createRoot } from 'react-dom/client';
-import { App } from './App';
-
-const root = document.getElementById('root');
-if (!root) throw new Error('#root missing');
-
-// ═══════════════════════════════════════════
-// CSR ← UI только после бандла
-// ═══════════════════════════════════════════
-createRoot(root).render(<App />);`,
+/** Initial DOM must match server `renderToString` (`/api/ssr/hello`). */
+const HelloApp = ({ onClick }: { onClick?: () => void }) => {
+  const [n, setN] = useState(0)
+  return (
+    <div data-ssr-hello="">
+      <p>Hello World</p>
+      <button
+        type="button"
+        onClick={() => {
+          setN((c) => c + 1)
+          onClick?.()
+        }}
+      >
+        {n === 0 ? 'Нажми' : `Кликов: ${n}`}
+      </button>
+    </div>
+  )
 }
 
 const SNIPPET_SERVER: InteractiveSnippet = {
-  id: 'entry-server',
-  label: 'src/entry-server.tsx',
-  note: 'Сервер рендерит `App` в строку и вставляет в `#root`.',
+  id: 'ssr-route',
+  label: 'server/src/routes/ssrLab.ts',
+  note: '`renderToString` на assessment-api отдаёт HTML фрагмент в JSON.',
   executable: false,
   languageLabel: 'tsx',
-  code: `import { renderToString } from 'react-dom/server';
-import { App } from './App';
+  code: `import { createElement as h } from 'react';
+import { renderToString } from 'react-dom/server';
 
-export const render = () => {
-  // ═══════════════════════════════════════════
-  // SSR ← HTML для первого ответа
-  // ═══════════════════════════════════════════
-  const html = renderToString(<App />); // ← разметка в строке
-  return \`<!doctype html>
-<html>
-  <body>
-    <div id="root">\${html}</div>
-    <script type="module" src="/entry-client.js"></script>
-  </body>
-</html>\`;
-};`,
-}
-
-const SNIPPET_CLIENT_SSR: InteractiveSnippet = {
-  id: 'entry-client-ssr',
-  label: 'src/entry-client.tsx',
-  note: '`hydrateRoot` навешивает обработчики на уже нарисованный DOM.',
-  executable: false,
-  languageLabel: 'tsx',
-  code: `import { hydrateRoot } from 'react-dom/client';
-import { App } from './App';
-
-const root = document.getElementById('root');
-if (!root) throw new Error('#root missing');
-
-// ═══════════════════════════════════════════
-// HYDRATE ← не createRoot: HTML уже есть
-// ═══════════════════════════════════════════
-hydrateRoot(root, <App />);`,
-}
-
-const SNIPPET_APP_MISMATCH: InteractiveSnippet = {
-  id: 'app-mismatch',
-  label: 'src/App.tsx',
-  note: '`window` на сервере нет — клиент рисует другой текст.',
-  executable: false,
-  languageLabel: 'tsx',
-  code: `type Props = { title?: string };
-
-export const App = ({ title = 'Наушники Pro' }: Props) => {
-  const heading =
-    typeof window === 'undefined'
-      ? title
-      : \`\${title} · sale\`; // ← другой HTML на клиенте
-
-  // ═══════════════════════════════════════════
-  // MISMATCH ← сервер и клиент разошлись
-  // ═══════════════════════════════════════════
-  return (
-    <article>
-      <h1>{heading}</h1>
-      <button type="button">В корзину</button>
-    </article>
+const HelloApp = () =>
+  h('div', { 'data-ssr-hello': '' },
+    h('p', null, 'Hello World'),
+    h('button', { type: 'button' }, 'Нажми'),
   );
-};`,
+
+app.get('/api/ssr/hello', async () => {
+  // ═══════════════════════════════════════════
+  // SSR ← HTML в ответе API
+  // ═══════════════════════════════════════════
+  const html = renderToString(h(HelloApp));
+  return { ok: true, html };
+});`,
 }
 
 const SNIPPET_APP: InteractiveSnippet = {
-  id: 'app-card',
-  label: 'src/App.tsx',
-  note: 'Одно дерево на сервере и на клиенте — гидратация сходится.',
+  id: 'hello-app',
+  label: 'src/HelloApp.tsx',
+  note: 'Первый рендер совпадает с сервером (`Нажми`); дальше счётчик только на клиенте.',
   executable: false,
   languageLabel: 'tsx',
   code: `import { useState } from 'react';
 
-export const App = () => {
-  const [count, setCount] = useState(0);
+export const HelloApp = () => {
+  const [n, setN] = useState(0);
 
+  // ═══════════════════════════════════════════
+  // APP ← тот же initial DOM, что renderToString
+  // ═══════════════════════════════════════════
   return (
-    <article>
-      <h1>Наушники Pro</h1>
-      <p>4 290 ₽</p>
-      <button type="button" onClick={() => setCount((n) => n + 1)}>
-        {count === 0 ? 'В корзину' : \`В корзине · \${count}\`}
-      </button> {/* ← listeners после hydrate */}
-    </article>
+    <div data-ssr-hello="">
+      <p>Hello World</p>
+      <button type="button" onClick={() => setN((c) => c + 1)}>
+        {n === 0 ? 'Нажми' : \`Кликов: \${n}\`}
+      </button>
+    </div>
   );
 };`,
 }
 
-const CODE_SNIPPETS: Record<CaseId, InteractiveSnippet[]> = {
-  csr: [SNIPPET_INDEX, SNIPPET_CLIENT_CSR],
-  ssr: [SNIPPET_SERVER, SNIPPET_CLIENT_SSR, SNIPPET_APP],
-  mismatch: [SNIPPET_APP_MISMATCH, SNIPPET_CLIENT_SSR],
+const SNIPPET_HYDRATE: InteractiveSnippet = {
+  id: 'hydrate',
+  label: 'src/hydrate.ts',
+  note: 'Сначала вставляем HTML с API, потом `hydrateRoot` — не `createRoot`.',
+  executable: false,
+  languageLabel: 'tsx',
+  code: `import { hydrateRoot } from 'react-dom/client';
+import { HelloApp } from './HelloApp';
+
+const root = document.getElementById('root');
+if (!root) throw new Error('#root missing');
+
+const { html } = await fetch('/api/ssr/hello').then((r) => r.json());
+root.innerHTML = html; // ← разметка уже есть
+
+// ═══════════════════════════════════════════
+// HYDRATE ← listeners на существующий DOM
+// ═══════════════════════════════════════════
+hydrateRoot(root, <HelloApp />);`,
 }
 
 const PAIN = (
   <>
-    CSR отдаёт пустой <code>#root</code> и рисует UI только после JS. SSR кладёт HTML в ответ;{' '}
-    <code>hydrateRoot</code> навешивает обработчики на уже существующий DOM.
+    API вызывает <code>renderToString</code> и отдаёт HTML. Клиент вставляет разметку и вызывает{' '}
+    <code>hydrateRoot</code> — кнопка оживает без повторной сборки DOM с нуля.
   </>
 )
 
-const CASE_BRIEF: Record<CaseId, ReactNode> = {
-  csr: (
-    <>
-      Браузер получает пустой <code>#root</code>; карточка появляется только после{' '}
-      <code>createRoot</code>.
-    </>
-  ),
-  ssr: (
-    <>
-      HTML карточки уже в ответе; после <code>hydrateRoot</code> кнопка получает listeners.
-    </>
-  ),
-  mismatch: (
-    <>
-      Сервер написал «Наушники Pro», клиент — «Наушники Pro · sale»; гидратация расходится.
-    </>
-  ),
-}
-
-const reducedMotion = () =>
-  typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
-
-const playTimeline = (
-  tlRef: MutableRefObject<gsap.core.Timeline | null>,
-  steps: Array<() => void>,
-  motion: ((tl: gsap.core.Timeline) => void) | null,
-  onDone: () => void,
-) => {
-  tlRef.current?.kill()
-  if (reducedMotion()) {
-    for (const step of steps) step()
-    onDone()
-    return
-  }
-  const tl = gsap.timeline({
-    defaults: { duration: 0.55, ease: 'power2.inOut' },
-    onComplete: onDone,
-  })
-  tlRef.current = tl
-  steps.forEach((step, i) => {
-    tl.call(step, undefined, i * STEP)
-  })
-  motion?.(tl)
-}
-
-const nodeState = (active: boolean, done: boolean, err = false): LabNodeState => {
-  if (err && done) return 'err'
-  if (active) return 'active'
-  if (done) return 'ok'
-  return 'idle'
-}
-
-type VizProps = {
-  caseId: CaseId
-  phase: Phase
-  focusRef: MutableRefObject<HTMLDivElement | null>
-}
-
-const SsrViz = ({ caseId, phase, focusRef }: VizProps) => {
-  const htmlOn = phase === 'html' || phase === 'js' || phase === 'done'
-  const jsOn = phase === 'js' || phase === 'done'
-  const done = phase === 'done'
-  const isCsr = caseId === 'csr'
-  const isMismatch = caseId === 'mismatch'
-
-  const serverSub = isCsr ? 'оболочка' : 'renderToString'
-  const htmlSub = !htmlOn || isCsr ? '#root пуст' : '<article>…'
-  const jsSub = isCsr ? 'createRoot' : 'hydrateRoot'
-  const rootSub = !jsOn
-    ? isCsr || !htmlOn
-      ? 'пусто'
-      : 'HTML · без listeners'
-    : isMismatch && done
-      ? 'sale · mismatch'
-      : isCsr
-        ? 'карточка + клики'
-        : 'HTML + listeners'
-
-  const meta =
-    phase === 'idle'
-      ? 'ожидание'
-      : phase === 'html'
-        ? isCsr
-          ? '#root пуст'
-          : 'HTML в ответе'
-        : phase === 'js'
-          ? isCsr
-            ? 'createRoot'
-            : 'hydrateRoot'
-          : isMismatch
-            ? 'mismatch'
-            : isCsr
-              ? 'UI после JS'
-              : 'клики живые'
-
-  return (
-    <LabVizPanel title="Запрос страницы" meta={meta}>
-      <div className={styles.stack}>
-        <LabNode
-          className={styles.node}
-          label="сервер"
-          sub={serverSub}
-          state={nodeState(false, htmlOn)}
-        />
-        <span className={styles.arrow} aria-hidden>
-          ↓
-        </span>
-        <LabNode
-          className={styles.node}
-          label="HTML"
-          sub={htmlSub}
-          state={nodeState(phase === 'html', htmlOn && !isCsr && phase !== 'html')}
-        />
-        <span className={styles.arrow} aria-hidden>
-          ↓
-        </span>
-        <LabNode
-          className={styles.node}
-          label="JS"
-          sub={jsSub}
-          state={nodeState(phase === 'js', done)}
-        />
-        <span className={styles.arrow} aria-hidden>
-          ↓
-        </span>
-        <LabNode
-          ref={focusRef}
-          className={styles.node}
-          label="#root"
-          sub={rootSub}
-          state={nodeState(false, done && !isMismatch, isMismatch && done)}
-        />
-      </div>
-    </LabVizPanel>
-  )
-}
+const BRIEF: ReactNode = (
+  <>
+    <strong>Запустить</strong> — живой <code>GET /api/ssr/hello</code>, затем гидратация. После этого нажми
+    кнопку в сцене.
+  </>
+)
 
 export const ReactSsrLab = () => {
   const { lines, log, clear } = useLabLog()
-  const [caseId, setCaseId] = useState<CaseId>('csr')
-  const [hint, setHint] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [phase, setPhase] = useState<Phase>('idle')
+  const [htmlPreview, setHtmlPreview] = useState<string | null>(null)
+  const [hint, setHint] = useState<string | null>(null)
 
-  const tlRef = useRef<gsap.core.Timeline | null>(null)
-  const focusRef = useRef<HTMLDivElement | null>(null)
+  const mountRef = useRef<HTMLDivElement | null>(null)
+  const rootRef = useRef<Root | null>(null)
 
-  const resetViz = () => {
+  const teardown = () => {
+    rootRef.current?.unmount()
+    rootRef.current = null
+    if (mountRef.current) mountRef.current.innerHTML = ''
+    setHtmlPreview(null)
     setPhase('idle')
     setHint(null)
-    if (focusRef.current) gsap.set(focusRef.current, { clearProps: 'transform,opacity' })
   }
 
-  const selectCase = (next: CaseId) => {
-    tlRef.current?.kill()
-    setBusy(false)
-    setCaseId(next)
+  const run = async () => {
     clear()
-    resetViz()
-  }
-
-  const run = () => {
-    clear()
-    resetViz()
+    teardown()
     setBusy(true)
 
-    playTimeline(
-      tlRef,
-      [
-        () => {
-          setPhase('html')
-          if (caseId === 'csr') log('info', 'HTML: пустой #root')
-          else log('ok', 'renderToString → HTML в #root')
-        },
-        () => {
-          setPhase('js')
-          if (caseId === 'csr') log('info', 'бандл → createRoot')
-          else log('info', 'бандл → hydrateRoot')
-        },
-        () => {
-          setPhase('done')
-          if (caseId === 'csr') {
-            log('ok', 'createRoot().render → карточка')
-            setHint('UI появился вместе с JS')
-          } else if (caseId === 'ssr') {
-            log('ok', 'hydrateRoot · listeners на существующем DOM')
-            setHint('HTML был раньше listeners')
-          } else {
-            log('warn', 'клиент: «Наушники Pro · sale»')
-            setHint('разная разметка → mismatch')
-          }
-        },
-      ],
-      (tl) => {
-        tl.call(
-          () => {
-            const el = focusRef.current
-            if (!el) return
-            gsap.fromTo(
-              el,
-              { opacity: 0.55, y: 6 },
-              { opacity: 1, y: 0, duration: 0.5, ease: 'power2.inOut' },
-            )
-          },
-          undefined,
-          STEP * 2 + 0.08,
-        )
-      },
-      () => setBusy(false),
-    )
+    try {
+      log('info', 'GET /api/ssr/hello')
+      const data = await apiJson<SsrHelloResponse>('/api/ssr/hello')
+      if (!data.ok || typeof data.html !== 'string') {
+        throw new Error('unexpected response')
+      }
+
+      setHtmlPreview(data.html)
+      setPhase('html')
+      log('ok', 'renderToString → HTML в ответе')
+
+      const mount = mountRef.current
+      if (!mount) throw new Error('mount missing')
+
+      mount.innerHTML = data.html
+      rootRef.current = hydrateRoot(
+        mount,
+        <HelloApp
+          onClick={() => {
+            log('ok', 'клик · listeners после hydrate')
+            setHint('кнопка живая — HTML был раньше JS')
+          }}
+        />,
+      )
+      setPhase('hydrated')
+      log('ok', 'hydrateRoot · listeners на существующем DOM')
+      setHint('нажми кнопку в сцене')
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err)
+      log('warn', `ошибка: ${message}`)
+      setHint('API недоступен или роут ещё не задеплоен')
+      teardown()
+    } finally {
+      setBusy(false)
+    }
   }
 
   const reset = () => {
-    tlRef.current?.kill()
-    setBusy(false)
     clear()
-    setCaseId('csr')
-    resetViz()
+    teardown()
   }
+
+  const meta =
+    phase === 'idle' ? 'ожидание' : phase === 'html' ? 'HTML с API' : 'hydrate · клики живые'
 
   const problem = (
     <div className={shell.panel}>
       <div className={shell.row}>
-        {CASES.map((c) => (
-          <LabButton
-            key={c.id}
-            variant="ghost"
-            size="sm"
-            active={caseId === c.id}
-            disabled={busy}
-            onClick={() => selectCase(c.id)}
-          >
-            {c.label}
-          </LabButton>
-        ))}
-      </div>
-
-      <div className={shell.row}>
-        <LabButton variant="primary" disabled={busy} onClick={run}>
+        <LabButton variant="primary" disabled={busy} onClick={() => void run()}>
           Запустить
         </LabButton>
         <LabButton variant="secondary" disabled={busy} onClick={reset}>
@@ -408,9 +199,27 @@ export const ReactSsrLab = () => {
       </div>
 
       <p className={shell.pain}>{PAIN}</p>
-      <p className={shell.hint}>{CASE_BRIEF[caseId]}</p>
+      <p className={shell.hint}>{BRIEF}</p>
 
-      <SsrViz caseId={caseId} phase={phase} focusRef={focusRef} />
+      <LabVizPanel title="#root" meta={meta}>
+        <div className={styles.stage}>
+          {htmlPreview ? (
+            <pre className={styles.htmlPreview} tabIndex={0}>
+              {htmlPreview}
+            </pre>
+          ) : (
+            <p className={styles.placeholder}>HTML с API появится здесь</p>
+          )}
+          <div
+            ref={mountRef}
+            className={[styles.mount, phase === 'hydrated' ? styles.mountLive : '']
+              .filter(Boolean)
+              .join(' ')}
+            data-empty={phase === 'idle' ? 'true' : undefined}
+          />
+          {phase === 'idle' ? <p className={styles.mountHint}>сцена пуста до запуска</p> : null}
+        </div>
+      </LabVizPanel>
 
       {hint ? (
         <p className={shell.hint}>
@@ -423,24 +232,10 @@ export const ReactSsrLab = () => {
 
   const code = (
     <div className={styles.codePane}>
-      <div className={shell.row}>
-        {CASES.map((c) => (
-          <LabButton
-            key={c.id}
-            variant="ghost"
-            size="sm"
-            active={caseId === c.id}
-            onClick={() => selectCase(c.id)}
-          >
-            {c.label}
-          </LabButton>
-        ))}
-      </div>
       <InteractiveCodePanel
-        key={caseId}
         topicId={TOPIC_ID}
-        intro={CODE_INTRO[caseId]}
-        snippets={CODE_SNIPPETS[caseId]}
+        intro="`renderToString` на API → HTML в `#root` → `hydrateRoot` оживляет кнопку."
+        snippets={[SNIPPET_SERVER, SNIPPET_APP, SNIPPET_HYDRATE]}
       />
     </div>
   )
@@ -448,7 +243,7 @@ export const ReactSsrLab = () => {
   return (
     <JsLabShell
       title="SSR"
-      lead="`renderToString` отдаёт HTML; `hydrateRoot` навешивает обработчики; расхождение сервер/клиент — mismatch."
+      lead="Живой `renderToString` на assessment-api; `hydrateRoot` навешивает обработчики на уже пришедший HTML."
       problem={problem}
       code={code}
     />

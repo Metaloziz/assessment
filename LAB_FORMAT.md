@@ -16,6 +16,9 @@
 **Live-API / HTTP-поток** (не шаблон любой схемы):  
 [`app/src/topics/cors/CorsLab.tsx`](app/src/topics/cors/CorsLab.tsx).
 
+**Один движок + 2 UI** (без паттерна → один компонент с логикой и два экрана с разным JSX; обе зоны интерактивны):  
+[`app/src/topics/react-render-props/ReactRenderPropsLab.tsx`](app/src/topics/react-render-props/ReactRenderPropsLab.tsx).
+
 **Визуальный язык** (токены, SVG, подсветка шага): algorithms (`algorithms-graphs-list`, `algorithms-stack-hashmap`). Это стиль панелей, **не** эталон объёма: не тащить список + граф + BFS + DFS в одну лабу. Кластер с переключателем (одна схема на экране) — норма.
 
 **Эталон оболочки:** пилоты `107+` в `app/src/topics/js-*/*Lab.tsx`.

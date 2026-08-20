@@ -107,7 +107,8 @@ export function parseTopicMd(id: string, raw: string, order: number): TopicDetai
     id === '267-devtools-websocket-debug' ||
     id === '251-network-api-first' ||
     id === '250-network-http-https' ||
-    id === '252-network-long-polling-ws-sse'
+    id === '252-network-long-polling-ws-sse' ||
+    id === '192-react-ssr'
 
   return {
     id,

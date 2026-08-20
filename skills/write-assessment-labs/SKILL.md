@@ -38,9 +38,10 @@ description: >-
 4. Доп. эталон ghost + запуск (без новой раскладки текста): `app/src/topics/software-incremental-iterative-spiral/IncrementalIterativeSpiralLab.tsx`, `app/src/topics/algorithms-stack-hashmap/AlgorithmsStackHashmapLab.tsx`
 5. Live-API / HTTP-поток (не шаблон любой схемы): `app/src/topics/cors/CorsLab.tsx`
 6. **Живой механизм** (реальный API/DOM в стенде): `app/src/topics/react-portals/ReactPortalsLab.tsx`, `app/src/topics/react-error-boundaries/ReactErrorBoundariesLab.tsx`
-7. **Без визуализации** (нечего рисовать / анимировать): `app/src/topics/ts-declaration-files/TsDeclarationFilesLab.tsx`
-8. **Обязательно при схеме:** [`assessment-lab-visualizations/SKILL.md`](../assessment-lab-visualizations/SKILL.md) — прочитать до кода схемы (см. § выше). Algorithms — стиль, не объём файла
-9. Оболочка: `app/src/topics/js-*/*Lab.tsx` (пилоты `107+`)
+7. **Один движок + 2 UI** (без паттерна → reuse с разным JSX): `app/src/topics/react-render-props/ReactRenderPropsLab.tsx`
+8. **Без визуализации** (нечего рисовать / анимировать): `app/src/topics/ts-declaration-files/TsDeclarationFilesLab.tsx`
+9. **Обязательно при схеме:** [`assessment-lab-visualizations/SKILL.md`](../assessment-lab-visualizations/SKILL.md) — прочитать до кода схемы (см. § выше). Algorithms — стиль, не объём файла
+10. Оболочка: `app/src/topics/js-*/*Lab.tsx` (пилоты `107+`)
 
 ## Стенд, не статья
 
@@ -64,6 +65,7 @@ description: >-
    |-----|----------------|--------|
    | **Живой механизм** | Эффект можно **увидеть/потрогать** в браузере тем же API, что в теме (`createPortal`, Error Boundary, `overflow`+clip, focus, реальный HTTP-стенд…) | `react-portals`, `react-error-boundaries`, CorsLab |
    | **Живой UI-образец** | Тема про **look** (токены, типографика, contrast) | `layout-design-system` |
+   | **Один движок + 2 UI** | Один компонент с логикой → два экрана с разным JSX (без паттерна vs reuse); обе зоны интерактивны | `react-render-props` |
    | **Механизм узлами** | Абстрактная структура/шаги: граф, стек, кэш, паттерн-связи, пайплайн без «живого» DOM-эффекта | `algorithms-stack-hashmap`, mediator |
    | **Без картины** | Нечего анимировать и нечего честно нарисовать узлами — чистый синтаксис / декларации / конфиг; смысл в файлах на «Код» | `ts-declaration-files` |
 

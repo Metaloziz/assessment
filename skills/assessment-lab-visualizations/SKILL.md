@@ -65,7 +65,8 @@ description: >-
 CorsLab — эталон **live-API**, не шаблон любой схемы.  
 Эталон **живого механизма (React/DOM)**: `app/src/topics/react-portals/ReactPortalsLab.tsx`, `app/src/topics/react-error-boundaries/ReactErrorBoundariesLab.tsx`.  
 Эталон **живого UI-образца**: `app/src/topics/layout-design-system/LayoutDesignSystemLab.tsx`.  
-Эталон **развилки событий** (не вертикальный стек): `app/src/topics/nodejs-cache-crud/NodejsCacheCrudLab.tsx`.
+Эталон **развилки событий** (не вертикальный стек): `app/src/topics/nodejs-cache-crud/NodejsCacheCrudLab.tsx`.  
+Эталон **один движок + 2 UI** (без паттерна vs reuse с разным JSX; оба потребителя интерактивны): `app/src/topics/react-render-props/ReactRenderPropsLab.tsx`.
 
 ### Развилка событий (не стек блоков)
 
@@ -122,6 +123,7 @@ CorsLab — эталон **live-API**, не шаблон любой схемы.
 - `app/src/topics/react-portals/` — живой `createPortal` + clip
 - `app/src/topics/react-error-boundaries/` — живой cabinet + fallback
 - `app/src/topics/nodejs-cache-crud/` — **развилка** hit/miss + горизонтальный write (не вертикальный стек)
+- `app/src/topics/react-render-props/` — **один движок + 2 UI** (Heatmap / Tracker на одном `render(api)`; курсор в обеих зонах)
 
 Новые live-API / живой-механизм лабы переиспользуют **тот же** язык токенов и панелей: `LabVizPanel` / `LabNode` / `labVizStyles` из `app/src/components/lab/LabViz.tsx`. Не копировать блок `.viz` в CSS топика. UI-look и живой механизм — тот же `LabVizPanel`, но содержимое = сцена/контролы, не обязанность `LabNode`.
 
