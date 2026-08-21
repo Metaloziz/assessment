@@ -12,166 +12,130 @@ import styles from './AsyncAwaitLab.module.css'
 const TOPIC_ID = '219-async-await'
 const STEP = 0.6
 
-type CaseId = 'serial' | 'parallel'
+type CaseId = 'then' | 'await'
 type Phase = 'idle' | 'run' | 'done'
-type Lane = 'idle' | 'run' | 'done'
+type StepId = 'fetch' | 'json' | 'use'
 
 const CASES: Array<{ id: CaseId; label: string }> = [
-  { id: 'serial', label: 'Последовательно' },
-  { id: 'parallel', label: 'Promise.all' },
+  { id: 'then', label: '.then' },
+  { id: 'await', label: 'async/await' },
 ]
 
 const CASE_BRIEF: Record<CaseId, ReactNode> = {
-  serial: (
+  then: (
     <>
-      <code>await a()</code> завершится раньше, чем начнётся <code>b()</code>: время ожидания складывается.
+      Ответ сети проходит по цепочке <code>.then</code>: сначала ответ, потом JSON, потом имя.
     </>
   ),
-  parallel: (
+  await: (
     <>
-      Промисы стартуют до общего <code>await Promise.all</code> — независимые запросы идут вместе.
+      Те же шаги, но линейно: <code>await fetch</code>, <code>await json</code>, <code>return</code>.
     </>
   ),
 }
 
-const SNIPPET_SERIAL: InteractiveSnippet = {
-  id: 'serial',
-  label: 'src/api/loadSerial.js',
-  note: 'Вторая операция зависит от первого `await` только по времени, а не по данным.',
+const SNIPPET_THEN: InteractiveSnippet = {
+  id: 'then',
+  label: 'src/api/loadNameThen.js',
+  note: 'Один `fetch` оформлен цепочкой промисов.',
   executable: false,
-  code: `export async function loadSerial() {
-  const profile = await loadProfile(); // ← ждём A
-  const feed = await loadFeed(); // ← B стартует после A
-  return { profile, feed };
+  code: `export function loadName(id) {
+  return fetch(\`/api/users/\${id}\`) // ← сеть
+    .then((res) => {
+      if (!res.ok) throw new Error(String(res.status));
+      return res.json(); // ← тело → JSON
+    })
+    .then((user) => user.name); // ← данные готовы
 }
+
+loadName(1).catch(console.error);
 `,
 }
 
-const SNIPPET_PARALLEL: InteractiveSnippet = {
-  id: 'parallel',
-  label: 'src/api/loadParallel.js',
-  note: 'Промисы создаются до ожидания, поэтому сеть работает параллельно.',
+const SNIPPET_AWAIT: InteractiveSnippet = {
+  id: 'await',
+  label: 'src/api/loadNameAwait.js',
+  note: 'Тот же запрос через `async`/`await` — снаружи всё равно Promise.',
   executable: false,
-  code: `export async function loadParallel() {
-  const profilePromise = loadProfile(); // ← A стартует
-  const feedPromise = loadFeed(); // ← B стартует рядом
-  const [profile, feed] = await Promise.all([profilePromise, feedPromise]);
-  return { profile, feed }; // ← join
+  code: `export async function loadName(id) {
+  const res = await fetch(\`/api/users/\${id}\`); // ← сеть
+  if (!res.ok) throw new Error(String(res.status));
+  const user = await res.json(); // ← тело → JSON
+  return user.name; // ← данные готовы
 }
+
+loadName(1).catch(console.error);
 `,
 }
 
 const CODE_SNIPPETS: Record<CaseId, InteractiveSnippet[]> = {
-  serial: [SNIPPET_SERIAL],
-  parallel: [SNIPPET_PARALLEL],
+  then: [SNIPPET_THEN],
+  await: [SNIPPET_AWAIT],
 }
 
-const SERIAL_LINES = [
-  'await loadProfile()',
-  'await loadFeed()',
-  'return { profile, feed }',
-] as const
-
-const PARALLEL_LINES = [
-  'loadProfile() · start',
-  'loadFeed() · start',
-  'await Promise.all([…])',
-  'return { profile, feed }',
-] as const
+const THEN_LINES = ['fetch(…)', '.then(res → json)', '.then(user → name)'] as const
+const AWAIT_LINES = ['await fetch(…)', 'await res.json()', 'return user.name'] as const
 
 type Frame = {
   line: number
-  a: Lane
-  b: Lane
+  step: StepId
   bridge: string
-  joinLabel: string
-  joinSub: string
-  tape: string[]
   status: 'run' | 'ok'
   log: { kind: 'info' | 'ok'; text: string }
 }
 
-const SERIAL_FRAMES: Frame[] = [
+const THEN_FRAMES: Frame[] = [
   {
     line: 0,
-    a: 'run',
-    b: 'idle',
-    bridge: 'await A',
-    joinLabel: 'пауза',
-    joinSub: 'ждём profile',
-    tape: ['A'],
+    step: 'fetch',
+    bridge: 'fetch',
     status: 'run',
-    log: { kind: 'info', text: 'A: request started' },
+    log: { kind: 'info', text: 'fetch: запрос ушёл' },
   },
   {
     line: 1,
-    a: 'done',
-    b: 'run',
-    bridge: 'await B',
-    joinLabel: 'пауза',
-    joinSub: 'A готово · ждём feed',
-    tape: ['A', 'B'],
+    step: 'json',
+    bridge: '.then',
     status: 'run',
-    log: { kind: 'info', text: 'A: готово, B: request started' },
+    log: { kind: 'info', text: 'then: res.json()' },
   },
   {
     line: 2,
-    a: 'done',
-    b: 'done',
-    bridge: 'return',
-    joinLabel: 'join',
-    joinSub: '{ profile, feed }',
-    tape: ['A', 'B', 'return'],
+    step: 'use',
+    bridge: '.then',
     status: 'ok',
-    log: { kind: 'ok', text: 'join: оба результата готовы' },
+    log: { kind: 'ok', text: 'готово: имя из цепочки then' },
   },
 ]
 
-const PARALLEL_FRAMES: Frame[] = [
+const AWAIT_FRAMES: Frame[] = [
   {
     line: 0,
-    a: 'run',
-    b: 'idle',
-    bridge: 'start A',
-    joinLabel: 'старт',
-    joinSub: 'profilePromise создан',
-    tape: ['A↓'],
+    step: 'fetch',
+    bridge: 'await',
     status: 'run',
-    log: { kind: 'info', text: 'A: request started' },
+    log: { kind: 'info', text: 'await fetch: ждём ответ' },
   },
   {
     line: 1,
-    a: 'run',
-    b: 'run',
-    bridge: 'A ∥ B',
-    joinLabel: 'старт',
-    joinSub: 'оба запроса уже в полёте',
-    tape: ['A↓', 'B↓'],
+    step: 'json',
+    bridge: 'await',
     status: 'run',
-    log: { kind: 'info', text: 'B: request started параллельно' },
+    log: { kind: 'info', text: 'await res.json()' },
   },
   {
     line: 2,
-    a: 'run',
-    b: 'run',
-    bridge: 'await all',
-    joinLabel: 'Promise.all',
-    joinSub: 'ждём оба settled',
-    tape: ['A↓', 'B↓', 'all'],
-    status: 'run',
-    log: { kind: 'info', text: 'await Promise.all([A, B])' },
-  },
-  {
-    line: 3,
-    a: 'done',
-    b: 'done',
+    step: 'use',
     bridge: 'return',
-    joinLabel: 'join',
-    joinSub: '{ profile, feed }',
-    tape: ['A↓', 'B↓', 'all', 'return'],
     status: 'ok',
-    log: { kind: 'ok', text: 'join: оба результата готовы' },
+    log: { kind: 'ok', text: 'готово: имя через async/await' },
   },
+]
+
+const FLOW: Array<{ id: StepId; label: string; sub: string }> = [
+  { id: 'fetch', label: 'сеть', sub: 'fetch' },
+  { id: 'json', label: 'JSON', sub: 'тело ответа' },
+  { id: 'use', label: 'данные', sub: 'user.name' },
 ]
 
 function reducedMotion() {
@@ -197,21 +161,15 @@ function playTimeline(
   steps.forEach((x, i) => tl.call(x, undefined, i * STEP))
 }
 
-function laneText(lane: Lane, name: string) {
-  if (lane === 'run') return `${name} · request`
-  if (lane === 'done') return `${name} · готово`
-  return `${name} · ждёт`
-}
-
-function laneCls(lane: Lane) {
-  return [
-    styles.bar,
-    lane === 'idle' && styles.barIdle,
-    lane === 'run' && labVizStyles.nodeActive,
-    lane === 'done' && labVizStyles.nodeOk,
-  ]
-    .filter(Boolean)
-    .join(' ')
+function stepState(current: StepId | null, id: StepId, done: boolean): 'idle' | 'active' | 'ok' {
+  if (!current) return 'idle'
+  const order: StepId[] = ['fetch', 'json', 'use']
+  const ci = order.indexOf(current)
+  const ii = order.indexOf(id)
+  if (done && ii <= ci) return 'ok'
+  if (ii < ci) return 'ok'
+  if (ii === ci) return 'active'
+  return 'idle'
 }
 
 type AwaitVizProps = {
@@ -221,27 +179,26 @@ type AwaitVizProps = {
 }
 
 const AwaitViz = ({ caseId, phase, frame }: AwaitVizProps) => {
-  const parallel = caseId === 'parallel'
-  const lines = parallel ? PARALLEL_LINES : SERIAL_LINES
+  const isAwait = caseId === 'await'
+  const lines = isAwait ? AWAIT_LINES : THEN_LINES
   const lineIdx = frame?.line ?? -1
   const done = phase === 'done' || frame?.status === 'ok'
-  const a = frame?.a ?? 'idle'
-  const b = frame?.b ?? 'idle'
+  const current = frame?.step ?? null
 
   const meta =
     phase === 'idle'
-      ? parallel
-        ? 'A ∥ B → join'
-        : 'A → B → return'
+      ? isAwait
+        ? 'await · линейно'
+        : '.then · цепочка'
       : done
-        ? 'оба результата собраны'
-        : frame?.bridge ?? 'await'
+        ? 'оба стиля → Promise'
+        : frame?.bridge ?? '…'
 
   return (
-    <LabVizPanel title="Время ожидания" meta={meta}>
+    <LabVizPanel title="Один запрос, два стиля" meta={meta}>
       <div className={styles.stage}>
         <div className={styles.col}>
-          <p className={styles.label}>{parallel ? 'async loadParallel()' : 'async loadSerial()'}</p>
+          <p className={styles.label}>{isAwait ? 'async loadName()' : 'loadName() · then'}</p>
           <div className={styles.body}>
             {lines.map((code, i) => {
               const active = lineIdx === i
@@ -273,50 +230,24 @@ const AwaitViz = ({ caseId, phase, frame }: AwaitVizProps) => {
             .join(' ')}
           aria-hidden
         >
-          <span className={styles.bridgeArrow}>{parallel && !done ? '∥' : '→'}</span>
-          <span>{frame?.bridge ?? 'await'}</span>
+          <span className={styles.bridgeArrow}>→</span>
+          <span>{frame?.bridge ?? (isAwait ? 'await' : '.then')}</span>
         </div>
 
         <div className={styles.side}>
-          <p className={styles.label}>запросы</p>
-          <div className={styles.lanes}>
-            <div className={styles.lane}>
-              <span className={styles.laneName}>A</span>
-              <div className={laneCls(a)}>{laneText(a, 'profile')}</div>
-            </div>
-            <div className={styles.lane}>
-              <span className={styles.laneName}>B</span>
-              <div className={laneCls(b)}>{laneText(b, 'feed')}</div>
-            </div>
+          <p className={styles.label}>ход запроса</p>
+          <div className={styles.flow}>
+            {FLOW.map((node, i) => (
+              <div key={node.id} className={styles.flowItem}>
+                <LabNode
+                  label={node.label}
+                  sub={node.sub}
+                  state={stepState(current, node.id, done)}
+                />
+                {i < FLOW.length - 1 ? <span className={styles.flowArrow}>→</span> : null}
+              </div>
+            ))}
           </div>
-          <LabNode
-            className={styles.joinCard}
-            label={frame?.joinLabel ?? 'join'}
-            sub={frame?.joinSub ?? 'ещё не собирали'}
-            state={done ? 'ok' : frame ? 'active' : 'idle'}
-          />
-        </div>
-
-        <div className={styles.tape}>
-          <span className={styles.tapeLabel}>ход</span>
-          {frame && frame.tape.length > 0 ? (
-            frame.tape.map((item, i) => (
-              <span
-                key={`${item}-${i}`}
-                className={[
-                  styles.chip,
-                  i === frame.tape.length - 1 && styles.chipFresh,
-                  done && styles.chipOk,
-                ]
-                  .filter(Boolean)
-                  .join(' ')}
-              >
-                {item}
-              </span>
-            ))
-          ) : (
-            <span className={styles.chipEmpty}>пусто</span>
-          )}
         </div>
       </div>
     </LabVizPanel>
@@ -325,20 +256,26 @@ const AwaitViz = ({ caseId, phase, frame }: AwaitVizProps) => {
 
 export function AsyncAwaitLab() {
   const { lines, log, clear } = useLabLog()
-  const [caseId, setCaseId] = useState<CaseId>('serial')
+  const [caseId, setCaseId] = useState<CaseId>('then')
   const [phase, setPhase] = useState<Phase>('idle')
   const [frame, setFrame] = useState<Frame | null>(null)
   const [cursor, setCursor] = useState(-1)
-  const [hint, setHint] = useState<string | null>(null)
+  const [hint, setHint] = useState<ReactNode | null>(null)
   const [busy, setBusy] = useState(false)
   const tlRef = useRef<gsap.core.Timeline | null>(null)
 
-  const framesFor = (id: CaseId) => (id === 'parallel' ? PARALLEL_FRAMES : SERIAL_FRAMES)
+  const framesFor = (id: CaseId) => (id === 'await' ? AWAIT_FRAMES : THEN_FRAMES)
 
-  const finishHint = (id: CaseId) =>
-    id === 'parallel'
-      ? 'Итог: независимые запросы должны стартовать до общего `await Promise.all`.'
-      : 'Итог: последовательный `await` нужен, когда B использует результат A — иначе время просто складывается.'
+  const finishHint = (id: CaseId): ReactNode =>
+    id === 'await' ? (
+      <>
+        Итог: <code>async</code>/<code>await</code> — тот же промис, шаги читаются сверху вниз.
+      </>
+    ) : (
+      <>
+        Итог: цепочка <code>.then</code> делает те же шаги; снаружи тоже Promise.
+      </>
+    )
 
   const reset = () => {
     setPhase('idle')
@@ -422,7 +359,7 @@ export function AsyncAwaitLab() {
             tlRef.current?.kill()
             setBusy(false)
             clear()
-            setCaseId('serial')
+            setCaseId('then')
             reset()
           }}
         >
@@ -430,8 +367,8 @@ export function AsyncAwaitLab() {
         </LabButton>
       </div>
       <p className={shell.pain}>
-        <code>await</code> делает код линейным, но не определяет стратегию запуска: независимые
-        операции можно начать вместе.
+        Один <code>fetch</code> можно писать цепочкой <code>.then</code> или линейно через{' '}
+        <code>async</code>/<code>await</code> — снаружи всё равно Promise.
       </p>
       <p className={shell.hint}>{CASE_BRIEF[caseId]}</p>
       <AwaitViz caseId={caseId} phase={phase} frame={frame} />
@@ -441,7 +378,7 @@ export function AsyncAwaitLab() {
   )
 
   const code = (
-    <div className={styles.codePane}>
+    <div className={shell.codePane}>
       <div className={styles.codeSwitch}>
         {CASES.map((c) => (
           <LabButton
@@ -458,9 +395,9 @@ export function AsyncAwaitLab() {
       <InteractiveCodePanel
         topicId={TOPIC_ID}
         intro={
-          caseId === 'parallel'
-            ? 'Параллельный запуск через `Promise.all`.'
-            : 'Последовательный `await`: B ждёт завершения A.'
+          caseId === 'await'
+            ? 'Тот же запрос через `async`/`await`.'
+            : 'Тот же запрос цепочкой `.then`.'
         }
         snippets={CODE_SNIPPETS[caseId]}
       />
@@ -469,8 +406,8 @@ export function AsyncAwaitLab() {
 
   return (
     <JsLabShell
-      title="await · последовательно или вместе"
-      lead="Ожидание результата и запуск работы — разные решения."
+      title="запрос · .then или async/await"
+      lead="Один fetch — два стиля записи; результат снаружи один и тот же Promise."
       problem={problem}
       code={code}
     />

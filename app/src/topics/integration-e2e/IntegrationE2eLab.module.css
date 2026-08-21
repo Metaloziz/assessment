@@ -1,0 +1,36 @@
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-height: 11rem;
+}
+
+.layer {
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.dim {
+  opacity: 0.38;
+}
+
+.probe {
+  align-self: center;
+  width: min(100%, 11rem);
+  padding: 0.18rem 0.4rem;
+  text-align: center;
+  border-radius: var(--radius-pill);
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--border));
+  background: color-mix(in srgb, var(--accent) 18%, rgba(20, 24, 30, 0.9));
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-meta);
+  font-weight: var(--font-weight-semibold);
+  transition: opacity 0.4s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .layer,
+  .probe {
+    transition: none;
+  }
+}

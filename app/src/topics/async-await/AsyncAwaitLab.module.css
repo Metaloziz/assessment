@@ -1,10 +1,3 @@
-.codePane {
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  flex: 1;
-}
-
 .codeSwitch {
   display: flex;
   flex-wrap: wrap;
@@ -14,10 +7,10 @@
 
 .stage {
   display: grid;
-  grid-template-columns: minmax(12rem, 1.35fr) auto minmax(9rem, 1fr);
+  grid-template-columns: minmax(11rem, 1.2fr) auto minmax(10rem, 1.1fr);
   gap: 0.65rem 0.5rem;
   align-items: stretch;
-  min-height: 9.5rem;
+  min-height: 8.5rem;
 }
 
 @media (max-width: 640px) {
@@ -31,7 +24,8 @@
   }
 }
 
-.col {
+.col,
+.side {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
@@ -124,119 +118,39 @@
   line-height: 1;
 }
 
-.side {
+.flow {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
+  align-items: stretch;
   gap: 0.35rem;
-  flex: 1;
-  min-height: 0;
-}
-
-.lanes {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-  flex: 1;
   padding: 0.45rem;
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   background: color-mix(in srgb, var(--bg) 55%, var(--bg-elevated));
+  flex: 1;
 }
 
-.lane {
-  display: grid;
-  grid-template-columns: 3.2rem 1fr;
-  gap: 0.35rem;
-  align-items: center;
-}
-
-.laneName {
-  font-family: var(--font-mono);
-  font-size: var(--lab-font-meta);
-  color: var(--text-faint);
-}
-
-.bar {
-  min-height: 1.65rem;
-  padding: 0.25rem 0.45rem;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--node-idle-bg);
-  font-family: var(--font-mono);
-  font-size: var(--lab-font-meta);
-  color: var(--text-muted);
-  transition:
-    border-color 0.4s ease,
-    color 0.4s ease,
-    box-shadow 0.4s ease,
-    background 0.4s ease,
-    opacity 0.4s ease;
-}
-
-.barIdle {
-  opacity: 0.42;
-}
-
-.joinCard {
-  flex: 0 0 auto;
-}
-
-.tape {
-  grid-column: 1 / -1;
+.flowItem {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.35rem 0.45rem;
-  padding-top: 0.35rem;
-  border-top: 1px solid var(--border);
+  align-items: stretch;
+  gap: 0.35rem;
+  flex: 1 1 5rem;
+  min-width: 4.5rem;
 }
 
-.tapeLabel {
-  font-family: var(--font-mono);
+.flowItem > :first-child {
+  flex: 1;
+}
+
+.flowArrow {
+  align-self: center;
+  color: var(--muted);
   font-size: var(--lab-font-meta);
-  color: var(--text-faint);
-}
-
-.chip {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 1.6rem;
-  padding: 0.2rem 0.45rem;
-  border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--border));
-  border-radius: var(--radius);
-  background: color-mix(in srgb, var(--accent) 12%, var(--node-idle-bg));
-  color: var(--text);
-  font-family: var(--font-mono);
-  font-size: var(--lab-font-meta);
-  font-weight: var(--font-weight-semibold);
-  transition:
-    border-color 0.4s ease,
-    box-shadow 0.4s ease,
-    opacity 0.4s ease,
-    color 0.4s ease;
-}
-
-.chipFresh {
-  border-color: var(--accent-bright);
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent);
-}
-
-.chipOk {
-  border-color: color-mix(in srgb, var(--ok) 55%, var(--border));
-  color: var(--log-ok);
-}
-
-.chipEmpty {
-  color: var(--text-faint);
-  font-family: var(--font-mono);
-  font-size: var(--lab-font-meta);
+  user-select: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .line,
-  .bar,
-  .chip {
+  .line {
     transition: none;
   }
 }

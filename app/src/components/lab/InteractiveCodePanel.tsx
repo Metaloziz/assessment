@@ -116,7 +116,11 @@ function runUserCode(source: string): ConsoleLine[] {
   return lines
 }
 
-const editorExtensions = [javascript(), ...cursorCodeMirrorExtensions]
+// jsx + typescript: иначе после `<Component />` парсер «ломается» и остаток файла без подсветки
+const editorExtensions = [
+  javascript({ jsx: true, typescript: true }),
+  ...cursorCodeMirrorExtensions,
+]
 const HARD_MIN_EDITOR_PX = 72 // при низком viewport (DevTools снизу) можно сжаться
 
 /** Render `code` backticks like theory inline highlights. */

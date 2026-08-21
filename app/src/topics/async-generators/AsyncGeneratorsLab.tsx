@@ -12,70 +12,71 @@ import styles from './AsyncGeneratorsLab.module.css'
 const TOPIC_ID = '221-async-generators'
 const STEP = 0.6
 
-type CaseId = 'range' | 'dialog'
+type CaseId = 'tray' | 'order'
 type Phase = 'idle' | 'run' | 'done'
 
 const CASES: Array<{ id: CaseId; label: string }> = [
-  { id: 'range', label: 'range()' },
-  { id: 'dialog', label: 'next(arg)' },
+  { id: 'tray', label: 'С печи' },
+  { id: 'order', label: 'Заказ' },
 ]
 
 const CASE_BRIEF: Record<CaseId, ReactNode> = {
-  range: (
+  tray: (
     <>
-      Курсор стоит на <code>yield</code>: <code>next()</code> возобновляет тело и отдаёт{' '}
+      Печь встаёт на <code>yield</code>: витрина зовёт <code>next()</code> и забирает следующую булку с{' '}
       <code>{'{ value, done }'}</code>.
     </>
   ),
-  dialog: (
+  order: (
     <>
-      Аргумент <code>next(arg)</code> входит в тело как результат приостановленного <code>yield</code>.
+      Пекарь спрашивает начинку через <code>yield</code>; ответ из <code>next(arg)</code> входит в тело как
+      результат паузы.
     </>
   ),
 }
 
-const SNIPPET_RANGE: InteractiveSnippet = {
-  id: 'range',
-  label: 'src/iter/range.js',
-  note: 'Синхронный генератор отдаёт значение порциями через iterator protocol.',
+const SNIPPET_TRAY: InteractiveSnippet = {
+  id: 'bake-tray',
+  label: 'src/bakery/bakeTray.js',
+  note: 'Печь отдаёт булки порциями: каждый next() — одна позиция с противня.',
   executable: false,
-  code: `export function* range() {
-  yield 1; // ← next() => { value: 1, done: false }
-  yield 2;
-  yield 3;
-  return 'done'; // ← { value: 'done', done: true }
+  code: `export function* bakeTray() {
+  yield 'булка'; // ← next() => { value: 'булка', done: false }
+  yield 'круассан';
+  yield 'багет';
+  return 'противень пуст'; // ← { value: 'противень пуст', done: true }
 }
 
-const iterator = range();
-iterator.next();
-iterator.next();
-iterator.next();
-iterator.next();`,
+const oven = bakeTray();
+oven.next();
+oven.next();
+oven.next();
+oven.next();`,
 }
 
-const SNIPPET_DIALOG: InteractiveSnippet = {
-  id: 'dialog',
-  label: 'src/iter/dialog.js',
-  note: 'Аргумент следующего `next` возвращается туда, где генератор остановился.',
+const SNIPPET_ORDER: InteractiveSnippet = {
+  id: 'take-order',
+  label: 'src/bakery/takeOrder.js',
+  note: 'Аргумент следующего next возвращается туда, где пекарь ждал на yield.',
   executable: false,
-  code: `export function* dialog() {
-  const name = yield 'Как вас зовут?'; // ← pause
-  return \`Привет, \${name}\`;
+  code: `export function* takeOrder() {
+  const filling = yield 'Какая начинка?'; // ← pause
+  return \`Булка с \${filling}\`;
 }
 
-const iterator = dialog();
-iterator.next(); // { value: 'Как вас зовут?', done: false }
-iterator.next('Анна'); // ← feeds yield
+const order = takeOrder();
+order.next(); // { value: 'Какая начинка?', done: false }
+order.next('маком'); // ← feeds yield
 `,
 }
 
 const CODE_SNIPPETS: Record<CaseId, InteractiveSnippet[]> = {
-  range: [SNIPPET_RANGE],
-  dialog: [SNIPPET_DIALOG],
+  tray: [SNIPPET_TRAY],
+  order: [SNIPPET_ORDER],
 }
 
-const RANGE_LINES = ['yield 1', 'yield 2', 'yield 3', "return 'done'"] as const
-const DIALOG_LINES = ["const name = yield 'Как вас зовут?'", "return `Привет, ${name}`"] as const
+const TRAY_LINES = ["yield 'булка'", "yield 'круассан'", "yield 'багет'", "return 'противень пуст'"] as const
+const ORDER_LINES = ["const filling = yield 'Какая начинка?'", "return `Булка с ${filling}`"] as const
 
 type Frame = {
   line: number
@@ -83,84 +84,84 @@ type Frame = {
   resultLabel: string
   resultSub: string
   feed: string | null
-  tape: string[]
+  tray: string[]
   status: 'run' | 'ok'
   log: { kind: 'info' | 'ok'; text: string }
 }
 
-const RANGE_FRAMES: Frame[] = [
+const TRAY_FRAMES: Frame[] = [
   {
     line: 0,
     call: 'next()',
     resultLabel: '{ value, done }',
-    resultSub: '{ value: 1, done: false }',
+    resultSub: "{ value: 'булка', done: false }",
     feed: null,
-    tape: ['1'],
+    tray: ['булка'],
     status: 'run',
-    log: { kind: 'info', text: 'next(): value 1, done false' },
+    log: { kind: 'info', text: 'витрина: забрала булку' },
   },
   {
     line: 1,
     call: 'next()',
     resultLabel: '{ value, done }',
-    resultSub: '{ value: 2, done: false }',
+    resultSub: "{ value: 'круассан', done: false }",
     feed: null,
-    tape: ['1', '2'],
+    tray: ['булка', 'круассан'],
     status: 'run',
-    log: { kind: 'info', text: 'next(): value 2, done false' },
+    log: { kind: 'info', text: 'витрина: забрала круассан' },
   },
   {
     line: 2,
     call: 'next()',
     resultLabel: '{ value, done }',
-    resultSub: '{ value: 3, done: false }',
+    resultSub: "{ value: 'багет', done: false }",
     feed: null,
-    tape: ['1', '2', '3'],
+    tray: ['булка', 'круассан', 'багет'],
     status: 'run',
-    log: { kind: 'info', text: 'next(): value 3, done false' },
+    log: { kind: 'info', text: 'витрина: забрала багет' },
   },
   {
     line: 3,
     call: 'next()',
     resultLabel: '{ value, done }',
-    resultSub: "{ value: 'done', done: true }",
+    resultSub: "{ value: 'противень пуст', done: true }",
     feed: null,
-    tape: ['1', '2', '3'],
+    tray: ['булка', 'круассан', 'багет'],
     status: 'ok',
-    log: { kind: 'ok', text: "next(): value 'done', done true" },
+    log: { kind: 'ok', text: 'печь: противень пуст, done true' },
   },
 ]
 
-const DIALOG_FRAMES: Frame[] = [
+const ORDER_FRAMES: Frame[] = [
   {
     line: 0,
     call: 'next()',
     resultLabel: '{ value, done }',
-    resultSub: "{ value: 'Как вас зовут?', done: false }",
+    resultSub: "{ value: 'Какая начинка?', done: false }",
     feed: null,
-    tape: ["'Как вас зовут?'"],
+    tray: ['вопрос'],
     status: 'run',
-    log: { kind: 'info', text: 'next(): вопрос из yield' },
+    log: { kind: 'info', text: 'пекарь: спросил начинку' },
   },
   {
     line: 0,
-    call: "next('Анна')",
+    call: "next('маком')",
     resultLabel: 'yield ← arg',
-    resultSub: "name = 'Анна'",
-    feed: "'Анна'",
-    tape: ["'Как вас зовут?'"],
+    resultSub: "filling = 'маком'",
+    feed: "'маком'",
+    tray: ['вопрос'],
     status: 'run',
-    log: { kind: 'info', text: 'next("Анна"): аргумент вошёл в yield' },
+    log: { kind: 'info', text: 'покупатель: ответил «маком»' },
   },
   {
     line: 1,
-    call: "next('Анна')",
+    call: "next('маком')",
     resultLabel: '{ value, done }',
-    resultSub: "{ value: 'Привет, Анна', done: true }",
+    resultSub: "{ value: 'Булка с маком', done: true }",
     feed: null,
-    tape: ["'Как вас зовут?'", "'Привет, Анна'"],
+    tray: ['вопрос', 'Булка с маком'],
     status: 'ok',
-    log: { kind: 'ok', text: 'return: iterator.done = true' },
+    log: { kind: 'ok', text: 'заказ готов, done true' },
   },
 ]
 
@@ -187,36 +188,36 @@ function playTimeline(
   steps.forEach((x, i) => tl.call(x, undefined, i * STEP))
 }
 
-type GeneratorVizProps = {
+type BakeryVizProps = {
   caseId: CaseId
   phase: Phase
   frame: Frame | null
 }
 
-const GeneratorViz = ({ caseId, phase, frame }: GeneratorVizProps) => {
-  const dialog = caseId === 'dialog'
-  const lines = dialog ? DIALOG_LINES : RANGE_LINES
+const BakeryViz = ({ caseId, phase, frame }: BakeryVizProps) => {
+  const order = caseId === 'order'
+  const lines = order ? ORDER_LINES : TRAY_LINES
   const lineIdx = frame?.line ?? -1
   const feeding = Boolean(frame?.feed)
   const done = phase === 'done' || frame?.status === 'ok'
 
   const meta =
     phase === 'idle'
-      ? dialog
-        ? 'yield ⇄ next(arg)'
-        : 'pause → next → resume'
+      ? order
+        ? 'вопрос ⇄ ответ next(arg)'
+        : 'пауза → next → булка'
       : feeding
-        ? 'arg → внутрь yield'
+        ? 'начинка → внутрь yield'
         : done
-          ? 'iterator.done = true'
-          : 'paused at yield'
+          ? 'печь закрыта · done'
+          : 'ждёт на yield'
 
   return (
-    <LabVizPanel title="Пауза генератора" meta={meta}>
+    <LabVizPanel title="Пекарня · печь и витрина" meta={meta}>
       <div className={styles.stage}>
         <div className={styles.col}>
-          <p className={styles.label}>тело function*</p>
-          <div className={styles.body}>
+          <p className={styles.label}>{order ? 'пекарь · function*' : 'печь · function*'}</p>
+          <div className={[styles.body, styles.oven].filter(Boolean).join(' ')}>
             {lines.map((code, i) => {
               const active = lineIdx === i
               const past = lineIdx > i
@@ -252,32 +253,38 @@ const GeneratorViz = ({ caseId, phase, frame }: GeneratorVizProps) => {
           aria-hidden
         >
           <span className={styles.bridgeArrow}>{feeding ? '←' : '→'}</span>
-          <span>{feeding ? 'feed' : 'yield'}</span>
+          <span>{feeding ? 'ответ' : 'поднос'}</span>
         </div>
 
         <div className={styles.consumer}>
-          <p className={styles.label}>потребитель</p>
+          <p className={styles.label}>{order ? 'покупатель' : 'витрина'}</p>
           <LabNode
             className={styles.call}
             label={frame?.call ?? 'next()'}
-            sub={feeding ? `arg ${frame?.feed}` : phase === 'idle' ? 'ещё не вызван' : 'шаг итератора'}
+            sub={
+              feeding
+                ? `arg ${frame?.feed}`
+                : phase === 'idle'
+                  ? 'ещё не звала'
+                  : 'шаг итератора'
+            }
             state={feeding ? 'ok' : frame ? 'active' : 'idle'}
           />
           <LabNode
             className={styles.result}
             label={frame?.resultLabel ?? '{ value, done }'}
-            sub={frame?.resultSub ?? 'ожидание результата'}
+            sub={frame?.resultSub ?? 'ждёт булку'}
             state={done ? 'ok' : frame ? 'active' : 'idle'}
           />
         </div>
 
         <div className={styles.tape}>
-          <span className={styles.tapeLabel}>выдано</span>
-          {frame && frame.tape.length > 0 ? (
-            frame.tape.map((item, i) => (
+          <span className={styles.tapeLabel}>противень</span>
+          {frame && frame.tray.length > 0 ? (
+            frame.tray.map((item, i) => (
               <span
                 key={`${item}-${i}`}
-                className={[styles.chip, i === frame.tape.length - 1 && styles.chipFresh]
+                className={[styles.chip, i === frame.tray.length - 1 && styles.chipFresh]
                   .filter(Boolean)
                   .join(' ')}
               >
@@ -295,7 +302,7 @@ const GeneratorViz = ({ caseId, phase, frame }: GeneratorVizProps) => {
 
 export function AsyncGeneratorsLab() {
   const { lines, log, clear } = useLabLog()
-  const [caseId, setCaseId] = useState<CaseId>('range')
+  const [caseId, setCaseId] = useState<CaseId>('tray')
   const [phase, setPhase] = useState<Phase>('idle')
   const [frame, setFrame] = useState<Frame | null>(null)
   const [cursor, setCursor] = useState(-1)
@@ -303,12 +310,12 @@ export function AsyncGeneratorsLab() {
   const [busy, setBusy] = useState(false)
   const tlRef = useRef<gsap.core.Timeline | null>(null)
 
-  const framesFor = (id: CaseId) => (id === 'dialog' ? DIALOG_FRAMES : RANGE_FRAMES)
+  const framesFor = (id: CaseId) => (id === 'order' ? ORDER_FRAMES : TRAY_FRAMES)
 
   const finishHint = (id: CaseId) =>
-    id === 'dialog'
-      ? 'Итог: генератор — двусторонний диалог между телом и итератором.'
-      : 'Итог: `yield` делит вычисление на возобновляемые шаги. Асинхронные генераторы используют другой протокол `asyncIterator`.'
+    id === 'order'
+      ? 'Итог: пекарь и покупатель обмениваются данными на границе yield / next(arg).'
+      : 'Итог: печь отдаёт булки по одной — каждый next() возобновляет тело до следующего yield.'
 
   const reset = () => {
     setPhase('idle')
@@ -329,10 +336,10 @@ export function AsyncGeneratorsLab() {
     const f = frames[i]!
     setFrame(f)
     setCursor(i)
-    const done = i === frames.length - 1
-    setPhase(done ? 'done' : 'run')
+    const finished = i === frames.length - 1
+    setPhase(finished ? 'done' : 'run')
     log(f.log.kind, f.log.text)
-    if (done) setHint(finishHint(id))
+    if (finished) setHint(finishHint(id))
   }
 
   const step = () => {
@@ -392,7 +399,7 @@ export function AsyncGeneratorsLab() {
             tlRef.current?.kill()
             setBusy(false)
             clear()
-            setCaseId('range')
+            setCaseId('tray')
             reset()
           }}
         >
@@ -400,18 +407,18 @@ export function AsyncGeneratorsLab() {
         </LabButton>
       </div>
       <p className={shell.pain}>
-        Синхронный генератор сохраняет место выполнения на <code>yield</code> и продолжает работу
-        только по вызову итератора. Асинхронные генераторы похожи по форме, но возвращают промисы.
+        Печь с <code>function*</code> не выпекает весь противень сразу: на <code>yield</code> она ждёт,
+        пока витрина не позовёт <code>next()</code>.
       </p>
       <p className={shell.hint}>{CASE_BRIEF[caseId]}</p>
-      <GeneratorViz caseId={caseId} phase={phase} frame={frame} />
+      <BakeryViz caseId={caseId} phase={phase} frame={frame} />
       {hint ? <p className={shell.hint}>{hint}</p> : null}
       <LabLogView lines={lines} />
     </div>
   )
 
   const code = (
-    <div className={styles.codePane}>
+    <div className={shell.codePane}>
       <div className={styles.codeSwitch}>
         {CASES.map((c) => (
           <LabButton
@@ -428,9 +435,9 @@ export function AsyncGeneratorsLab() {
       <InteractiveCodePanel
         topicId={TOPIC_ID}
         intro={
-          caseId === 'dialog'
-            ? 'Двусторонний `next(arg)` на границе `yield`.'
-            : 'Синхронный `function*`: пауза на `yield` и шаги `next()`.'
+          caseId === 'order'
+            ? 'Заказ начинки: вопрос из yield, ответ через next(arg).'
+            : 'Противень: печь отдаёт булки по одной через next().'
         }
         snippets={CODE_SNIPPETS[caseId]}
       />
@@ -439,8 +446,8 @@ export function AsyncGeneratorsLab() {
 
   return (
     <JsLabShell
-      title="Генератор · пауза и next()"
-      lead="Синхронный iterator отдаёт значения и принимает данные на границе yield."
+      title="Генератор · печь и витрина"
+      lead="Пекарня на function*: булки с печи по одной и заказ с начинкой через next(arg)."
       problem={problem}
       code={code}
     />

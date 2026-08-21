@@ -1,0 +1,132 @@
+.scene {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  min-height: 12rem;
+}
+
+.formCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg-elevated) 88%, rgba(20, 24, 30, 0.9));
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.label {
+  font-size: var(--lab-font-meta);
+  color: var(--text-muted);
+}
+
+.input {
+  padding: 0.28rem 0.45rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg) 70%, transparent);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: var(--lab-font-body);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.15rem;
+}
+
+.demoBtn {
+  padding: 0.28rem 0.7rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg-elevated) 80%, transparent);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: var(--lab-font-body);
+  font-weight: var(--font-weight-semibold);
+  cursor: default;
+  transition:
+    border-color 0.4s ease,
+    box-shadow 0.4s ease,
+    opacity 0.4s ease,
+    background 0.4s ease;
+}
+
+.demoBtnPrimary {
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
+  background: color-mix(in srgb, var(--accent) 16%, rgba(20, 24, 30, 0.9));
+}
+
+.demoBtnHit {
+  border-color: color-mix(in srgb, var(--ok) 55%, var(--border));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--ok) 35%, transparent);
+  background: color-mix(in srgb, var(--ok) 18%, rgba(20, 24, 30, 0.9));
+}
+
+.demoBtnMiss {
+  border-color: color-mix(in srgb, var(--danger) 50%, var(--border));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--danger) 30%, transparent);
+  opacity: 0.85;
+}
+
+.demoBtnDim {
+  opacity: 0.4;
+}
+
+.queryChip {
+  align-self: flex-start;
+  padding: 0.18rem 0.45rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--border));
+  background: color-mix(in srgb, var(--accent) 18%, rgba(20, 24, 30, 0.9));
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-meta);
+  font-weight: var(--font-weight-semibold);
+  transition: opacity 0.4s ease;
+}
+
+.queryChipWarn {
+  border-color: color-mix(in srgb, var(--warn) 50%, var(--border));
+  background: color-mix(in srgb, var(--warn) 16%, rgba(20, 24, 30, 0.9));
+}
+
+.queryChipErr {
+  border-color: color-mix(in srgb, var(--danger) 50%, var(--border));
+  background: color-mix(in srgb, var(--danger) 14%, rgba(20, 24, 30, 0.9));
+}
+
+.statusLine {
+  min-height: 1.25rem;
+  font-size: var(--lab-font-meta);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+.statusOk {
+  color: var(--ok);
+}
+
+.statusWait {
+  color: var(--accent-bright);
+}
+
+.restyleNote {
+  font-size: var(--lab-font-meta);
+  color: var(--warn);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .demoBtn,
+  .queryChip {
+    transition: none;
+  }
+}

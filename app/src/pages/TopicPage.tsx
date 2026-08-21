@@ -137,6 +137,7 @@ import { AsyncTasksMicrotasksLab } from '../topics/async-tasks-microtasks/AsyncT
 import { AsyncCallbackPromisesLab } from '../topics/async-callback-promises/AsyncCallbackPromisesLab'
 import { AsyncCallbackHellLab } from '../topics/async-callback-hell/AsyncCallbackHellLab'
 import { AsyncAwaitLab } from '../topics/async-await/AsyncAwaitLab'
+import { FetchAdvancedXhrLab } from '../topics/fetch-advanced-xhr/FetchAdvancedXhrLab'
 import { AsyncPromiseAfterCatchLab } from '../topics/async-promise-after-catch/AsyncPromiseAfterCatchLab'
 import { AsyncGeneratorsLab } from '../topics/async-generators/AsyncGeneratorsLab'
 import { AsyncInfiniteGeneratorsLab } from '../topics/async-infinite-generators/AsyncInfiniteGeneratorsLab'
@@ -169,6 +170,10 @@ import { NetworkTcpLab } from '../topics/network-tcp/NetworkTcpLab'
 import { NetworkDnsBasicsLab } from '../topics/network-dns-basics/NetworkDnsBasicsLab'
 import { NetworkLongPollingWsSseLab } from '../topics/network-long-polling-ws-sse/NetworkLongPollingWsSseLab'
 import { DevtoolsWebsocketDebugLab } from '../topics/devtools-websocket-debug/DevtoolsWebsocketDebugLab'
+import { IntegrationE2eLab } from '../topics/integration-e2e/IntegrationE2eLab'
+import { TestingPyramidLab } from '../topics/testing-pyramid/TestingPyramidLab'
+import { CoverageToolsLab } from '../topics/coverage-tools/CoverageToolsLab'
+import { ReactTestingLibraryLab } from '../topics/react-testing-library/ReactTestingLibraryLab'
 import { LAB_DOCK_ID, useLayoutStore } from '../store/layout'
 import styles from './TopicPage.module.css'
 
@@ -256,6 +261,7 @@ function TopicLab({ topicId }: { topicId: string; topic: TopicDetail }) {
   if (topicId === '217-async-callback-promises') return <AsyncCallbackPromisesLab />
   if (topicId === '218-async-callback-hell') return <AsyncCallbackHellLab />
   if (topicId === '219-async-await') return <AsyncAwaitLab />
+  if (topicId === '272-fetch-advanced-xhr') return <FetchAdvancedXhrLab />
   if (topicId === '220-async-promise-after-catch') return <AsyncPromiseAfterCatchLab />
   if (topicId === '221-async-generators') return <AsyncGeneratorsLab />
   if (topicId === '222-async-infinite-generators') return <AsyncInfiniteGeneratorsLab />
@@ -288,6 +294,10 @@ function TopicLab({ topicId }: { topicId: string; topic: TopicDetail }) {
   if (topicId === '261-network-ip-basics') return <NetworkIpBasicsLab />
   if (topicId === '262-network-tcp') return <NetworkTcpLab />
   if (topicId === '263-network-dns-basics') return <NetworkDnsBasicsLab />
+  if (topicId === '39-react-testing-library') return <ReactTestingLibraryLab />
+  if (topicId === '43-integration-e2e') return <IntegrationE2eLab />
+  if (topicId === '270-testing-pyramid') return <TestingPyramidLab />
+  if (topicId === '271-coverage-tools-principles') return <CoverageToolsLab />
   if (topicId === '256-software-solid') return <SoftwareSolidLab />
   if (topicId === '257-software-mvc-mvp-mvvm') return <SoftwareMvcMvpMvvmLab />
   if (topicId === '259-software-incremental-iterative-spiral')

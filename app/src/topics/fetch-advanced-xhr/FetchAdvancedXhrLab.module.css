@@ -1,0 +1,65 @@
+.lanes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.55rem;
+  min-height: 7.5rem;
+}
+
+@media (max-width: 640px) {
+  .lanes {
+    grid-template-columns: 1fr;
+  }
+}
+
+.lane {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+  padding: 0.45rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--bg) 55%, var(--bg-elevated));
+  transition:
+    border-color 0.4s ease,
+    opacity 0.4s ease;
+}
+
+.laneDim {
+  opacity: 0.45;
+}
+
+.laneTitle {
+  margin: 0;
+  font-size: var(--lab-font-meta);
+  font-family: var(--font-mono);
+  color: var(--text-faint);
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.28rem;
+  flex: 1;
+}
+
+.arrowDown {
+  align-self: center;
+  color: var(--text-faint);
+  font-size: var(--lab-font-meta);
+  line-height: 1;
+  user-select: none;
+  transition: color 0.4s ease;
+}
+
+.arrowActive {
+  color: var(--accent-bright);
+}
+
+.apiRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  margin-bottom: 0.45rem;
+}

@@ -140,11 +140,13 @@ Env: корневой `.env` / `server/.env` / переменные хостин
 | 36 | [36-aaa-aas-patterns.md](topics/36-aaa-aas-patterns.md) | Паттерны AAA, AAS |
 | 37 | [37-mocks.md](topics/37-mocks.md) | Моки |
 | 38 | [38-tdd.md](topics/38-tdd.md) | Принцип TDD |
-| 39 | [39-enzyme-rtl.md](topics/39-enzyme-rtl.md) | Enzyme / React Testing Library |
+| 39 | [39-react-testing-library.md](topics/39-react-testing-library.md) | React Testing Library |
 | 40 | [40-stubs.md](topics/40-stubs.md) | Стабы |
 | 41 | [41-bdd.md](topics/41-bdd.md) | Принцип BDD |
 | 42 | [42-coverage.md](topics/42-coverage.md) | Coverage |
-| 43 | [43-e2e-cypress.md](topics/43-e2e-cypress.md) | E2E / Cypress |
+| 271 | [271-coverage-tools-principles.md](topics/271-coverage-tools-principles.md) | Coverage. Инструменты и принцип работы |
+| 272 | [272-fetch-advanced-xhr.md](topics/272-fetch-advanced-xhr.md) | Fetch advanced. Есть ли разница с XMLHttpRequest |
+| 43 | [43-integration-e2e.md](topics/43-integration-e2e.md) | Интеграционные и e2e (Cypress / Playwright) |
 | 44 | [44-code-instrumentation.md](topics/44-code-instrumentation.md) | Инструментализация кода |
 | 45 | [45-todo-jsdoc-tsdoc.md](topics/45-todo-jsdoc-tsdoc.md) | TODO, jsDoc / tsDoc в API |
 | 46 | [46-dry-kiss-yagni.md](topics/46-dry-kiss-yagni.md) | DRY, KISS, YAGNI |

@@ -1,15 +1,9 @@
-.codePane {
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  flex: 1;
-}
-
 .codeSwitch {
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem;
   margin-bottom: 0.55rem;
+  flex-shrink: 0;
 }
 
 .stage {
@@ -54,6 +48,17 @@
   border-radius: var(--radius-lg);
   background: color-mix(in srgb, var(--bg) 55%, var(--bg-elevated));
   flex: 1;
+}
+
+.oven {
+  background:
+    radial-gradient(
+      120% 80% at 50% 0%,
+      color-mix(in srgb, var(--accent) 14%, transparent),
+      transparent 55%
+    ),
+    color-mix(in srgb, var(--bg) 45%, var(--bg-elevated));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 18%, transparent);
 }
 
 .line {
@@ -147,8 +152,14 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 0.35rem 0.45rem;
-  padding-top: 0.35rem;
+  padding: 0.45rem 0.35rem 0.1rem;
   border-top: 1px solid var(--border);
+  background: linear-gradient(
+    180deg,
+    transparent,
+    color-mix(in srgb, var(--ok) 6%, transparent) 40%
+  );
+  border-radius: 0 0 var(--radius) var(--radius);
 }
 
 .tapeLabel {
@@ -162,7 +173,7 @@
   align-items: center;
   justify-content: center;
   min-width: 1.6rem;
-  padding: 0.2rem 0.45rem;
+  padding: 0.25rem 0.5rem;
   border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--border));
   border-radius: var(--radius);
   background: color-mix(in srgb, var(--accent) 12%, var(--node-idle-bg));

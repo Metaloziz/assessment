@@ -156,22 +156,31 @@ export const TOPIC_META: Record<
     level: "junior",
     sortInGroup: 3,
   },
-  "37-mocks": { groupId: "testing", level: "middle", sortInGroup: 4 },
-  "38-tdd": { groupId: "testing", level: "middle", sortInGroup: 5 },
-  "39-enzyme-rtl": { groupId: "testing", level: "middle", sortInGroup: 6 },
-  "40-stubs": { groupId: "testing", level: "middle", sortInGroup: 7 },
-  "41-bdd": { groupId: "testing", level: "middle", sortInGroup: 8 },
-  "42-coverage": { groupId: "testing", level: "middle", sortInGroup: 9 },
-  "43-e2e-cypress": { groupId: "testing", level: "middle", sortInGroup: 10 },
+  "270-testing-pyramid": {
+    groupId: "testing",
+    level: "middle",
+    sortInGroup: 4,
+  },
+  "37-mocks": { groupId: "testing", level: "middle", sortInGroup: 5 },
+  "38-tdd": { groupId: "testing", level: "middle", sortInGroup: 6 },
+  "39-react-testing-library": {
+    groupId: "testing",
+    level: "middle",
+    sortInGroup: 7,
+  },
+  "40-stubs": { groupId: "testing", level: "middle", sortInGroup: 8 },
+  "41-bdd": { groupId: "testing", level: "middle", sortInGroup: 9 },
+  "42-coverage": { groupId: "testing", level: "middle", sortInGroup: 10 },
+  "43-integration-e2e": { groupId: "testing", level: "middle", sortInGroup: 11 },
   "44-code-instrumentation": {
     groupId: "testing",
     level: "senior",
-    sortInGroup: 11,
+    sortInGroup: 12,
   },
   "23-testing-tools-principles": {
     groupId: "testing",
     level: "senior",
-    sortInGroup: 12,
+    sortInGroup: 13,
   },
 
   // Рефакторинг (порядок и уровни по цвету Notion: 🟩 junior / 🟧 middle / 🟪 senior)
@@ -601,7 +610,12 @@ export const TOPIC_META: Record<
   "156-testing-extra-tools": {
     groupId: "testing",
     level: "senior",
-    sortInGroup: 13,
+    sortInGroup: 14,
+  },
+  "271-coverage-tools-principles": {
+    groupId: "testing",
+    level: "senior",
+    sortInGroup: 15,
   },
 
   // Паттерны
@@ -933,20 +947,25 @@ export const TOPIC_META: Record<
     level: "middle",
     sortInGroup: 7,
   },
-  "220-async-promise-after-catch": {
+  "272-fetch-advanced-xhr": {
     groupId: "async",
-    level: "senior",
+    level: "middle",
     sortInGroup: 8,
   },
-  "221-async-generators": {
+  "220-async-promise-after-catch": {
     groupId: "async",
     level: "senior",
     sortInGroup: 9,
   },
-  "222-async-infinite-generators": {
+  "221-async-generators": {
     groupId: "async",
     level: "senior",
     sortInGroup: 10,
+  },
+  "222-async-infinite-generators": {
+    groupId: "async",
+    level: "senior",
+    sortInGroup: 11,
   },
 
   // TS

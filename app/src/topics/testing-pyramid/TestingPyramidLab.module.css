@@ -1,0 +1,92 @@
+.pyramid {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 11rem;
+  padding: 0.25rem 0;
+}
+
+.layer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.1rem;
+  min-height: 2.4rem;
+  padding: 0.35rem 0.5rem;
+  text-align: center;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--node-idle-bg);
+  color: var(--text);
+  transition: opacity 0.35s ease, transform 0.35s ease, border-color 0.35s ease,
+    background 0.35s ease;
+}
+
+.layerE2e {
+  width: 42%;
+}
+
+.layerInteg {
+  width: 68%;
+}
+
+.layerUnit {
+  width: 92%;
+}
+
+.inverted .layerE2e {
+  width: 92%;
+}
+
+.inverted .layerInteg {
+  width: 68%;
+}
+
+.inverted .layerUnit {
+  width: 42%;
+}
+
+.dim {
+  opacity: 0.38;
+}
+
+.tool {
+  align-self: center;
+  width: min(100%, 14rem);
+  padding: 0.18rem 0.4rem;
+  text-align: center;
+  border-radius: var(--radius-pill);
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--border));
+  background: color-mix(in srgb, var(--accent) 18%, rgba(20, 24, 30, 0.9));
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-meta);
+  font-weight: var(--font-weight-semibold);
+  transition: opacity 0.35s ease;
+}
+
+.stats {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.35rem 0.65rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-family: var(--font-mono);
+  font-size: var(--lab-font-meta);
+  color: var(--text-muted);
+}
+
+.statHot {
+  color: var(--text);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .layer,
+  .tool {
+    transition: none;
+  }
+}

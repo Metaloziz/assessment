@@ -109,7 +109,8 @@ export function parseTopicMd(id: string, raw: string, order: number): TopicDetai
     id === '251-network-api-first' ||
     id === '250-network-http-https' ||
     id === '252-network-long-polling-ws-sse' ||
-    id === '192-react-ssr'
+    id === '192-react-ssr' ||
+    id === '272-fetch-advanced-xhr'
 
   return {
     id,
@@ -245,6 +246,7 @@ export function parseTopicMd(id: string, raw: string, order: number): TopicDetai
       id === '217-async-callback-promises' ||
       id === '218-async-callback-hell' ||
       id === '219-async-await' ||
+      id === '272-fetch-advanced-xhr' ||
       id === '220-async-promise-after-catch' ||
       id === '221-async-generators' ||
       id === '222-async-infinite-generators' ||
@@ -281,7 +283,11 @@ export function parseTopicMd(id: string, raw: string, order: number): TopicDetai
       id === '259-software-incremental-iterative-spiral' ||
       id === '53-bduf' ||
       id === '26-lazy-loading-critical-path' ||
-      id === '27-server-performance-metrics',
+      id === '27-server-performance-metrics' ||
+      id === '39-react-testing-library' ||
+      id === '43-integration-e2e' ||
+      id === '270-testing-pyramid' ||
+      id === '271-coverage-tools-principles',
     groupId: meta.groupId,
     groupTitle,
     level: meta.level,

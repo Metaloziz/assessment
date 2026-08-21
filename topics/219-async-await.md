@@ -6,17 +6,17 @@
 
 # 2. Главное в одну фразу
 
-`async` делает функцию возвращающей Promise, `await` внутри неё приостанавливает выполнение до settled промиса, а ошибки ловят `try/catch` или `.catch` у возвращённого промиса.
+`async`/`await` — тот же Promise, но шаги пишутся линейно: `await` ждёт settled, ошибки ловят `try/catch` (или `.catch` у вызова).
 
 ---
 
 # 3. Суть
 
-> **`async`/`await`** — синтаксис над промисами: `async function` всегда возвращает `Promise` (обычное `return` становится fulfill, `throw` — reject). **`await expr`** ждёт, пока промис (или thenable) settled, и отдаёт значение или бросает ошибку в окружающий `try/catch`. Снаружи это всё те же microtasks, не новый runtime.
+> Когда нужно дождаться ответа сети, можно клеить цепочку `.then`. **`async`/`await`** делает то же самое поверх промисов, но код читается сверху вниз: «подожди ответ → разбери JSON → верни имя», без пирамиды колбэков и без длинной цепочки обработчиков.
 >
-> Пишут линейно: шаг за шагом как синхронный код, без пирамиды колбэков и без длинной `.then`-цепи. Параллель не забывают: несколько независимых запросов — `Promise.all([a(), b()])` или стартовать промисы до `await`, иначе `await` подряд сериализует работу зря.
+> Функция с `async` снаружи всегда отдаёт `Promise`: обычный `return` становится fulfill, `throw` — reject. **`await`** внутри ставит паузу до settled и либо отдаёт значение, либо бросает ошибку в окружающий `try/catch`. Runtime тот же: продолжения всё равно уходят в microtasks.
 >
-> Ловушка: `await` **только** внутри `async` (или top-level await в модулях). Забыли `await` — получили промис вместо данных. «Проглоченный» reject без `try/catch` / `.catch` на вызове `async`-функции даёт unhandled rejection. `await` в цикле — осознанная последовательность; для карты независимых задач — `map` + `Promise.all`.
+> Ловушка: забыли `await` — в руках промис, а не данные. Несколько независимых запросов нельзя просто писать `await` подряд — так они ждут друг друга; для параллели — `Promise.all` или стартовать промисы до ожидания. Reject без `try/catch` / `.catch` на вызове `async`-функции даёт unhandled rejection.
 
 ---
 
@@ -24,36 +24,49 @@
 
 - `async` → всегда Promise; даже `return 1` → fulfilled `1`.
 - `await` разворачивает fulfilled / бросает при rejected.
+- Тот же запрос можно писать цепочкой `.then` или линейно через `await` — смысл один.
 - Ошибки: `try/catch` внутри или `.catch` на вызове `asyncFn()`.
-- Последовательный `await a(); await b();` — если нужен параллелизм, поднимайте промисы раньше.
+- Последовательный `await a(); await b();` складывает время; независимые — поднимайте промисы раньше или `Promise.all`.
 - Top-level `await` — в ES-модулях, не в обычном скрипте без обёртки.
-- `for await...of` — для async-итерируемых потоков (не путать с обычным генератором).
 
 ---
 
 # 5. Описание
 
 ```text
-async f() {
-  const x = await promiseA;  // пауза до settled
-  const y = await promiseB;
-  return x + y;              // → Promise fulfilled
-}
-f() → Promise
+.then-цепочка:   fetch → then(json) → then(use) → catch
+async/await:     await fetch → await json → return   (+ try/catch)
+оба пути → Promise наружу
 ```
 
-## Базовый вид
+## Один запрос: `.then` и `async/await`
+
+Один и тот же `fetch` можно оформить двумя стилями. Результат снаружи — промис; меняется только читаемость шагов.
 
 ```js
-async function loadPage(id) {
-  const user = await fetch(`/api/users/${id}`).then((r) => {
-    if (!r.ok) throw new Error(String(r.status));
-    return r.json();
-  });
+// стиль .then
+function loadName(id) {
+  return fetch(`/api/users/${id}`)
+    .then((res) => {
+      if (!res.ok) throw new Error(String(res.status));
+      return res.json();
+    })
+    .then((user) => user.name);
+}
+
+loadName(1).catch(console.error);
+```
+
+```js
+// стиль async/await
+async function loadName(id) {
+  const res = await fetch(`/api/users/${id}`);
+  if (!res.ok) throw new Error(String(res.status));
+  const user = await res.json();
   return user.name;
 }
 
-loadPage(1).catch(console.error);
+loadName(1).catch(console.error);
 ```
 
 ## try/catch
@@ -61,15 +74,15 @@ loadPage(1).catch(console.error);
 ```js
 async function run() {
   try {
-    const data = await loadPage(1);
-    console.log(data);
+    const name = await loadName(1);
+    console.log(name);
   } catch (e) {
     console.error('failed', e);
   }
 }
 ```
 
-Эквивалент по смыслу хвостовому `.catch` на промисе `run()`.
+По смыслу это то же, что хвостовой `.catch` на промисе `run()`.
 
 ## Параллель vs последовательность
 
@@ -106,5 +119,5 @@ async function broken() {
 
 - [MDN: async function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function)
 - [MDN: await](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/await)
-- [MDN: async function* / for await](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for-await...of)
+- [MDN: Promise.then](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/then)
 - [TC39: Promise / async](https://tc39.es/ecma262/#sec-async-function-definitions)
