@@ -1,0 +1,9 @@
+.tag {
+  font-size: var(--font-size-ui-sm);
+  letter-spacing: 0.02em;
+  color: var(--ok);
+  border-radius: var(--radius-sm);
+  padding: 0.08rem 0.3rem;
+  background: color-mix(in srgb, var(--ok) 16%, transparent);
+  flex-shrink: 0;
+}

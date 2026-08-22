@@ -21,90 +21,46 @@
   opacity: 0.4;
 }
 
-.metrics {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.5rem;
-}
-
-.metricCard {
+.heroMetric {
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  padding: 0.55rem 0.65rem;
+  padding: 0.75rem 0.85rem;
   background: rgba(255, 255, 255, 0.02);
-  min-width: 0;
+  text-align: center;
   transition:
     border-color 0.4s ease,
     background 0.4s ease;
 }
 
-.metricCardActive {
+.heroMetricActive {
   border-color: var(--accent);
   background: rgba(105, 177, 255, 0.06);
 }
 
-.metricCardWarn {
+.heroMetricWarn {
   border-color: var(--warn);
   background: rgba(255, 193, 7, 0.06);
 }
 
-.metricLabel {
+.heroLabel {
   display: block;
   color: var(--muted);
   font-size: var(--lab-font-meta);
-  margin-bottom: 0.2rem;
+  margin-bottom: 0.25rem;
 }
 
-.metricValue {
+.heroValue {
   display: block;
-  font-size: 1.15rem;
+  font-size: 1.35rem;
   font-variant-numeric: tabular-nums;
   color: var(--text);
 }
 
-.metricSub {
+.heroSub {
   display: block;
-  margin-top: 0.15rem;
+  margin-top: 0.2rem;
   color: var(--muted);
   font-size: var(--lab-font-meta);
-}
-
-.samples {
-  margin-top: 0.65rem;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.3rem;
-}
-
-.sampleChip {
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 0.2rem 0.45rem;
-  font-size: var(--lab-font-meta);
-  font-variant-numeric: tabular-nums;
-  color: var(--muted);
-  transition:
-    border-color 0.35s ease,
-    color 0.35s ease,
-    opacity 0.35s ease;
-}
-
-.sampleChipOk {
-  border-color: var(--ok);
-  color: var(--ok);
-}
-
-.sampleChipSlow {
-  border-color: var(--warn);
-  color: var(--warn);
-}
-
-.sampleChipDim {
-  opacity: 0.35;
-}
-
-.dim {
-  opacity: 0.42;
 }
 
 .codePane {
@@ -124,9 +80,5 @@
   .arrow {
     transform: rotate(90deg);
     justify-self: center;
-  }
-
-  .metrics {
-    grid-template-columns: 1fr;
   }
 }

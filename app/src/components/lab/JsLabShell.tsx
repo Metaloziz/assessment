@@ -1,4 +1,6 @@
 import type { ReactNode } from 'react'
+import { LabApiTag } from './LabApiTag'
+import { useLabTopic } from './LabTopicContext'
 import { LabTabs, type LabTabId } from './LabTabs'
 import styles from './JsLabShell.module.css'
 
@@ -24,10 +26,15 @@ export function JsLabShell({
   defaultTab = 'code',
   fill = true,
 }: JsLabShellProps) {
+  const { hasApi } = useLabTopic()
+
   return (
     <div className={`${styles.root} ${fill ? styles.rootFill : ''}`}>
       <section className={styles.section}>
-        <h2 className={styles.title}>{title}</h2>
+        <div className={styles.titleRow}>
+          <h2 className={styles.title}>{title}</h2>
+          {hasApi ? <LabApiTag /> : null}
+        </div>
         <p className={styles.lead}>{lead}</p>
         <LabTabs problem={problem} sandbox={sandbox} code={code} defaultTab={defaultTab} />
       </section>

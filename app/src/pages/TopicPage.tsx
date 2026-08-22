@@ -175,6 +175,7 @@ import { TestingPyramidLab } from '../topics/testing-pyramid/TestingPyramidLab'
 import { CoverageToolsLab } from '../topics/coverage-tools/CoverageToolsLab'
 import { ReactTestingLibraryLab } from '../topics/react-testing-library/ReactTestingLibraryLab'
 import { LAB_DOCK_ID, useLayoutStore } from '../store/layout'
+import { LabTopicProvider } from '../components/lab/LabTopicContext'
 import styles from './TopicPage.module.css'
 
 function TopicLab({ topicId }: { topicId: string; topic: TopicDetail }) {
@@ -407,7 +408,12 @@ export function TopicPage() {
 
   const labPortal =
     topic.hasLab && dockEl
-      ? createPortal(<TopicLab topicId={topic.id} topic={topic} />, dockEl)
+      ? createPortal(
+          <LabTopicProvider hasApi={topic.hasApi}>
+            <TopicLab topicId={topic.id} topic={topic} />
+          </LabTopicProvider>,
+          dockEl,
+        )
       : null
 
   const topicNum = topic.id.match(/^(\d+)/)?.[1] ?? String(topic.order)

@@ -17,7 +17,7 @@
   overflow: hidden;
 }
 
-.rootFill .title,
+.rootFill .titleRow,
 .rootFill .lead {
   flex-shrink: 0;
 }
@@ -29,8 +29,16 @@
   padding: var(--lab-section-pad-y) var(--lab-section-pad-x);
 }
 
-.title {
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
   margin: 0 0 var(--space-1);
+  flex-wrap: wrap;
+}
+
+.title {
+  margin: 0;
   font-family: var(--font-sans);
   font-size: var(--lab-font-title);
   font-weight: var(--font-weight-bold);

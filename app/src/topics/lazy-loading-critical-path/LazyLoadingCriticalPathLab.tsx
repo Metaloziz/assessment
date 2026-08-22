@@ -24,8 +24,8 @@ type CrpPhase = 'idle' | 'html' | 'css' | 'js' | 'render' | 'fcp' | 'done'
 type ImgStatus = 'pending' | 'loading' | 'loaded' | 'error'
 
 const PATTERNS: Array<{ id: Pattern; label: string }> = [
-  { id: 'lazy', label: 'Lazy-loading' },
-  { id: 'crp', label: 'Critical path' },
+  { id: 'lazy', label: 'Отложенная загрузка' },
+  { id: 'crp', label: 'Критический путь' },
 ]
 
 const CASES: Record<Pattern, Array<{ id: CaseId; label: string }>> = {
@@ -84,14 +84,14 @@ const playTimeline = (
 const PAIN: Record<Pattern, ReactNode> = {
   lazy: (
     <>
-      На старте не нужны все картинки сразу. <code>loading="lazy"</code> откладывает запрос, пока элемент
-      не приблизится к viewport — но LCP-кандидат так откладывать нельзя.
+      На старте не нужны все картинки сразу. Атрибут <code>loading="lazy"</code> откладывает запрос, пока элемент
+      не приблизится к видимой области — но главную картинку (LCP) так откладывать нельзя.
     </>
   ),
   crp: (
     <>
-      Critical rendering path — ресурсы, без которых браузер не рисует первый экран. Синхронный CSS и JS
-      на пути до FCP задерживают отрисовку; critical CSS и defer выносят хвост за пределы старта.
+      Критический путь — ресурсы, без которых браузер не рисует первый экран. Синхронные CSS и JS
+      до первой отрисовки задерживают появление контента; inline critical CSS и <code>defer</code> выносят хвост за пределы старта.
     </>
   ),
 }
@@ -156,14 +156,11 @@ const SNIPPET_LAZY_REACT: InteractiveSnippet = {
   languageLabel: 'tsx',
   code: `import { lazy, Suspense } from 'react';
 
-// ═══════════════════════════════════════════
-// LAZY ← code splitting маршрута / виджета
-// ═══════════════════════════════════════════
-const Settings = lazy(() => import('./SettingsPage'));
+const Settings = lazy(() => import('./SettingsPage')); // ← отдельный чанк
 
 export const App = () => (
   <Suspense fallback={<p>Загрузка…</p>}>
-    <Settings /> {/* ← чанк грузится по demand */}
+    <Settings />
   </Suspense>
 );`,
 }
@@ -238,9 +235,9 @@ const LazyLiveViz = ({ caseId, runId, phase, statuses, onStatus, viewportRef }: 
     }
   >
     <div ref={viewportRef} className={styles.viewport}>
-      <div className={styles.foldLine}>↑ above the fold</div>
+      <div className={styles.foldLine}>↑ выше сгиба экрана</div>
       <div className={styles.hero}>
-        <span className={styles.heroBadge}>LCP candidate</span>
+        <span className={styles.heroBadge}>кандидат LCP</span>
         <img
           key={`hero-${runId}`}
           className={styles.heroImg}
@@ -299,7 +296,7 @@ const LazyLiveViz = ({ caseId, runId, phase, statuses, onStatus, viewportRef }: 
       </div>
     </div>
     {phase === 'scroll' ? (
-      <p className={shell.hint}>Прокрутите scrollport — lazy-картинки запросятся при входе во viewport.</p>
+      <p className={shell.hint}>Лента прокручивается — lazy-картинки подгружаются по мере появления.</p>
     ) : null}
   </LabVizPanel>
   )
@@ -455,16 +452,17 @@ export function LazyLoadingCriticalPathLab() {
     const total = 1 + GRID_COUNT
     log('info', `загружено ${loaded}/${total}`)
     if (lazyCase === 'eager') {
-      log('warn', 'eager: все слоты конкурируют на старте')
+      log('warn', 'eager — все картинки конкурируют на старте')
       setHint('eager — максимум запросов сразу')
     } else if (lazyCase === 'lazy') {
-      log('ok', 'lazy: часть карточек ждёт scrollport')
+      log('ok', 'lazy — карточки ниже сгиба после прокрутки')
       setHint('lazy — ниже fold после прокрутки')
     } else {
-      log('err', 'LCP hero с loading=lazy — главная картинка отложена')
+      log('err', 'hero с loading=lazy — LCP-кандидат отложен')
       setHint('lazy на LCP — типичная ловушка')
     }
     setLazyPhase('done')
+    setBusy(false)
   }
 
   const runLazy = () => {
@@ -474,21 +472,34 @@ export function LazyLoadingCriticalPathLab() {
     setRunId((r) => r + 1)
     if (viewportRef.current) viewportRef.current.scrollTop = 0
 
+    const afterScroll = () => {
+      window.setTimeout(() => finishLazyRun(lazyCase), lazyCase === 'eager' ? 350 : 700)
+    }
+
     playTimeline(
       tlRef,
       [
         () => {
           setLazyPhase('start')
-          log('info', `hero=${heroLoading(lazyCase)} · grid=${gridLoading(lazyCase)}`)
+          log('info', `hero · ${heroLoading(lazyCase)} · сетка · ${gridLoading(lazyCase)}`)
         },
         () => {
           setLazyPhase('scroll')
-          window.setTimeout(() => {
-            finishLazyRun(lazyCase)
-          }, 900)
+          const vp = viewportRef.current
+          if (vp && !reducedMotion()) {
+            gsap.to(vp, {
+              scrollTop: vp.scrollHeight - vp.clientHeight,
+              duration: 1,
+              ease: 'power2.inOut',
+              onComplete: afterScroll,
+            })
+            return
+          }
+          if (vp) vp.scrollTop = vp.scrollHeight - vp.clientHeight
+          afterScroll()
         },
       ],
-      () => setBusy(false),
+      () => undefined,
     )
   }
 
@@ -612,7 +623,7 @@ export function LazyLoadingCriticalPathLab() {
   )
 
   const code = (
-    <div>
+    <div className={shell.codePane}>
       <PatternSwitch value={pattern} disabled={false} onChange={selectPattern} />
       <InteractiveCodePanel
         key={`${pattern}-${caseId}`}

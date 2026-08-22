@@ -1,5 +1,6 @@
 import type { TopicDetail, TopicSectionKey, TopicSummary } from './types'
 import { resolveTopicMeta, TOPIC_GROUPS } from './groups'
+import { topicHasLiveApi } from './topicHasLiveApi'
 
 const SECTION_MAP: Array<{ key: TopicSectionKey; patterns: RegExp[] }> = [
   { key: 'theme', patterns: [/^#\s*1\.\s*Тема/i] },
@@ -96,21 +97,7 @@ export function parseTopicMd(id: string, raw: string, order: number): TopicDetai
   const groupTitle =
     TOPIC_GROUPS.find((g) => g.id === meta.groupId)?.title ?? 'Прочее'
 
-  /** Темы с лабой против живого `assessment-api` (не симуляция). */
-  const hasApi =
-    id === '07-cors' ||
-    id === '13-csrf' ||
-    id === '57-cookies' ||
-    id === '244-nodejs-db-async-config' ||
-    id === '245-nodejs-cache-crud' ||
-    id === '27-server-performance-metrics' ||
-    id === '246-nodejs-worker-threads' ||
-    id === '267-devtools-websocket-debug' ||
-    id === '251-network-api-first' ||
-    id === '250-network-http-https' ||
-    id === '252-network-long-polling-ws-sse' ||
-    id === '192-react-ssr' ||
-    id === '272-fetch-advanced-xhr'
+  const hasApi = topicHasLiveApi(id)
 
   return {
     id,

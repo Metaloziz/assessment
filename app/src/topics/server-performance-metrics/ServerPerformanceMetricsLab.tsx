@@ -15,15 +15,23 @@ import styles from './ServerPerformanceMetricsLab.module.css'
 
 const TOPIC_ID = '27-server-performance-metrics'
 const BURST_COUNT = 8
+const TAIL_FAST = 6
 
-type CaseId = 'contrast' | 'burst' | 'db'
+type CaseId = 'contrast' | 'burst' | 'db' | 'tail' | 'resources'
 type Phase = 'idle' | 'fetch' | 'done'
+
+type ProcessResources = {
+  cpuMs: number
+  heapDeltaMb: number
+  rssMb: number
+}
 
 type PerfResponse = {
   ok: boolean
   path: string
   latencyMs?: number
   delayMs?: number
+  resources?: ProcessResources
 }
 
 type Sample = {
@@ -32,6 +40,7 @@ type Sample = {
   serverMs: number
   path: string
   ok: boolean
+  resources?: ProcessResources
 }
 
 type LiveResult = {
@@ -43,40 +52,54 @@ type LiveResult = {
 }
 
 const CASES: Array<{ id: CaseId; label: string }> = [
-  { id: 'contrast', label: 'fast vs slow' },
-  { id: 'burst', label: 'пачка · RPS' },
-  { id: 'db', label: 'через БД' },
+  { id: 'contrast', label: 'Быстро vs медленно' },
+  { id: 'burst', label: 'Пачка · RPS' },
+  { id: 'db', label: 'Через БД' },
+  { id: 'tail', label: 'Хвост · p95' },
+  { id: 'resources', label: 'Ресурсы' },
 ]
 
 const PAIN = (
   <>
-    Живые эндпоинты на Render: <code>latencyMs</code> с сервера и полный round-trip в браузере —
-    видно, где растёт время ответа и как ведёт себя пачка запросов.
+    Задержка на сервере и полный round-trip в браузере часто расходятся: сеть, очередь и
+    сериализация добавляют время поверх обработки в <code>handler</code>.
   </>
 )
 
 const CASE_BRIEF: Record<CaseId, ReactNode> = {
   contrast: (
     <>
-      Подряд <code>GET /api/lab/perf/fast</code> и <code>/slow</code> — контраст server{' '}
-      <code>latencyMs</code> без сетевого шума на глаз.
+      Подряд быстрый и медленный <code>handler</code> — контраст <code>latencyMs</code> с сервера.
     </>
   ),
   burst: (
     <>
-      {BURST_COUNT} параллельных <code>GET /fast</code> — считаем RPS и p95 client RTT за прогон.
+      {BURST_COUNT} параллельных запросов — сколько запросов в секунду выдерживает лёгкий{' '}
+      <code>handler</code>.
     </>
   ),
   db: (
     <>
-      <code>GET /api/lab/perf/db</code> — реальный <code>SELECT</code> в Postgres; server{' '}
-      <code>latencyMs</code> включает round-trip к БД.
+      Запрос с <code>SELECT</code> в Postgres — server <code>latencyMs</code> включает round-trip
+      к БД.
+    </>
+  ),
+  tail: (
+    <>
+      Пачка из быстрых и одного медленного — <code>p50</code> остаётся низким,{' '}
+      <code>p95</code> улетает вверх.
+    </>
+  ),
+  resources: (
+    <>
+      Лёгкий и тяжёлый <code>handler</code> — в JSON приходит <code>cpuMs</code> и{' '}
+      <code>heapDeltaMb</code> процесса Node.
     </>
   ),
 }
 
 const CODE_INTRO =
-  'Учебные роуты `/api/lab/perf/*`: замер `performance.now()` на сервере и JSON с `latencyMs`.'
+  'Handler замеряет время обработки запроса и отдаёт `latencyMs` в JSON.'
 
 const CODE_SNIPPETS: Record<CaseId, InteractiveSnippet[]> = {
   contrast: [
@@ -109,7 +132,7 @@ return { ok: true, path: 'slow', delayMs, latencyMs };
     {
       id: 'perf-burst-client',
       label: 'lab · burst',
-      note: 'Параллельные fetch — throughput и хвост p95.',
+      note: 'Параллельные fetch — throughput за окно прогона.',
       executable: false,
       languageLabel: 'ts',
       code: `const started = performance.now();
@@ -118,7 +141,6 @@ const results = await Promise.all(
 );
 const elapsedSec = (performance.now() - started) / 1000;
 const rps = results.length / elapsedSec; // ← RPS за окно прогона
-const p95 = percentile(results.map((s) => s.clientMs), 95);
 `,
     },
     {
@@ -165,6 +187,71 @@ return { ok: true, db: true, latencyMs }; // ← latencyMs в JSON
 `,
     },
   ],
+  tail: [
+    {
+      id: 'perf-tail-client',
+      label: 'lab · tail',
+      note: 'Один медленный запрос в пачке — p95 выше p50.',
+      executable: false,
+      languageLabel: 'ts',
+      code: `const samples = await Promise.all([
+  ...Array.from({ length: 6 }, () => fetchPerf('/api/lab/perf/fast')),
+  fetchPerf('/api/lab/perf/slow'),
+]);
+const times = samples.map((s) => s.clientMs);
+const p50 = percentile(times, 50); // ← медиана
+const p95 = percentile(times, 95); // ← хвост, не среднее
+`,
+    },
+    {
+      id: 'prom-quantile',
+      label: 'metrics.ts · quantile',
+      note: 'p95 из гистограммы в PromQL / Grafana.',
+      executable: false,
+      languageLabel: 'promql',
+      code: `histogram_quantile(
+  0.95,
+  sum(rate(http_request_duration_seconds_bucket[5m])) by (le, route),
+) // ← p95 по route, не avg
+`,
+    },
+  ],
+  resources: [
+    {
+      id: 'perf-heavy',
+      label: 'routes/perfLab.ts · heavy',
+      note: 'CPU-burn и буфер в heap — снимок `process.cpuUsage` / `memoryUsage`.',
+      executable: false,
+      languageLabel: 'ts',
+      code: `const memBefore = process.memoryUsage();
+const cpuBefore = process.cpuUsage();
+burnCpu(120); // ← CPU процесса, не % всего сервера
+const chunk = Buffer.alloc(8 * 1024 * 1024);
+const memAfter = process.memoryUsage();
+const cpu = process.cpuUsage(cpuBefore);
+return {
+  latencyMs,
+  resources: {
+    cpuMs: (cpu.user + cpu.system) / 1000,
+    heapDeltaMb: (memAfter.heapUsed - memBefore.heapUsed) / 1e6,
+  },
+}; // ← в JSON ответа
+`,
+    },
+    {
+      id: 'node-exporter',
+      label: 'infra · node_exporter',
+      note: 'В проде CPU/RAM/disk хоста — exporter + Prometheus, не handler.',
+      executable: false,
+      languageLabel: 'yaml',
+      code: `# scrape node_exporter на VM / k8s node
+- job_name: node
+  static_configs:
+    - targets: ['node-exporter:9100']
+# USE: Utilization CPU/RAM, Saturation queue, Errors
+`,
+    },
+  ],
 }
 
 function percentile(values: number[], p: number): number {
@@ -192,6 +279,7 @@ async function fetchPerf(path: string, label?: string): Promise<Sample> {
       serverMs: data.latencyMs ?? 0,
       path,
       ok: data.ok,
+      resources: data.resources,
     }
   } catch {
     const clientMs = Math.round(performance.now() - started)
@@ -228,9 +316,74 @@ async function fetchLive(caseId: CaseId): Promise<LiveResult> {
     return buildResult(samples, performance.now() - wallStart)
   }
 
-  const wallStart = performance.now()
-  const db = await fetchPerf('/api/lab/perf/db', 'db')
-  return buildResult([db], performance.now() - wallStart)
+  if (caseId === 'tail') {
+    const wallStart = performance.now()
+    const samples = await Promise.all([
+      ...Array.from({ length: TAIL_FAST }, (_, i) =>
+        fetchPerf('/api/lab/perf/fast', `#${i + 1}`),
+      ),
+      fetchPerf('/api/lab/perf/slow', 'slow'),
+    ])
+    return buildResult(samples, performance.now() - wallStart)
+  }
+
+  if (caseId === 'resources') {
+    const wallStart = performance.now()
+    const light = await fetchPerf('/api/lab/perf/light', 'light')
+    const heavy = await fetchPerf('/api/lab/perf/heavy', 'heavy')
+    return buildResult([light, heavy], performance.now() - wallStart)
+  }
+
+  if (caseId === 'db') {
+    const wallStart = performance.now()
+    const db = await fetchPerf('/api/lab/perf/db', 'db')
+    return buildResult([db], performance.now() - wallStart)
+  }
+
+  throw new Error(`unknown case: ${caseId satisfies never}`)
+}
+
+function primaryReading(
+  caseId: CaseId,
+  live: LiveResult,
+): { label: string; value: string; sub: string; warn?: boolean } {
+  switch (caseId) {
+    case 'contrast':
+      return {
+        label: 'server latency',
+        value: `${live.samples[0]?.serverMs ?? '—'} · ${live.samples[1]?.serverMs ?? '—'} ms`,
+        sub: 'быстрый → медленный handler',
+      }
+    case 'burst':
+      return {
+        label: 'RPS',
+        value: live.rps != null ? String(live.rps) : '—',
+        sub: 'за окно прогона',
+      }
+    case 'db':
+      return {
+        label: 'server latency',
+        value: `${live.samples[0]?.serverMs ?? '—'} ms`,
+        sub: 'handler + Postgres',
+      }
+    case 'tail':
+      return {
+        label: 'p50 · p95',
+        value: `${live.p50} · ${live.p95} ms`,
+        sub: 'client round-trip',
+        warn: live.p95 > live.p50 * 3,
+      }
+    case 'resources': {
+      const light = live.samples[0]?.resources
+      const heavy = live.samples[1]?.resources
+      return {
+        label: 'CPU процесса',
+        value: `${light?.cpuMs ?? '—'} · ${heavy?.cpuMs ?? '—'} ms`,
+        sub: `heap Δ ${heavy?.heapDeltaMb ?? '—'} MB · не % всего сервера`,
+        warn: (heavy?.cpuMs ?? 0) > 15 || (heavy?.heapDeltaMb ?? 0) > 2,
+      }
+    }
+  }
 }
 
 function CaseSwitch({
@@ -270,6 +423,7 @@ type VizProps = {
 function PerfViz({ caseId, phase, live, focusRef }: VizProps) {
   const busy = phase === 'fetch'
   const done = phase === 'done' && live != null
+  const reading = done ? primaryReading(caseId, live) : null
 
   const browserState: LabNodeState = busy ? 'active' : done ? 'ok' : 'idle'
   const apiState: LabNodeState = busy ? 'active' : done && live.errors === 0 ? 'ok' : done ? 'err' : 'idle'
@@ -282,115 +436,69 @@ function PerfViz({ caseId, phase, live, focusRef }: VizProps) {
             ? 'ok'
             : 'err'
           : 'idle'
-      : caseId === 'contrast' && done
-        ? 'ok'
-        : busy
-          ? 'active'
+      : busy
+        ? 'active'
+        : done
+          ? 'ok'
           : 'idle'
 
-  const backendLabel = caseId === 'db' ? 'Postgres' : caseId === 'burst' ? `${BURST_COUNT}× handler` : 'handler'
+  const backendLabel =
+    caseId === 'db'
+      ? 'Postgres'
+      : caseId === 'resources'
+        ? 'CPU + RAM'
+        : caseId === 'burst' || caseId === 'tail'
+          ? 'handler × N'
+          : 'handler'
   const backendSub =
     caseId === 'db'
       ? done
-        ? `SELECT · ${live.samples[0]?.serverMs ?? '—'} ms`
+        ? 'SELECT'
         : 'select 1'
+      : caseId === 'resources'
+        ? done
+          ? 'burn + alloc'
+          : 'лёгкий → тяжёлый'
       : caseId === 'burst'
         ? done
-          ? `parallel · p95 ${live.p95} ms`
-          : 'parallel fast'
-        : done
-          ? `slow · ${live.samples[1]?.serverMs ?? '—'} ms`
-          : 'fast → slow'
+          ? `${BURST_COUNT} параллельно`
+          : 'пачка запросов'
+        : caseId === 'tail'
+          ? done
+            ? `${TAIL_FAST} fast + 1 slow`
+            : 'есть медленный'
+          : done
+            ? 'fast → slow'
+            : 'два handler'
 
   const arrowCls = (active: boolean) =>
     `${styles.arrow}${active ? ` ${styles.arrowActive}` : ` ${styles.arrowIdle}`}`
 
-  const lastServer = done ? live.samples[live.samples.length - 1]?.serverMs : null
-  const lastClient = done ? live.samples[live.samples.length - 1]?.clientMs : null
-
   return (
     <LabVizPanel
-      title="Живые метрики API"
-      meta={
-        !done
-          ? busy
-            ? 'fetch…'
-            : 'ожидание'
-          : `p50 ${live.p50} ms · p95 ${live.p95} ms${live.rps != null && caseId === 'burst' ? ` · ${live.rps} rps` : ''}`
-      }
+      title="Метрики ответа"
+      meta={busy ? 'запрос…' : done ? 'готово' : 'ожидание'}
     >
       <div className={styles.flow}>
-        <LabNode label="Browser" sub="fetch + RTT" state={browserState} />
+        <LabNode label="Браузер" sub="round-trip" state={browserState} />
         <span className={arrowCls(busy || done)} aria-hidden>
           →
         </span>
-        <LabNode label="API" sub="/api/lab/perf/*" state={apiState} />
+        <LabNode label="API" sub="handler" state={apiState} />
         <span className={arrowCls(busy || done)} aria-hidden>
           →
         </span>
         <LabNode label={backendLabel} sub={backendSub} state={backendState} />
       </div>
 
-      <div ref={focusRef} className={styles.metrics}>
-        <div
-          className={`${styles.metricCard}${done ? ` ${styles.metricCardActive}` : ''}${done && (live.p95 ?? 0) > 400 ? ` ${styles.metricCardWarn}` : ''}`}
-        >
-          <span className={styles.metricLabel}>client p95</span>
-          <span className={styles.metricValue}>{done ? `${live.p95} ms` : '—'}</span>
-          <span className={styles.metricSub}>полный round-trip</span>
-        </div>
-        <div className={`${styles.metricCard}${done ? ` ${styles.metricCardActive}` : ''}`}>
-          <span className={styles.metricLabel}>server last</span>
-          <span className={styles.metricValue}>{done ? `${lastServer ?? '—'} ms` : '—'}</span>
-          <span className={styles.metricSub}>из JSON latencyMs</span>
-        </div>
-        <div className={`${styles.metricCard}${done ? ` ${styles.metricCardActive}` : ''}`}>
-          <span className={styles.metricLabel}>
-            {caseId === 'burst' ? 'RPS' : 'client last'}
-          </span>
-          <span className={styles.metricValue}>
-            {done
-              ? caseId === 'burst'
-                ? live.rps != null
-                  ? `${live.rps}`
-                  : '—'
-                : `${lastClient ?? '—'} ms`
-              : '—'}
-          </span>
-          <span className={styles.metricSub}>
-            {caseId === 'burst' ? 'за окно прогона' : 'RTT последнего запроса'}
-          </span>
-        </div>
+      <div
+        ref={focusRef}
+        className={`${styles.heroMetric}${done ? ` ${styles.heroMetricActive}` : ''}${reading?.warn ? ` ${styles.heroMetricWarn}` : ''}`}
+      >
+        <span className={styles.heroLabel}>{reading?.label ?? '—'}</span>
+        <span className={styles.heroValue}>{reading?.value ?? '—'}</span>
+        <span className={styles.heroSub}>{reading?.sub ?? '—'}</span>
       </div>
-
-      {done ? (
-        <div className={styles.samples}>
-          {live.samples.map((s, i) => (
-            <span
-              key={`${s.label}-${i}`}
-              className={`${styles.sampleChip}${
-                s.label === 'slow' || (s.serverMs > 200 && caseId !== 'burst')
-                  ? ` ${styles.sampleChipSlow}`
-                  : s.ok
-                    ? ` ${styles.sampleChipOk}`
-                    : ''
-              }`}
-            >
-              {s.label} · srv {s.serverMs} · cli {s.clientMs}
-            </span>
-          ))}
-        </div>
-      ) : (
-        <div className={styles.samples}>
-          {Array.from({ length: caseId === 'burst' ? BURST_COUNT : caseId === 'contrast' ? 2 : 1 }).map(
-            (_, i) => (
-              <span key={i} className={`${styles.sampleChip} ${styles.sampleChipDim}`}>
-                —
-              </span>
-            ),
-          )}
-        </div>
-      )}
     </LabVizPanel>
   )
 }
@@ -426,18 +534,18 @@ export function ServerPerformanceMetricsLab() {
       setPhase('done')
 
       const hintByCase: Record<CaseId, string> = {
-        contrast: `fast ${result.samples[0]?.serverMs ?? '—'} ms server vs slow ${result.samples[1]?.serverMs ?? '—'} ms — хвост виден в p95 ${result.p95} ms client`,
-        burst: `${BURST_COUNT} запросов · ~${result.rps ?? '—'} RPS · p95 client ${result.p95} ms`,
-        db: `Postgres в цепочке: server ${result.samples[0]?.serverMs ?? '—'} ms, client ${result.samples[0]?.clientMs ?? '—'} ms`,
+        contrast: `server ${result.samples[0]?.serverMs ?? '—'} ms vs ${result.samples[1]?.serverMs ?? '—'} ms — разница в handler, не в сети`,
+        burst: `~${result.rps ?? '—'} RPS за прогон`,
+        db: `Postgres добавил время: server ${result.samples[0]?.serverMs ?? '—'} ms`,
+        tail: `p50 ${result.p50} ms, p95 ${result.p95} ms — один slow тянет хвост`,
+        resources: `CPU ${result.samples[1]?.resources?.cpuMs ?? '—'} ms, heap +${result.samples[1]?.resources?.heapDeltaMb ?? '—'} MB — нагрузка на процесс Node`,
       }
 
       if (result.errors > 0) {
-        log('err', `${result.errors} ошибок · p95 ${result.p95} ms`)
+        log('err', `${result.errors} ошибок`)
       } else {
-        log('ok', `p50 ${result.p50} ms · p95 ${result.p95} ms`)
-        if (caseId === 'burst' && result.rps != null) {
-          log('info', `~${result.rps} RPS за прогон`)
-        }
+        const read = primaryReading(caseId, result)
+        log('ok', `${read.label}: ${read.value}`)
       }
       setHint(hintByCase[caseId])
 
@@ -453,7 +561,7 @@ export function ServerPerformanceMetricsLab() {
       setPhase('done')
       setLive({ samples: [], rps: null, p50: 0, p95: 0, errors: 1 })
       log('err', message)
-      setHint('API недоступен — поднимите server или дождитесь деплоя Render')
+      setHint('API недоступен — проверьте сеть или повторите позже')
     } finally {
       setBusy(false)
     }
@@ -511,7 +619,7 @@ export function ServerPerformanceMetricsLab() {
   return (
     <JsLabShell
       title="Метрики серверной производительности"
-      lead="Живые `/api/lab/perf/*`: latency с сервера, round-trip в браузере и пачка для RPS."
+      lead="Задержка ответа: что измеряет сервер и что доходит до браузера."
       problem={problem}
       code={code}
     />

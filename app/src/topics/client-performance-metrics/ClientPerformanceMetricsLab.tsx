@@ -172,8 +172,7 @@ const SNIPPET_AD_JUMP: InteractiveSnippet = {
   code: `type Props = { html?: string };
 
 export const AdSlot = ({ html }: Props) => (
-  <div className="ad">{html}</div>
-  // ← высота 0, пока баннер не пришёл
+  <div className="ad">{html}</div> // ← высота 0, пока баннер не пришёл
 );`,
 }
 
@@ -211,18 +210,41 @@ const CODE_SNIPPETS: Record<MetricId, InteractiveSnippet[]> = {
   cls: [SNIPPET_AD_JUMP, SNIPPET_AD_OK, SNIPPET_CLS_REPORT],
 }
 
-const PAIN: Record<MetricId, string> = {
-  lcp: 'LCP — момент, когда отрисован самый крупный элемент в viewport. Поздний hero двигает метрику, даже если шапка уже на месте.',
-  inp: 'INP — задержка от клика до следующего кадра. Long task на main thread держит кнопку «мёртвой».',
-  cls: 'CLS копит неожиданные сдвиги. Баннер без зарезервированной высоты уезжает кнопку под пальцем.',
+const PAIN: Record<MetricId, ReactNode> = {
+  lcp: (
+    <>
+      <code>LCP</code> — момент, когда отрисован самый крупный элемент в viewport. Поздний hero
+      двигает метрику, даже если шапка уже на месте.
+    </>
+  ),
+  inp: (
+    <>
+      <code>INP</code> — задержка от клика до следующего кадра. Long task на main thread держит
+      кнопку «мёртвой».
+    </>
+  ),
+  cls: (
+    <>
+      <code>CLS</code> копит неожиданные сдвиги. Баннер без зарезервированной высоты уезжает кнопку
+      под пальцем.
+    </>
+  ),
 }
 
 const CASE_BRIEF: Record<CaseId, ReactNode> = {
-  late: <>Hero приходит с задержкой — LCP-кандидат появляется после порога «хорошо».</>,
-  priority: <>Тот же кадр на месте сразу — LCP близко к первой отрисовке стенда.</>,
+  late: (
+    <>
+      Hero приходит с задержкой — <code>LCP</code>-кандидат появляется после порога «хорошо».
+    </>
+  ),
+  priority: (
+    <>
+      Тот же кадр на месте сразу — <code>LCP</code> близко к первой отрисовке стенда.
+    </>
+  ),
   block: (
     <>
-      Обработчик крутит main thread ~{INP_BLOCK_MS} мс — INP выше 200 мс.
+      Обработчик крутит main thread ~{INP_BLOCK_MS} мс — <code>INP</code> выше 200&nbsp;мс.
     </>
   ),
   yield: <>Короткий handler: корзина обновляется на следующем кадре.</>,
@@ -266,9 +288,9 @@ const gradeCls = (value: number): Grade => (value <= 0.1 ? 'good' : value <= 0.2
 const fmtMs = (ms: number) => (ms >= 1000 ? `${(ms / 1000).toFixed(2)} s` : `${Math.round(ms)} ms`)
 
 const gradeLabel: Record<Grade, string> = {
-  good: 'good',
-  ni: 'NI',
-  poor: 'poor',
+  good: 'хорошо',
+  ni: 'средне',
+  poor: 'плохо',
 }
 
 const blockMs = (ms: number) => {
@@ -314,8 +336,8 @@ const ShopViz = ({
         ? metric === 'lcp'
           ? 'ждём LCP-кандидат'
           : metric === 'inp'
-            ? 'клик → next paint'
-            : 'сдвиг layout'
+            ? 'клик → следующий кадр'
+            : 'сдвиг вёрстки'
         : reading
           ? `${reading.label} ${reading.value} · ${gradeLabel[reading.grade]}`
           : 'готово'
@@ -381,8 +403,13 @@ const ShopViz = ({
             12 900 ₽
           </p>
           <div className={styles.actions}>
-            <LabButton variant="primary" size="sm" disabled>
-              {inCart ? 'В корзине' : 'Купить'}
+            <LabButton
+              variant="primary"
+              size="sm"
+              disabled
+              className={phase === 'run' && metric === 'inp' ? styles.buyPending : undefined}
+            >
+              {phase === 'run' && metric === 'inp' ? '…' : inCart ? 'В корзине' : 'Купить'}
             </LabButton>
             {metric === 'inp' ? (
               <span className={styles.cartMeta}>{inCart ? 'cart · 1' : 'cart · 0'}</span>
@@ -497,7 +524,7 @@ export const ClientPerformanceMetricsLab = () => {
             : 'Итог: поздний hero.webp утащил LCP за порог «хорошо»',
           `LCP ${fmtMs(ms)} · ${gradeLabel[grade]}`,
         )
-        log('info', 'element · hero.webp')
+        log('info', 'элемент · hero.webp')
       }
       if (img) {
         void img.decode().then(painted).catch(painted)
@@ -536,10 +563,10 @@ export const ClientPerformanceMetricsLab = () => {
         { label: 'INP', value: fmtMs(ms), grade },
         grade === 'good'
           ? 'Итог: короткий handler — следующий кадр сразу'
-          : 'Итог: long task на клике задержал next paint',
+          : 'Итог: long task на клике задержал следующий кадр',
         `INP ${fmtMs(ms)} · ${gradeLabel[grade]}`,
       )
-      log('info', slow ? 'handler · busy loop' : 'handler · addToCart')
+        log('info', slow ? 'handler · long task' : 'handler · короткий')
     })
   }
 
@@ -567,7 +594,7 @@ export const ClientPerformanceMetricsLab = () => {
                 : 'Итог: баннер без высоты сдвинул цену и кнопку',
               `CLS ${value.toFixed(3)} · ${gradeLabel[grade]}`,
             )
-            log('info', reserve ? 'ad · min-height' : 'ad · height 0 → insert')
+            log('info', reserve ? 'баннер · слот с высотой' : 'баннер · без слота')
           },
         },
       ],
@@ -650,7 +677,7 @@ export const ClientPerformanceMetricsLab = () => {
   )
 
   const code = (
-    <div className={styles.codePane}>
+    <div className={shell.codePane}>
       <MetricSwitch value={metric} onChange={selectMetric} />
       <InteractiveCodePanel
         key={metric}
