@@ -19,101 +19,100 @@ type LaneOutcome = {
 }
 
 const CASES: Array<{ id: CaseId; label: string }> = [
-  { id: 'echo', label: '200 echo' },
-  { id: 'http404', label: 'HTTP 404' },
-  { id: 'abort', label: 'abort' },
+  { id: 'echo', label: 'Всё ок' },
+  { id: 'http404', label: 'Страницы нет' },
+  { id: 'abort', label: 'Отменили' },
 ]
 
 const CASE_BRIEF: Record<CaseId, ReactNode> = {
-  echo: (
-    <>
-      Оба API ходят на живой <code>/api/demo/echo</code> и получают 200 с телом.
-    </>
-  ),
+  echo: <>Сервер отвечает нормально. Смотрим, как это выглядит у <code>fetch</code> и у XHR.</>,
   http404: (
     <>
-      Один и тот же отсутствующий URL: у <code>fetch</code> промис обычно fulfill, у XHR —{' '}
-      <code>load</code> со статусом 404.
+      Сервер говорит «такого адреса нет». Важно: у <code>fetch</code> это часто <strong>не</strong>{' '}
+      исключение.
     </>
   ),
-  abort: (
-    <>
-      Отмена сразу после старта: <code>AbortController</code> у <code>fetch</code> и{' '}
-      <code>xhr.abort()</code>.
-    </>
-  ),
+  abort: <>Запрос прерываем сразу после старта — у каждого API своя «кнопка стоп».</>,
 }
 
 const SNIPPET_FETCH: InteractiveSnippet = {
   id: 'fetch-client',
   label: 'src/api/fetchClient.js',
-  note: '`fetch` отдаёт Promise с Response; HTTP-ошибка ≠ reject.',
+  note: 'Сначала ждём ответ, потом проверяем статус, потом читаем JSON.',
   executable: false,
-  code: `export async function getEcho(url, { signal } = {}) {
-  const res = await fetch(url, { signal }); // ← сеть / CORS / abort → reject
-  // ← 404/500 обычно fulfill с ok === false
-  if (!res.ok) throw new Error(\`HTTP \${res.status}\`);
+  code: `export async function loadUser(url) {
+  const res = await fetch(url);
+  // ← «письмо доставили» — даже если внутри 404
+  if (!res.ok) {
+    throw new Error('Сервер ответил ' + res.status); // ← сами проверяем
+  }
   return res.json(); // ← тело читаем отдельно
 }
-
-const ctrl = new AbortController();
-ctrl.abort(); // ← AbortError
 `,
 }
 
 const SNIPPET_XHR: InteractiveSnippet = {
   id: 'xhr-client',
   label: 'src/api/xhrClient.js',
-  note: 'XHR сообщает результат событиями; статус смотрят в `onload`.',
+  note: 'XHR сообщает о конце загрузки событием; статус смотрите сами.',
   executable: false,
-  code: `export function getEchoXhr(url) {
-  return new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    xhr.open('GET', url);
-    xhr.onload = () => {
-      // ← load пришёл и при 404 — смотрите status
-      resolve({ status: xhr.status, body: xhr.responseText });
-    };
-    xhr.onerror = () => reject(new Error('network'));
-    xhr.onabort = () => reject(new DOMException('Aborted', 'AbortError'));
-    xhr.send();
-  });
+  code: `export function loadUserXhr(url, onDone) {
+  const xhr = new XMLHttpRequest();
+  xhr.open('GET', url);
+  xhr.onload = () => {
+    // ← onload бывает и при 404
+    onDone(xhr.status, xhr.responseText);
+  };
+  xhr.onerror = () => onDone(0, ''); // ← сеть не достучалась
+  xhr.send();
+}
+`,
 }
 
+const SNIPPET_ABORT: InteractiveSnippet = {
+  id: 'abort-both',
+  label: 'src/api/abort.js',
+  note: 'Одна идея — «стоп», два разных вызова.',
+  executable: false,
+  code: `// fetch
+const ctrl = new AbortController();
+fetch(url, { signal: ctrl.signal });
+ctrl.abort(); // ← стоп для fetch
+
+// XHR
 const xhr = new XMLHttpRequest();
 xhr.open('GET', url);
 xhr.send();
-xhr.abort(); // ← onabort
+xhr.abort(); // ← стоп для XHR
 `,
 }
 
 const CODE_BY_CASE: Record<CaseId, InteractiveSnippet[]> = {
   echo: [SNIPPET_FETCH, SNIPPET_XHR],
   http404: [SNIPPET_FETCH, SNIPPET_XHR],
-  abort: [SNIPPET_FETCH, SNIPPET_XHR],
+  abort: [SNIPPET_ABORT],
 }
 
 function laneNodeState(outcome: LaneOutcome, phase: Phase): LabNodeState {
   if (phase === 'idle') return 'idle'
   if (phase === 'send') return 'active'
   if (outcome.kind === 'ok') return 'ok'
-  if (outcome.kind === 'http') return 'err'
-  if (outcome.kind === 'reject' || outcome.kind === 'abort') return 'err'
+  if (outcome.kind === 'http' || outcome.kind === 'reject' || outcome.kind === 'abort') return 'err'
   return 'idle'
 }
 
 function outcomeLabel(outcome: LaneOutcome): { label: string; sub: string } {
   switch (outcome.kind) {
     case 'ok':
-      return { label: 'успех', sub: outcome.detail }
+      return { label: 'всё хорошо', sub: outcome.detail }
     case 'http':
-      return { label: 'HTTP ответ', sub: outcome.detail }
+      return { label: 'ответ с ошибкой', sub: outcome.detail }
     case 'reject':
-      return { label: 'reject', sub: outcome.detail }
+      return { label: 'не достучались', sub: outcome.detail }
     case 'abort':
-      return { label: 'abort', sub: outcome.detail }
+      return { label: 'остановили', sub: outcome.detail }
     default:
-      return { label: 'ожидание', sub: '—' }
+      return { label: 'ждём', sub: '—' }
   }
 }
 
@@ -131,21 +130,21 @@ function DualLaneViz({ phase, fetchOut, xhrOut, apiMeta }: VizProps) {
   const done = phase === 'done'
 
   return (
-    <LabVizPanel title="fetch и XHR рядом" meta={apiMeta}>
+    <LabVizPanel title="Два способа спросить сервер" meta={apiMeta}>
       <div className={styles.apiRow}>
         <LabNode
-          label="API"
+          label="сервер"
           sub={apiMeta}
           state={sending ? 'active' : done ? 'ok' : 'idle'}
         />
       </div>
       <div className={styles.lanes}>
         <div className={`${styles.lane}${done && fetchOut.kind === 'idle' ? ` ${styles.laneDim}` : ''}`}>
-          <p className={styles.laneTitle}>fetch</p>
+          <p className={styles.laneTitle}>через fetch</p>
           <div className={styles.stack}>
             <LabNode
-              label="Promise"
-              sub={sending ? 'ждём Response' : done ? 'settled' : 'idle'}
+              label="ждём ответ"
+              sub={sending ? 'запрос ушёл' : done ? 'промис завершён' : 'ещё не запускали'}
               state={laneNodeState(fetchOut, phase)}
             />
             <span className={`${styles.arrowDown}${sending || done ? ` ${styles.arrowActive}` : ''}`}>
@@ -155,11 +154,11 @@ function DualLaneViz({ phase, fetchOut, xhrOut, apiMeta }: VizProps) {
           </div>
         </div>
         <div className={`${styles.lane}${done && xhrOut.kind === 'idle' ? ` ${styles.laneDim}` : ''}`}>
-          <p className={styles.laneTitle}>XMLHttpRequest</p>
+          <p className={styles.laneTitle}>через XHR</p>
           <div className={styles.stack}>
             <LabNode
-              label="события"
-              sub={sending ? 'send…' : done ? 'load / abort' : 'idle'}
+              label="ждём событие"
+              sub={sending ? 'запрос ушёл' : done ? 'событие пришло' : 'ещё не запускали'}
               state={laneNodeState(xhrOut, phase)}
             />
             <span className={`${styles.arrowDown}${sending || done ? ` ${styles.arrowActive}` : ''}`}>
@@ -214,7 +213,7 @@ export function FetchAdvancedXhrLab() {
         : apiUrl('/api/demo/echo?message=abort')
 
   const apiMeta =
-    caseId === 'echo' ? '/api/demo/echo' : caseId === 'http404' ? 'нет такого URL' : 'abort mid-flight'
+    caseId === 'echo' ? 'живой ответ' : caseId === 'http404' ? 'адреса нет' : 'стоп сразу'
 
   const selectCase = (next: CaseId) => {
     if (busy) return
@@ -265,31 +264,26 @@ export function FetchAdvancedXhrLab() {
         if (runId !== runIdRef.current) return
 
         if (f.tag === 'err' && (f.name === 'AbortError' || /abort/i.test(f.message))) {
-          setFetchOut({ kind: 'abort', detail: 'AbortError' })
-          log('warn', 'fetch: AbortError (reject)')
+          setFetchOut({ kind: 'abort', detail: 'abort()' })
+          log('warn', 'fetch: остановили запрос')
         } else if (f.tag === 'err') {
           setFetchOut({ kind: 'reject', detail: f.name })
           log('err', `fetch: ${f.name}`)
         } else {
-          setFetchOut({ kind: 'ok', detail: 'не успели отменить' })
-          log('warn', 'fetch: ответ пришёл раньше abort')
+          setFetchOut({ kind: 'ok', detail: 'не успели остановить' })
+          log('warn', 'fetch: ответ пришёл раньше стопа')
         }
 
         if (x.aborted) {
-          setXhrOut({ kind: 'abort', detail: 'onabort' })
-          log('warn', 'xhr: abort()')
+          setXhrOut({ kind: 'abort', detail: 'abort()' })
+          log('warn', 'XHR: остановили запрос')
         } else {
-          setXhrOut({ kind: 'http', detail: `status ${x.status}` })
-          log('info', `xhr: status ${x.status}`)
+          setXhrOut({ kind: 'http', detail: `код ${x.status}` })
+          log('info', `XHR: код ${x.status}`)
         }
 
         setPhase('done')
-        setHint(
-          <>
-            Итог: отмена у обоих API — но сигнал разный: reject <code>AbortError</code> против события{' '}
-            <code>abort</code>.
-          </>,
-        )
+        setHint(<>Итог: оба умеют остановить запрос — только вызовы разные.</>)
         return
       }
 
@@ -311,11 +305,11 @@ export function FetchAdvancedXhrLab() {
       if (runId !== runIdRef.current) return
 
       if (f.ok) {
-        setFetchOut({ kind: 'ok', detail: `200 · ${f.echo || 'json'}` })
-        log('ok', `fetch: ${f.status} ok · echo=${f.echo || '—'}`)
+        setFetchOut({ kind: 'ok', detail: echoOrStatus(f.echo, f.status) })
+        log('ok', `fetch: всё хорошо, код ${f.status}`)
       } else {
-        setFetchOut({ kind: 'http', detail: `${f.status} · ok=false` })
-        log('warn', `fetch: fulfilled · status ${f.status} · ok=false`)
+        setFetchOut({ kind: 'http', detail: `код ${f.status}` })
+        log('warn', `fetch: письмо пришло, но код ${f.status} (это не исключение)`)
       }
 
       if (x.status >= 200 && x.status < 300) {
@@ -325,26 +319,21 @@ export function FetchAdvancedXhrLab() {
         } catch {
           echo = ''
         }
-        setXhrOut({ kind: 'ok', detail: `${x.status} · ${echo || 'body'}` })
-        log('ok', `xhr: load · status ${x.status}`)
+        setXhrOut({ kind: 'ok', detail: echoOrStatus(echo, x.status) })
+        log('ok', `XHR: всё хорошо, код ${x.status}`)
       } else {
-        setXhrOut({ kind: 'http', detail: `load · ${x.status}` })
-        log('warn', `xhr: load · status ${x.status}`)
+        setXhrOut({ kind: 'http', detail: `код ${x.status}` })
+        log('warn', `XHR: загрузка закончилась, код ${x.status}`)
       }
 
       setPhase('done')
       if (caseId === 'echo') {
-        setHint(
-          <>
-            Итог: на 200 оба пути сходятся — промис с <code>ok</code> и событие <code>load</code> со
-            статусом.
-          </>,
-        )
+        setHint(<>Итог: когда сервер доволен, оба пути показывают успех — просто разными словами.</>)
       } else {
         setHint(
           <>
-            Итог: 404 не ломает промис <code>fetch</code> — смотрите <code>ok</code>; у XHR тот же
-            статус в <code>onload</code>.
+            Итог: «страницы нет» у <code>fetch</code> — это ответ с плохим кодом, а не обязательно
+            падение промиса. Смотрите <code>ok</code>.
           </>,
         )
       }
@@ -352,10 +341,10 @@ export function FetchAdvancedXhrLab() {
       if (runId !== runIdRef.current) return
       const msg = e instanceof Error ? e.message : String(e)
       log('err', msg)
-      setFetchOut({ kind: 'reject', detail: msg.slice(0, 28) })
-      setXhrOut({ kind: 'reject', detail: 'ошибка' })
+      setFetchOut({ kind: 'reject', detail: 'сеть / CORS' })
+      setXhrOut({ kind: 'reject', detail: 'сеть / CORS' })
       setPhase('done')
-      setHint(<>Итог: сеть или CORS — смотрите Network в DevTools.</>)
+      setHint(<>Итог: до сервера не достучались — это уже другая ошибка, не «плохой код ответа».</>)
     } finally {
       if (runId === runIdRef.current) setBusy(false)
     }
@@ -386,8 +375,8 @@ export function FetchAdvancedXhrLab() {
         </LabButton>
       </div>
       <p className={shell.pain}>
-        Один HTTP-запрос можно сделать через <code>fetch</code> или <code>XMLHttpRequest</code> —
-        расходятся модель результата, ошибки и отмена.
+        Один и тот же сервер можно спросить через <code>fetch</code> или через XHR. Разница — в том,
+        как вам расскажут про ответ и ошибку.
       </p>
       <p className={shell.hint}>{CASE_BRIEF[caseId]}</p>
       <DualLaneViz phase={phase} fetchOut={fetchOut} xhrOut={xhrOut} apiMeta={apiMeta} />
@@ -413,7 +402,7 @@ export function FetchAdvancedXhrLab() {
       </div>
       <InteractiveCodePanel
         topicId={TOPIC_ID}
-        intro="Живой стенд бьёт в remote `/api/demo/echo` и в заведомо отсутствующий URL."
+        intro="Короткий пример: проверить статус у fetch и прочитать ответ у XHR."
         snippets={CODE_BY_CASE[caseId]}
       />
     </div>
@@ -421,10 +410,14 @@ export function FetchAdvancedXhrLab() {
 
   return (
     <JsLabShell
-      title="Fetch · XMLHttpRequest"
-      lead="Один URL — два клиента: промис `Response` против событий XHR."
+      title="Fetch и XHR"
+      lead="Два пульта к одному серверу: смотрим, чем отличаются ответы «ок», «нет страницы» и «стоп»."
       problem={problem}
       code={code}
     />
   )
+}
+
+function echoOrStatus(echo: string, status: number): string {
+  return echo ? echo : `код ${status}`
 }

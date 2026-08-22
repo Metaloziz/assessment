@@ -6,30 +6,30 @@
 
 # 2. Главное в одну фразу
 
-Условные типы выбирают ветку по `extends`, mapped types проходят по ключам и собирают новую форму, `infer` вытаскивает кусок типа из паттерна — всё только в checker’е.
+Conditional types ветвят типы по `extends`, mapped types пересобирают объект по ключам, `infer` вытаскивает фрагмент из паттерна — вместе это «конструктор» для `ReturnType`, `Pick`, рекурсивного `Awaited` и своих DTO только в checker’е.
 
 ---
 
 # 3. Суть
 
-> Conditional types, mapped types и `infer` — инструменты «типов из типов» в TypeScript. Условный тип `T extends U ? X : Y` выбирает ветку по совместимости. Mapped type `{ [K in Keys]: … }` строит объект, проходя по каждому ключу. `infer R` внутри `extends` вытаскивает фрагмент из формы (элемент Promise, возврат функции).
+> Conditional types, mapped types и `infer` — способ **строить новые типы из старых**, не переписывая поля вручную. Условный тип `T extends U ? X : Y` выбирает ветку по совместимости. Mapped `{ [K in keyof T]: … }` проходит по каждому ключу и задаёт новую форму. `infer R` внутри `extends` «заглядывает» внутрь формы и называет кусок — элемент массива, возврат функции, аргумент промиса.
 >
-> Зачем: свои утилиты вроде `Partial` / `ReturnType` / `Unwrap`, производные DTO и хелперы API без копипасты полей. Меняется база — производные пересчитывает checker.
+> Зачем: так устроены встроенные Utility Types (`Partial`, `ReturnType`, `Exclude`, `Parameters`) и ваши производные контракты — API DTO, «только строковые поля», разбор вложенных промисов. Меняется базовый интерфейс — checker пересчитывает все алиасы, а не десять копий вручную.
 >
-> Как: пишут `type IsString<T> = T extends string ? true : false`; `type ReadonlyProps<T> = { readonly [K in keyof T]: T[K] }`; `type Elem<T> = T extends (infer E)[] ? E : never`. На union условный тип по умолчанию **дистрибутивен**: применяется к каждой ветке.
+> Как: `Exclude<T, U>` пишут как `T extends U ? never : T` — distributivity выкидывает ветки union. Mapped с `as` и условием фильтрует или переименовывает ключи. Рекурсивный `Awaited<T>` снова вызывает себя на вложенном `Promise`. Чтобы **не** раскрывать union по веткам, параметр оборачивают в `[T] extends [U]`.
 >
-> Ловушка: ждать рантайм-ветвления — после emit типов нет. Ещё: путать `infer` с выводом аргументов у вызова функции и забывать про distributivity (иногда её специально отключают обёрткой в tuple).
+> Ловушка: ждать рантайм-ветвления — после emit типов нет. `infer` не выводит аргументы при вызове функции; он работает только в conditional. Забыть про distributivity — и `ToArray<A|B>` станет `A[]|B[]`, а не `(A|B)[]`.
 
 ---
 
 # 4. Самое главное запомнить
 
 - `T extends U ? X : Y` — ветка типов по совместимости, не `if` в JS.
-- На голом параметре union условие **раскрывается** по веткам (distributivity).
-- Mapped: `{ [K in keyof T]: … }` — новая форма по ключам `T`.
-- Модификаторы `+`/`-` `readonly` / `?` меняют опциональность и readonly.
-- `infer R` в `extends`-паттерне — именованный «карман» для куска типа.
-- Всё стирается при emit: в бандле остаётся обычный JS.
+- На **голом** type parameter union условие **раскрывается** по веткам (distributivity); `[T] extends [U]` — union целиком.
+- Mapped: `{ [K in keyof T]: … }` — новая форма по ключам; `as` — фильтр или переименование ключа.
+- Модификаторы `+`/`-` у `readonly` / `?` добавляют или снимают опциональность и readonly.
+- `infer R` в `extends`-паттерне — именованный «карман»; несколько `infer` и рекурсия — обычный приём senior-утилит.
+- Встроенные `ReturnType`, `Exclude`, `Parameters` — готовые рецепты из той же тройки; в бандле остаётся обычный JS.
 
 ---
 
@@ -39,11 +39,12 @@
 входной тип T
    │
    ├─ T extends U ? X : Y     → ветка True / False
-   │         (+ на A|B → по каждой ветке)
+   │         (+ на A|B → по каждой ветке, если T «голый»)
    │
    ├─ { [K in keyof T]: … }   → объект по ключам
+   │         as Cond ? …      → фильтр / rename ключей
    │
-   └─ … extends … infer R …   → вытащить R из формы
+   └─ … extends … infer R …   → вытащить R; рекурсия в True-ветке
               ↓
          производный тип (только checker)
 ```
@@ -59,12 +60,20 @@ type A = IsString<"hi">; // true
 type B = IsString<42>; // false
 ```
 
-Типичный приём — сузить union до нужных веток:
+Типичный приём — сузить union до нужных веток. Так устроены `Exclude` и `Extract`:
 
 ```ts
-type NonNullable<T> = T extends null | undefined ? never : T;
-// NonNullable<string | null> → string
+type Exclude<T, U> = T extends U ? never : T;
+type Extract<T, U> = T extends U ? T : never;
+
+type OnlyStrings = Exclude<string | number | boolean, number | boolean>;
+// string
+
+type OnlyNums = Extract<string | number, number>;
+// number
 ```
+
+Ветка `never` «выкидывает» ветку из union — distributivity делает это по каждому члену.
 
 ### Distributivity
 
@@ -83,6 +92,8 @@ type R = ToArray<string | number>;
 type ToArrayWhole<T> = [T] extends [unknown] ? T[] : never;
 // ToArrayWhole<string | number> → (string | number)[]
 ```
+
+Это нужно, когда логика должна смотреть на union как на одно целое — сравнение пересечений, «оба сразу», проверка `never`.
 
 ## Mapped types
 
@@ -109,41 +120,79 @@ type RequiredKeys<T> = {
 };
 ```
 
-Так устроены многие Utility Types: `Partial`, `Required`, `Readonly`, `Pick` (через отбор ключей).
+### Key remapping и фильтр ключей
+
+С TypeScript 4.1 в mapped можно менять имя ключа через `as` и отфильтровать ключи условным типом:
+
+```ts
+type StringsOnly<T> = {
+  [K in keyof T as T[K] extends string ? K : never]: T[K];
+  // ← оставить только строковые поля
+};
+
+type Row = { id: string; age: number; tag: string };
+type S = StringsOnly<Row>; // { id: string; tag: string }
+```
+
+Тот же приём — переименование (`get${Capitalize<K>}`) и префиксы API; подробнее про шаблонные имена — в теме Template Literal Types.
 
 ## `infer`
 
 В правой части `extends` можно объявить переменную типа через `infer` и использовать её в ветке True:
 
 ```ts
-type Awaited<T> = T extends Promise<infer V> ? V : T;
-// Awaited<Promise<string>> → string
-
 type ReturnOf<F> = F extends (...args: never[]) => infer R ? R : never;
 // ReturnOf<() => number> → number
+
+type Params<F> = F extends (...args: infer P) => unknown ? P : never;
+// Params<(a: string, b: number) => void> → [string, number]
 
 type Head<T> = T extends [infer H, ...unknown[]] ? H : never;
 // Head<[string, number]> → string
 ```
 
-`infer` работает только внутри условного типа в паттерне `extends`. Это не рантайм-разбор и не `typeof` значения.
+`infer` работает только внутри условного типа в паттерне `extends`. Это не рантайм-разбор и не вывод типов аргuments при вызове функции.
 
-## Связка трёх
+### Рекурсивные conditional
 
-Частый рецепт: mapped + conditional (+ иногда `infer`) для точечных преобразований:
+Для вложенных структур условие вызывает себя в True-ветке:
+
+```ts
+type Awaited<T> = T extends null | undefined
+  ? T
+  : T extends Promise<infer V>
+    ? Awaited<V> // ← снова развернуть вложенный Promise
+    : T;
+
+type Deep = Awaited<Promise<Promise<string>>>; // string
+```
+
+Так же строят `DeepPartial`, `DeepReadonly` — mapped по ключам + conditional «если объект — рекурсия».
+
+## Связка трёх: как читать Utility Types
+
+| Утилита | Идея реализации |
+|---|---|
+| `Partial<T>` | mapped + `?` на каждом ключе |
+| `Pick<T, K>` | mapped по `K` |
+| `ReturnType<F>` | conditional + `infer` возврата |
+| `Parameters<F>` | conditional + `infer` args |
+| `Exclude` / `Extract` | conditional + `never` / ветка union |
 
 ```ts
 type NullableFields<T> = {
   [K in keyof T]: T[K] | null; // ← mapped
 };
-
-type StringsOnly<T> = {
-  [K in keyof T as T[K] extends string ? K : never]: T[K];
-  // ← key remapping + conditional
-};
 ```
 
-`as` в mapped (key remapping) отфильтровывает или переименовывает ключи; подробнее про шаблонные имена ключей — в теме про template literal types.
+Меняется базовый `User` — все производные пересчитываются без правок в десяти файлах.
+
+## Типичные ловушки
+
+- **Distributivity по умолчанию** — `IsArray<T>` на union даст union результатов; для «union целиком» — `[T] extends …`.
+- **`infer` только в extends** — нельзя «вытащить» тип из произвольного места без conditional-обёртки.
+- **Контравариантность аргументов** — при `infer` из параметров функции в union перегрузок берётся пересечение аргументов, не union (важно для `Parameters` на перегруженных функциях).
+- **Рантайм ≠ типы** — conditional не генерирует код; в JS после emit типов нет.
 
 ---
 
@@ -152,5 +201,6 @@ type StringsOnly<T> = {
 - [TypeScript Handbook — Conditional Types](https://www.typescriptlang.org/docs/handbook/2/conditional-types.html)
 - [TypeScript Handbook — Mapped Types](https://www.typescriptlang.org/docs/handbook/2/mapped-types.html)
 - [TypeScript Handbook — Inferring Within Conditional Types](https://www.typescriptlang.org/docs/handbook/2/conditional-types.html#inferring-within-conditional-types)
+- [TypeScript Handbook — Distributive Conditional Types](https://www.typescriptlang.org/docs/handbook/2/conditional-types.html#distributive-conditional-types)
 - [TypeScript Handbook — Key Remapping](https://www.typescriptlang.org/docs/handbook/2/mapped-types.html#key-remapping-via-as)
 - [TypeScript Handbook — Creating Types from Types](https://www.typescriptlang.org/docs/handbook/2/types-from-types.html)

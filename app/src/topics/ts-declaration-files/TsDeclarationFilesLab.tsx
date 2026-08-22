@@ -3,33 +3,34 @@ import { JsLabShell } from '../../components/lab/JsLabShell'
 import { LabButton } from '../../components/lab/LabButton'
 import shell from '../../components/lab/JsLabShell.module.css'
 import { InteractiveCodePanel, type InteractiveSnippet } from '../../components/lab/InteractiveCodePanel'
-import styles from './TsDeclarationFilesLab.module.css'
 
 const TOPIC_ID = '227-ts-declaration-files'
 
 type CaseId = 'ambient' | 'bundled'
 
 const CASES: Array<{ id: CaseId; label: string }> = [
-  { id: 'ambient', label: 'Ambient module' },
+  { id: 'ambient', label: 'Свой паспорт' },
   { id: 'bundled', label: 'types в package' },
 ]
 
 const CASE_BRIEF: Record<CaseId, ReactNode> = {
   ambient: (
     <>
-      Локальный <code>declare module</code> даёт типы JS-пакету без своих <code>.d.ts</code>.
+      В проекте пишем <code>declare module</code> — TypeScript узнаёт форму JS-пакета без своих{' '}
+      <code>.d.ts</code>.
     </>
   ),
   bundled: (
     <>
-      Пакет указывает <code>"types"</code> на свой <code>.d.ts</code> рядом с <code>.js</code>.
+      Автор пакета указывает <code>"types"</code> на свой <code>.d.ts</code> рядом с{' '}
+      <code>.js</code>.
     </>
   ),
 }
 
 const CODE_INTRO: Record<CaseId, string> = {
-  ambient: 'Shim для legacy JS: `declare module` + импорт в приложении.',
-  bundled: 'Публикация библиотеки: `package.json` → `types` → `dist/*.d.ts`.',
+  ambient: 'Локальный паспорт для чужого JS: `declare module` и обычный импорт в приложении.',
+  bundled: 'Публикация библиотеки: в `package.json` поле `types` ведёт на `dist/*.d.ts`.',
 }
 
 const CODE_SNIPPETS: Record<CaseId, InteractiveSnippet[]> = {
@@ -37,7 +38,7 @@ const CODE_SNIPPETS: Record<CaseId, InteractiveSnippet[]> = {
     {
       id: 'slugify-dts',
       label: 'types/slugify.d.ts',
-      note: '`declare module` — контракт без реализации; рантайм всё ещё JS пакета.',
+      note: 'Паспорт без реализации: рантайм по-прежнему берёт JS пакета.',
       executable: false,
       languageLabel: 'ts',
       code: `// ═══════════════════════════════════════════
@@ -54,7 +55,7 @@ declare module 'slugify' {
     {
       id: 'app-ts',
       label: 'src/app.ts',
-      note: 'Импорт обычный; checker читает `.d.ts`, Node/бандлер — `slugify` JS.',
+      note: 'Импорт обычный: checker читает `.d.ts`, Node/бандлер — JS `slugify`.',
       executable: false,
       languageLabel: 'ts',
       code: `import slugify from 'slugify'; // ← RESOLVE: типы из .d.ts
@@ -68,7 +69,7 @@ const path = slugify('Hello World', { lower: true });
     {
       id: 'pkg-json',
       label: 'package.json',
-      note: '`main` — JS; `types` — точка входа деклараций для TypeScript.',
+      note: '`main` — куда за JS; `types` — куда за паспорт для TypeScript.',
       executable: false,
       languageLabel: 'json',
       code: `{
@@ -81,7 +82,7 @@ const path = slugify('Hello World', { lower: true });
     {
       id: 'index-dts',
       label: 'dist/index.d.ts',
-      note: '`declare` — описание emit’нутого API, тела функции здесь нет.',
+      note: '`declare` — только описание API; тела функции в этом файле нет.',
       executable: false,
       languageLabel: 'ts',
       code: `// ═══════════════════════════════════════════
@@ -125,14 +126,15 @@ export function TsDeclarationFilesLab() {
       <CaseSwitch value={caseId} onChange={setCaseId} />
 
       <p className={shell.pain}>
-        <code>.d.ts</code> описывает API без реализации: checker берёт типы, рантайм — JS.
+        <code>.d.ts</code> — паспорт API без реализации: checker смотрит типы, браузер и Node
+        исполняют JS.
       </p>
       <p className={shell.hint}>{CASE_BRIEF[caseId]}</p>
     </div>
   )
 
   const code = (
-    <div className={styles.codePane}>
+    <div className={shell.codePane}>
       <CaseSwitch value={caseId} onChange={setCaseId} />
       <InteractiveCodePanel
         key={caseId}
@@ -146,7 +148,7 @@ export function TsDeclarationFilesLab() {
   return (
     <JsLabShell
       title="Файлы декларации .d.ts"
-      lead="Ambient module и `types` в package — смотрите файлы на вкладке Код."
+      lead="Свой `declare module` или `types` в package — смотрите файлы на вкладке Код."
       problem={problem}
       code={code}
     />

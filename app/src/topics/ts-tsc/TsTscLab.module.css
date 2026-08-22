@@ -17,11 +17,3 @@
 .dim {
   opacity: 0.42;
 }
-
-.codePane {
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  flex: 1;
-  gap: 0.55rem;
-}

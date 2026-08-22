@@ -3,7 +3,6 @@ import { JsLabShell } from '../../components/lab/JsLabShell'
 import { LabButton } from '../../components/lab/LabButton'
 import shell from '../../components/lab/JsLabShell.module.css'
 import { InteractiveCodePanel, type InteractiveSnippet } from '../../components/lab/InteractiveCodePanel'
-import styles from './TsFunctionOverloadsLab.module.css'
 
 const TOPIC_ID = '235-ts-function-overloads'
 
@@ -220,7 +219,7 @@ export function TsFunctionOverloadsLab() {
   )
 
   const code = (
-    <div className={styles.codePane}>
+    <div className={shell.codePane}>
       <CaseSwitch value={caseId} onChange={setCaseId} />
       <InteractiveCodePanel
         key={caseId}

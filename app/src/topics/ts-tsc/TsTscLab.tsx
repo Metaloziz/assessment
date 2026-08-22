@@ -19,36 +19,36 @@ type CaseId = "emit" | "noEmit" | "error";
 type Phase = "idle" | "read" | "check" | "done";
 
 const CASES: Array<{ id: CaseId; label: string }> = [
-  { id: "emit", label: "tsc emit" },
-  { id: "noEmit", label: "--noEmit" },
-  { id: "error", label: "ошибка типов" },
+  { id: "emit", label: "Сборка в dist" },
+  { id: "noEmit", label: "Только проверка" },
+  { id: "error", label: "Ошибка типов" },
 ];
 
 const CASE_BRIEF: Record<CaseId, ReactNode> = {
   emit: (
     <>
-      После check <code>tsc</code> пишет <code>dist/*.js</code> (и при{" "}
+      После проверки <code>tsc</code> пишет <code>dist/*.js</code> (и при{" "}
       <code>declaration</code> — <code>.d.ts</code>).
     </>
   ),
   noEmit: (
     <>
-      <code>tsc --noEmit</code> только проверяет типы — файлы в{" "}
+      <code>tsc --noEmit</code> только проверяет типы — папку{" "}
       <code>dist</code> не трогает (типичный CI + Vite).
     </>
   ),
   error: (
     <>
-      Ошибка check даёт exit ≠ 0; при <code>noEmitOnError</code> выходные файлы
-      не пишутся.
+      Ошибка проверки даёт exit ≠ 0; при <code>noEmitOnError</code> выходные
+      файлы не обновляются.
     </>
   ),
 };
 
 const CODE_INTRO: Record<CaseId, string> = {
-  emit: "Сборка библиотеки/Node: `tsc -p` эмитит JS в `outDir`.",
-  noEmit: "Проверка типов отдельно от бандлера: `tsc --noEmit`.",
-  error: "Падение check останавливает emit — `dist` не обновляется.",
+  emit: "Сборка библиотеки или Node: `tsc -p` пишет JS в `outDir`.",
+  noEmit: "Проверка типов отдельно от бандлера: `noEmit` в tsconfig, сборку делает arui-scripts/webpack.",
+  error: "Падение проверки останавливает запись — `dist` не обновляется.",
 };
 
 const CODE_SNIPPETS: Record<CaseId, InteractiveSnippet[]> = {
@@ -102,33 +102,78 @@ export function greet(name: string): string {
   ],
   noEmit: [
     {
-      id: "tsconfig-app",
+      id: "tsconfig-arui",
       label: "tsconfig.json",
-      note: "Часто `noEmit: true` в самом конфиге приложения.",
+      note: "Реальный конфиг приложения: extends arui-scripts, алиасы FSD, `noEmit` — tsc только проверяет.",
       executable: false,
-      languageLabel: "json",
+      languageLabel: "jsonc",
       code: `{
+  // EXTENDS ← базовый tsconfig из arui-scripts (target, module, strict…)
+  "extends": "./node_modules/arui-scripts/tsconfig.json",
+
   "compilerOptions": {
-    "target": "ES2022",
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
-    "strict": true,
+    // PATHS ← алиасы импортов вместо длинных относительных путей
+    "paths": {
+      // assets/* → ./src/assets/*
+      "assets/*": ["./src/assets/*"],
+      // components/* → ./src/components/*
+      "components/*": ["./src/components/*"],
+      // config/* → ./src/config/*
+      "config/*": ["./src/config/*"],
+      // entities/* → ./src/entities/*
+      "entities/*": ["./src/entities/*"],
+      // features/* → ./src/features/*
+      "features/*": ["./src/features/*"],
+      // pages/* → ./src/pages/*
+      "pages/*": ["./src/pages/*"],
+      // redux/* → ./src/redux/*
+      "redux/*": ["./src/redux/*"],
+      // server/* → ./src/server/*
+      "server/*": ["./src/server/*"],
+      // shared/* → ./src/shared/*
+      "shared/*": ["./src/shared/*"]
+    },
+
+    // SKIP_LIB_CHECK ← не перепроверять все .d.ts в node_modules (быстрее CI)
+    "skipLibCheck": true,
+
+    // NO_FALLTHROUGH ← ошибка, если case проваливается без break
+    "noFallthroughCasesInSwitch": true,
+
+    // NO_UNUSED_PARAMS ← предупреждение о неиспользуемых параметрах функций
+    "noUnusedParameters": true,
+
+    // ISOLATED_MODULES ← каждый файл можно транспилировать отдельно (babel/swc)
+    "isolatedModules": true,
+
+    // NO_EMIT ← tsc только проверяет типы; JS пишет webpack из arui-scripts
     "noEmit": true,
-    "jsx": "react-jsx"
+
+    // JSX ← React 17+ без import React в каждом файле
+    "jsx": "react-jsx",
+
+    // PLUGINS ← типы для CSS Modules в import styles from './x.module.css'
+    "plugins": [{ "name": "typescript-plugin-css-modules" }],
+
+    // TYPES ← какие @types подключить глобально (jest, node, webpack-env)
+    "types": ["jest", "node", "webpack-env"]
   },
-  "include": ["src"]
+
+  // INCLUDE ← какие файлы входят в программу tsc
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.d.ts"]
 }
 `,
     },
     {
       id: "pkg-typecheck",
       label: "package.json",
-      note: "CI: typecheck отдельно; Vite/esbuild транспилируют сами.",
+      note: "CI: `tsc --noEmit` или `tsc -p`; сборку запускает arui-scripts, не tsc.",
       executable: false,
       languageLabel: "json",
       code: `{
   "scripts": {
-    "dev": "vite",
+    "start": "arui-scripts start",
+    "build": "arui-scripts build",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   }
 }
@@ -155,7 +200,7 @@ const total: number = add(1, "2"); // ← TS2322: string ≠ number
     {
       id: "tsconfig-strict",
       label: "tsconfig.json",
-      note: "`noEmitOnError` не обновляет `dist` при красном check.",
+      note: "`noEmitOnError` не обновляет `dist` при красной проверке.",
       executable: false,
       languageLabel: "json",
       code: `{
@@ -219,35 +264,35 @@ function TscViz({ caseId, phase, focusRef }: VizProps) {
 
   const title =
     caseId === "emit"
-      ? "tsc · emit"
+      ? "tsc · сборка"
       : caseId === "noEmit"
-        ? "tsc --noEmit"
-        : "tsc · error";
+        ? "tsc · только проверка"
+        : "tsc · ошибка";
 
   const meta = !doneOn
     ? phase === "idle"
       ? "ожидание"
       : phase === "read"
-        ? "чтение проекта"
-        : "check…"
+        ? "читает tsconfig и исходники"
+        : "проверяет типы…"
     : failed
       ? "exit 1"
       : caseId === "noEmit"
-        ? "exit 0 · без файлов"
+        ? "exit 0 · файлов нет"
         : "exit 0 · dist/";
 
   const outLabel =
     caseId === "emit"
       ? doneOn
         ? "dist/index.js (+ .d.ts)"
-        : "outDir пуст"
+        : "outDir пока пуст"
       : caseId === "noEmit"
         ? doneOn
-          ? "файлов нет · только диагностика"
-          : "emit выключен"
+          ? "файлов нет · только сообщения"
+          : "запись выключена"
         : failed
-          ? "emit отменён · dist без изменений"
-          : "ждём результат check";
+          ? "запись отменена · dist без изменений"
+          : "ждём результат проверки";
 
   return (
     <LabVizPanel title={title} meta={meta}>
@@ -270,12 +315,12 @@ function TscViz({ caseId, phase, focusRef }: VizProps) {
             !checkOn && phase !== "idle" && styles.dim,
           )}
         >
-          <span className={labVizStyles.nodeLabel}>check</span>
+          <span className={labVizStyles.nodeLabel}>проверка</span>
           <span className={labVizStyles.nodeSub}>
             {failed
               ? "TS2322 · типы не сходятся"
               : checkOn
-                ? "семантика / присваивания"
+                ? "вызовы и присваивания"
                 : "ещё не запускали"}
           </span>
         </div>
@@ -361,16 +406,16 @@ export function TsTscLab() {
         () => {
           setPhase("done");
           if (caseId === "emit") {
-            log("ok", "emit → dist/*.js");
-            setHint("check прошёл; tsc записал JS (и .d.ts при declaration)");
+            log("ok", "записал dist/*.js");
+            setHint("проверка прошла; tsc записал JS (и .d.ts при declaration)");
           } else if (caseId === "noEmit") {
-            log("ok", "check ok · noEmit");
+            log("ok", "типы ок · noEmit");
             setHint(
               "типы зелёные; бандлер сам транспилирует, dist от tsc пуст",
             );
           } else {
             log("err", "TS2322 · exit 1");
-            setHint("ошибка check; noEmitOnError не обновляет dist");
+            setHint("ошибка проверки; noEmitOnError не обновляет dist");
           }
         },
       ],
@@ -405,8 +450,9 @@ export function TsTscLab() {
       </div>
 
       <p className={shell.pain}>
-        <code>tsc</code> читает проект, проверяет типы и либо эмитит JS, либо
-        только отдаёт диагностику (<code>--noEmit</code>).
+        <code>tsc</code> читает проект, проверяет типы и либо пишет JS в{" "}
+        <code>dist</code>, либо только отдаёт сообщения об ошибках (
+        <code>--noEmit</code>).
       </p>
       <p className={shell.hint}>{CASE_BRIEF[caseId]}</p>
 
@@ -418,7 +464,7 @@ export function TsTscLab() {
   );
 
   const code = (
-    <div className={styles.codePane}>
+    <div className={shell.codePane}>
       <CaseSwitch value={caseId} onChange={selectCase} />
       <InteractiveCodePanel
         key={caseId}
@@ -432,7 +478,7 @@ export function TsTscLab() {
   return (
     <JsLabShell
       title="Использование tsc"
-      lead="Emit, --noEmit и ошибка типов — один пайплайн на кейс."
+      lead="Сборка, --noEmit и ошибка типов — три режима одного пайплайна."
       problem={problem}
       code={code}
     />

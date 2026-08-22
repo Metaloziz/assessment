@@ -1,6 +1,6 @@
 # 1. Тема
 
-**Template Literal Types · интерполяция · intrinsic · remap**
+**Template Literal Types**
 
 ---
 

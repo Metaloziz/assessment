@@ -3,12 +3,11 @@ import { JsLabShell } from '../../components/lab/JsLabShell'
 import { LabButton } from '../../components/lab/LabButton'
 import shell from '../../components/lab/JsLabShell.module.css'
 import { InteractiveCodePanel, type InteractiveSnippet } from '../../components/lab/InteractiveCodePanel'
-import styles from './TsConditionalMappedInferLab.module.css'
 
 const TOPIC_ID = '233-ts-conditional-mapped-infer'
 
 type PatternId = 'conditional' | 'mapped' | 'infer'
-type CaseId = 'branch' | 'distribute' | 'readonly-map' | 'modifiers' | 'awaited' | 'return-of'
+type CaseId = 'exclude' | 'distribute' | 'key-remap' | 'modifiers' | 'awaited-deep' | 'parameters'
 
 const PATTERNS: Array<{ id: PatternId; label: string }> = [
   { id: 'conditional', label: 'Conditional' },
@@ -18,16 +17,16 @@ const PATTERNS: Array<{ id: PatternId; label: string }> = [
 
 const CASES: Record<PatternId, Array<{ id: CaseId; label: string }>> = {
   conditional: [
-    { id: 'branch', label: 'T extends ?' },
+    { id: 'exclude', label: 'Exclude / Extract' },
     { id: 'distribute', label: 'distributivity' },
   ],
   mapped: [
-    { id: 'readonly-map', label: '[K in keyof T]' },
+    { id: 'key-remap', label: 'Фильтр ключей' },
     { id: 'modifiers', label: '-readonly / -?' },
   ],
   ['infer']: [
-    { id: 'awaited', label: 'Promise infer' },
-    { id: 'return-of', label: 'Return infer' },
+    { id: 'awaited-deep', label: 'Рекурсивный Awaited' },
+    { id: 'parameters', label: 'Parameters' },
   ],
 }
 
@@ -35,37 +34,39 @@ const PATTERN_PAIN: Record<PatternId, ReactNode> = {
   conditional: (
     <>
       <code>T extends U ? X : Y</code> выбирает ветку типов по совместимости — не{' '}
-      <code>if</code> в рантайме.
+      <code>if</code> в рантайме; на union distributivity применяет условие к каждой ветке.
     </>
   ),
   mapped: (
     <>
-      Mapped type проходит по ключам и собирает новую объектную форму для checker’а.
+      Mapped type проходит по ключам и собирает новую форму; <code>as</code> фильтрует или
+      переименовывает ключи.
     </>
   ),
   ['infer']: (
     <>
-      <code>infer R</code> в паттерне <code>extends</code> вытаскивает кусок типа из формы.
+      <code>infer R</code> в паттерне <code>extends</code> вытаскивает кусок типа — возврат,
+      аргументы, вложенный Promise.
     </>
   ),
 }
 
 const CASE_BRIEF: Record<CaseId, ReactNode> = {
-  branch: (
+  exclude: (
     <>
-      <code>IsString&lt;T&gt;</code> даёт <code>true</code> или <code>false</code> в зависимости от{' '}
-      <code>T extends string</code>.
+      <code>Exclude</code> и <code>Extract</code> — conditional + <code>never</code>: distributivity
+      выкидывает или оставляет ветки union.
     </>
   ),
   distribute: (
     <>
-      На голом <code>T</code> условие раскрывается по веткам union →{' '}
-      <code>string[] | number[]</code>.
+      Голый <code>T</code> + union → условие на каждой ветке;{' '}
+      <code>[T] extends …</code> обрабатывает union целиком.
     </>
   ),
-  'readonly-map': (
+  'key-remap': (
     <>
-      Mapped по <code>keyof User</code> с <code>readonly</code> на каждом ключе.
+      <code>as T[K] extends string ? K : never</code> оставляет в mapped только строковые поля.
     </>
   ),
   modifiers: (
@@ -73,55 +74,46 @@ const CASE_BRIEF: Record<CaseId, ReactNode> = {
       <code>-readonly</code> и <code>-?</code> снимают модификаторы с каждого ключа.
     </>
   ),
-  awaited: (
+  'awaited-deep': (
     <>
-      <code>T extends Promise&lt;infer V&gt;</code> вытаскивает <code>V</code> из промиса.
+      Рекурсивный <code>Awaited</code> снова вызывает себя на вложенном{' '}
+      <code>Promise</code> — разворачивает цепочку промисов.
     </>
   ),
-  'return-of': (
+  parameters: (
     <>
-      <code>infer R</code> в сигнатуре функции даёт тип возврата без вызова.
+      <code>infer P</code> в сигнатуре функции даёт tuple аргументов без вызова — как встроенный{' '}
+      <code>Parameters</code>.
     </>
   ),
 }
 
 const CODE_INTRO: Record<CaseId, string> = {
-  branch: 'Условный тип: ветка True / False по extends.',
-  distribute: 'Distributivity: условие на каждой ветке union.',
-  'readonly-map': 'Mapped type: новый объект по keyof.',
-  modifiers: 'Снятие readonly и опциональности через -.',
-  awaited: '`infer` внутри Promise-паттерна.',
-  'return-of': '`infer` из возвращаемого типа функции.',
+  exclude: 'Exclude / Extract: conditional + never отфильтровывает union по совместимости.',
+  distribute: 'Distributivity vs `[T] extends`: union по веткам или union целиком.',
+  'key-remap': 'Key remapping + conditional: оставить только ключи с нужным типом значения.',
+  modifiers: 'Снятие readonly и опциональности через `-` у модификаторов.',
+  'awaited-deep': 'Рекурсивный conditional + infer: развернуть вложенные Promise.',
+  parameters: 'infer из args: tuple параметров функции, как Parameters<F>.',
 }
 
 const CODE_SNIPPETS: Record<CaseId, InteractiveSnippet[]> = {
-  branch: [
+  exclude: [
     {
-      id: 'is-string',
-      label: 'src/isString.ts',
-      note: 'Ветка типов по совместимости — только checker.',
+      id: 'exclude-extract',
+      label: 'src/excludeExtract.ts',
+      note: 'never в True-ветке выкидывает член union; Extract — обратная логика.',
       executable: false,
       languageLabel: 'ts',
       code: `// ═══════════════════════════════════════════
-// CONDITIONAL ← T extends U ? X : Y
+// EXCLUDE / EXTRACT ← conditional + never
 // ═══════════════════════════════════════════
-export type IsString<T> = T extends string ? true : false;
+export type Exclude<T, U> = T extends U ? never : T;
+export type Extract<T, U> = T extends U ? T : never;
 
-type A = IsString<"hi">; // ← true
-type B = IsString<42>; // ← false
-`,
-    },
-    {
-      id: 'non-nullable',
-      label: 'src/nonNullable.ts',
-      note: 'Ветка never выкидывает null | undefined из union.',
-      executable: false,
-      languageLabel: 'ts',
-      code: `export type NonNullable<T> = T extends null | undefined
-  ? never // ← отбросить ветку
-  : T;
-
-type Clean = NonNullable<string | null>; // string
+type Mix = string | number | boolean;
+type OnlyStr = Exclude<Mix, number | boolean>; // string
+type OnlyNum = Extract<Mix, number>; // number
 `,
     },
   ],
@@ -156,35 +148,37 @@ type R = ToArrayWhole<string | number>;
 `,
     },
   ],
-  'readonly-map': [
+  'key-remap': [
     {
-      id: 'user',
-      label: 'src/user.ts',
-      note: 'Исходная форма — база для mapped.',
+      id: 'row',
+      label: 'src/row.ts',
+      note: 'Исходная форма — база для фильтра ключей.',
       executable: false,
       languageLabel: 'ts',
-      code: `export type User = {
+      code: `export type Row = {
   id: string;
-  name: string;
+  age: number;
+  tag: string;
 };
 `,
     },
     {
-      id: 'readonly-user',
-      label: 'src/readonlyUser.ts',
-      note: '`[K in keyof T]` — пройти по всем ключам.',
+      id: 'strings-only',
+      label: 'src/stringsOnly.ts',
+      note: '`as` + conditional: ключ попадает в результат только если значение — string.',
       executable: false,
       languageLabel: 'ts',
-      code: `import type { User } from './user';
+      code: `import type { Row } from './row';
 
 // ═══════════════════════════════════════════
-// MAPPED ← объект по ключам
+// KEY REMAP ← фильтр через as … ? K : never
 // ═══════════════════════════════════════════
-export type ReadonlyUser = {
-  readonly [K in keyof User]: User[K]; // ← MAPPED
+export type StringsOnly<T> = {
+  [K in keyof T as T[K] extends string ? K : never]: T[K];
+  // ← id, tag; age отфильтрован
 };
 
-// { readonly id: string; readonly name: string }
+type S = StringsOnly<Row>; // { id: string; tag: string }
 `,
     },
   ],
@@ -222,36 +216,49 @@ type Ready = RequiredKeys<Draft>;
 `,
     },
   ],
-  awaited: [
+  'awaited-deep': [
     {
-      id: 'awaited',
-      label: 'src/awaited.ts',
-      note: '`infer V` — карман для типа внутри Promise.',
+      id: 'awaited-deep',
+      label: 'src/awaitedDeep.ts',
+      note: 'True-ветка снова вызывает Awaited — цепочка Promise разворачивается.',
       executable: false,
       languageLabel: 'ts',
       code: `// ═══════════════════════════════════════════
-// INFER ← вытащить из Promise
+// RECURSIVE ← infer + снова Awaited<V>
 // ═══════════════════════════════════════════
-export type Awaited<T> = T extends Promise<infer V>
-  ? V // ← V из паттерна
-  : T;
+export type Awaited<T> = T extends null | undefined
+  ? T
+  : T extends Promise<infer V>
+    ? Awaited<V> // ← RECURSE: вложенный Promise
+    : T;
 
-type A = Awaited<Promise<string>>; // string
-type B = Awaited<number>; // number
+type Deep = Awaited<Promise<Promise<string>>>; // string
 `,
     },
   ],
-  'return-of': [
+  parameters: [
     {
-      id: 'return-of',
-      label: 'src/returnOf.ts',
-      note: '`infer R` в сигнатуре — тип возврата без вызова.',
+      id: 'parameters',
+      label: 'src/parameters.ts',
+      note: 'infer P в args — tuple параметров, как встроенный Parameters<F>.',
       executable: false,
       languageLabel: 'ts',
       code: `// ═══════════════════════════════════════════
-// INFER ← возврат функции
+// INFER ARGS ← как Parameters<F>
 // ═══════════════════════════════════════════
-export type ReturnOf<F> = F extends (...args: never[]) => infer R
+export type Params<F> = F extends (...args: infer P) => unknown ? P : never;
+
+type P = Params<(id: string, limit: number) => void>;
+// [string, number]
+`,
+    },
+    {
+      id: 'return-of',
+      label: 'src/returnOf.ts',
+      note: 'Пара infer + conditional: возврат функции без вызова.',
+      executable: false,
+      languageLabel: 'ts',
+      code: `export type ReturnOf<F> = F extends (...args: never[]) => infer R
   ? R // ← R из паттерна
   : never;
 
@@ -314,7 +321,7 @@ function CaseSwitch({
 
 export function TsConditionalMappedInferLab() {
   const [patternId, setPatternId] = useState<PatternId>('conditional')
-  const [caseId, setCaseId] = useState<CaseId>('branch')
+  const [caseId, setCaseId] = useState<CaseId>('exclude')
 
   const selectPattern = (id: PatternId) => {
     setPatternId(id)
@@ -332,7 +339,7 @@ export function TsConditionalMappedInferLab() {
   )
 
   const code = (
-    <div className={styles.codePane}>
+    <div className={shell.codePane}>
       <PatternSwitch value={patternId} onChange={selectPattern} />
       <CaseSwitch patternId={patternId} value={caseId} onChange={setCaseId} />
       <InteractiveCodePanel
@@ -347,7 +354,7 @@ export function TsConditionalMappedInferLab() {
   return (
     <JsLabShell
       title="Conditional · mapped · infer"
-      lead="Ветки, проход по ключам и извлечение типа — смотрите файлы на вкладке Код."
+      lead="Exclude, key remapping, рекурсивный Awaited и infer из args — смотрите файлы на вкладке Код."
       problem={problem}
       code={code}
     />

@@ -193,6 +193,33 @@ Promise.resolve().then(() => {
 });
 `,
   },
+  {
+    id: 'unhandled-rejection',
+    label: 'src/runtime/unhandledRejection.js',
+    note: 'Reject без `catch` / `onRejected` к checkpoint → unhandled rejection; слушатель ловит событие.',
+    executable: false,
+    code: `// ═══════════════════════════════════════════
+// UNHANDLED ← reject без обработчика
+// ═══════════════════════════════════════════
+window.addEventListener('unhandledrejection', (e) => {
+  console.warn('unhandled', e.reason); // ← после microtask checkpoint
+});
+
+Promise.reject(new Error('boom')); // нет catch → unhandled rejection
+
+// handled: хвост есть — события не будет
+Promise.reject(new Error('caught'))
+  .catch((err) => {
+    console.log('handled', err.message); // ← microtask onRejected
+  });
+
+// async без await/catch на вызове — тот же класс
+async function load() {
+  throw new Error('async boom');
+}
+load(); // rejected Promise без подписчика
+`,
+  },
 ]
 
 function reducedMotion() {
@@ -791,7 +818,7 @@ export function AsyncEventLoopLab() {
       code={
         <InteractiveCodePanel
           topicId={TOPIC_ID}
-          intro="`then` и nested chain — microtask; `setTimeout` — macrotask, внутри может поставить новый `then`."
+          intro="`then` / nested chain — microtask; `setTimeout` — macrotask; reject без `catch` — unhandled rejection."
           snippets={SNIPPETS}
         />
       }

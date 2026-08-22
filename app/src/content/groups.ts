@@ -1021,7 +1021,7 @@ export const TOPIC_META: Record<
   },
   "233-ts-conditional-mapped-infer": {
     groupId: "ts",
-    level: "middle",
+    level: "senior",
     sortInGroup: 11,
   },
   "234-ts-template-literal-types": {

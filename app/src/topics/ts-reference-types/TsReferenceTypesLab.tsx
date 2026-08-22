@@ -6,43 +6,42 @@ import {
   InteractiveCodePanel,
   type InteractiveSnippet,
 } from "../../components/lab/InteractiveCodePanel";
-import styles from "./TsReferenceTypesLab.module.css";
 
 const TOPIC_ID = "236-ts-reference-types";
 
 type CaseId = "types" | "path" | "lib";
 
 const CASES: Array<{ id: CaseId; label: string }> = [
-  { id: "types", label: "reference types" },
-  { id: "path", label: "reference path" },
-  { id: "lib", label: "reference lib" },
+  { id: "types", label: "types — пакет" },
+  { id: "path", label: "path — файл" },
+  { id: "lib", label: "lib — встроенное" },
 ];
 
 const CASE_BRIEF: Record<CaseId, ReactNode> = {
   types: (
     <>
-      <code>types=&quot;vite/client&quot;</code> подтягивает ambient-типы Vite без{" "}
-      <code>import</code>.
+      В <code>vite-env.d.ts</code> одна строка подключает типы Vite —{" "}
+      <code>import.meta.env</code> перестаёт быть «неизвестным полем».
     </>
   ),
   path: (
     <>
-      <code>path</code> включает конкретный <code>.d.ts</code> в компиляцию по
-      относительному пути.
+      <code>path</code> подтягивает соседний <code>.d.ts</code>, чтобы имена из
+      него были видны в этом файле.
     </>
   ),
   lib: (
     <>
-      <code>lib=&quot;es2017.string&quot;</code> даёт встроенные методы строки
-      автору деклараций.
+      <code>lib</code> даёт встроенные типы стандарта — например,{" "}
+      <code>padStart</code> у строки без ручного <code>declare</code>.
     </>
   ),
 };
 
 const CODE_INTRO: Record<CaseId, string> = {
-  types: "Пакет деклараций в контекст: как import для @types / types пакета.",
-  path: "Файловая зависимость: локальный .d.ts без модульного import.",
-  lib: "Встроенная lib.*.d.ts — тот же смысл, что compilerOptions.lib.",
+  types: "Пакет типов по имени — типичный пример env-файла в Vite.",
+  path: "Локальный .d.ts по относительному пути — legacy-склейка без import.",
+  lib: "Встроенная библиотека типов — тот же смысл, что `lib` в tsconfig.",
 };
 
 const CODE_SNIPPETS: Record<CaseId, InteractiveSnippet[]> = {
@@ -50,14 +49,14 @@ const CODE_SNIPPETS: Record<CaseId, InteractiveSnippet[]> = {
     {
       id: "vite-env-dts",
       label: "src/vite-env.d.ts",
-      note: "Entry окружения: директива вверху файла подключает типы Vite.",
+      note: "Строка вверху файла — TypeScript подключает типы Vite ко всему проекту.",
       executable: false,
       languageLabel: "ts",
       code: `// ═══════════════════════════════════════════
-// REFERENCE TYPES ← пакет деклараций
+// REFERENCE TYPES ← пакет типов Vite
 // ═══════════════════════════════════════════
 /// <reference types="vite/client" />
-// ← TYPES: ambient Vite (import.meta.env, ассеты)
+// ← TYPES: import.meta.env, импорт ассетов
 
 interface ImportMetaEnv {
   readonly VITE_API_URL: string;
@@ -67,7 +66,7 @@ interface ImportMetaEnv {
     {
       id: "app-ts",
       label: "src/app.ts",
-      note: "Модуль пользуется глобалами/ambient из vite/client без импорта типов.",
+      note: "Обычный код пользуется типами из vite/client без import типов.",
       executable: false,
       languageLabel: "ts",
       code: `const url = import.meta.env.VITE_API_URL; // ← из vite/client + env.d.ts
@@ -79,7 +78,7 @@ const mode = import.meta.env.MODE;
     {
       id: "globals-dts",
       label: "types/globals.d.ts",
-      note: "Локальный ambient: имена доступны после reference path.",
+      note: "Локальные имена — их подключат через reference path.",
       executable: false,
       languageLabel: "ts",
       code: `// ═══════════════════════════════════════════
@@ -93,11 +92,11 @@ declare const APP_BUILD: string;
     {
       id: "shim-dts",
       label: "types/shim.d.ts",
-      note: "path относительно этого файла — подтянуть globals в компиляцию.",
+      note: "path относительно этого файла — подтянуть globals.d.ts.",
       executable: false,
       languageLabel: "ts",
       code: `/// <reference path="./globals.d.ts" />
-// ← PATH: включить файл в контекст checker’а
+// ← PATH: TypeScript видит типы из соседнего файла
 
 declare function boot(name: AppName): void; // ← AppName из globals.d.ts
 `,
@@ -107,11 +106,11 @@ declare function boot(name: AppName): void; // ← AppName из globals.d.ts
     {
       id: "pad-dts",
       label: "types/pad.d.ts",
-      note: "Автору .d.ts нужен padStart без ручного объявления метода.",
+      note: "Автору .d.ts нужен padStart — lib подключает встроенные типы строки.",
       executable: false,
       languageLabel: "ts",
       code: `// ═══════════════════════════════════════════
-// REFERENCE LIB ← встроенная библиотека
+// REFERENCE LIB ← встроенная библиотека типов
 // ═══════════════════════════════════════════
 /// <reference lib="es2017.string" />
 // ← LIB: как "lib": ["es2017.string"] в tsconfig
@@ -122,7 +121,7 @@ export declare function padId(raw: string): string;
     {
       id: "pad-impl-ts",
       label: "src/pad.ts",
-      note: "Реализация опирается на типы из lib; emit — обычный JS.",
+      note: "Реализация опирается на типы из lib; в браузер уходит обычный JS.",
       executable: false,
       languageLabel: "ts",
       code: `export function padId(raw: string): string {
@@ -165,15 +164,15 @@ export function TsReferenceTypesLab() {
       <CaseSwitch value={caseId} onChange={setCaseId} />
 
       <p className={shell.pain}>
-        <code>/// &lt;reference … /&gt;</code> подключает декларации в checker:
-        пакет, файл или встроенную <code>lib</code> — без runtime-import.
+        Строка <code>/// &lt;reference … /&gt;</code> в начале файла подсказывает
+        TypeScript, откуда взять типы — в JavaScript она не попадает.
       </p>
       <p className={shell.hint}>{CASE_BRIEF[caseId]}</p>
     </div>
   );
 
   const code = (
-    <div className={styles.codePane}>
+    <div className={shell.codePane}>
       <CaseSwitch value={caseId} onChange={setCaseId} />
       <InteractiveCodePanel
         key={caseId}
@@ -187,7 +186,7 @@ export function TsReferenceTypesLab() {
   return (
     <JsLabShell
       title="Reference types"
-      lead="`types`, `path` и `lib` — три способа подтянуть декларации; смотрите файлы на вкладке Код."
+      lead="Три формы директивы — `types`, `path`, `lib`; примеры файлов на вкладке Код."
       problem={problem}
       code={code}
     />

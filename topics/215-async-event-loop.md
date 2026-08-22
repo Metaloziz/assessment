@@ -96,6 +96,25 @@ requestAnimationFrame(() => console.log('raf'));
 // часто: micro → raf → timeout (точное место timeout зависит от нагрузки и браузера)
 ```
 
+Практика — плавное смещение элемента на один кадр за раз. В колбэк приходит timestamp; шаг считают от него, а не «магические 16 ms». Пока вкладка в фоне, браузер реже вызывает rAF — в отличие от `setInterval`, который может тикать впустую.
+
+```js
+const box = document.querySelector('.box');
+let x = 0;
+let rafId = 0;
+
+function tick(now) {
+  x += 2; // или: скорость * (now - prev) / 1000
+  box.style.transform = `translateX(${x}px)`;
+  if (x < 200) rafId = requestAnimationFrame(tick);
+}
+
+rafId = requestAnimationFrame(tick);
+// остановить: cancelAnimationFrame(rafId);
+```
+
+Так правки DOM совпадают с готовящимся кадром: меньше лишних layout между отрисовками. Для «просто подождать чуть-чуть» без анимации обычно хватает `setTimeout` / microtask — rAF здесь ни к чему.
+
 В Node классического rAF нет — там другие фазы цикла.
 
 ## queueMicrotask
