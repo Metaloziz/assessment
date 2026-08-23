@@ -10,10 +10,12 @@ import {
 import { LabLogView } from '../../components/lab/LabLogView'
 import { useLabLog } from '../../components/lab/useLabLog'
 import { LabVizPanel, labVizStyles } from '../../components/lab/LabViz'
+import { apiJson, apiUrl } from '../../lib/apiBase'
 import styles from './NodejsModulesGlobalsLab.module.css'
 
 const TOPIC_ID = '242-nodejs-modules-globals'
 const STEP = 0.6
+const HANG_ABORT_MS = 2500
 
 type Mode = 'http' | 'fs' | 'process'
 type HttpCase = 'ok' | 'hang'
@@ -21,6 +23,19 @@ type FsCase = 'async' | 'sync'
 type ProcessCase = 'env' | 'pollute'
 type CaseId = HttpCase | FsCase | ProcessCase
 type Phase = 'idle' | 'a' | 'b' | 'done'
+
+type LivePayload = {
+  ok: boolean
+  summary: string
+  fsMs?: number
+  pingMs?: number
+  blockedLoop?: boolean
+  port?: number | null
+  nodeEnv?: string
+  status?: number
+  body?: string
+  hung?: boolean
+}
 
 const MODES: Array<{ id: Mode; label: string }> = [
   { id: 'http', label: 'http' },
@@ -53,7 +68,8 @@ const PAIN: Record<Mode, ReactNode> = {
   fs: (
     <>
       Асинхронный <code>fs</code> отпускает event loop на время I/O;{' '}
-      <code>*Sync</code> держит поток, пока диск не ответит.
+      <code>*Sync</code> держит поток — параллельный ping на том же процессе
+      это показывает.
     </>
   ),
   process: (
@@ -67,44 +83,44 @@ const PAIN: Record<Mode, ReactNode> = {
 const CASE_BRIEF: Record<CaseId, ReactNode> = {
   ok: (
     <>
-      Handler пишет заголовки и вызывает <code>end</code> — клиент получает{' '}
-      <code>200</code>.
+      Живой GET с завершённым телом — клиент получает <code>200</code> и{' '}
+      <code>ended: true</code>.
     </>
   ),
   hang: (
     <>
-      Handler отрабатывает без <code>res.end</code> — соединение остаётся
-      открытым.
+      Симуляция: handler без <code>res.end</code> — соединение остаётся открытым
+      (на API hang — controlled timeout).
     </>
   ),
   async: (
     <>
-      Пока ждём диск, loop может принять другой запрос — поток не занят чтением.
+      Живой <code>readFile</code> + параллельный ping — loop успевает ответить,
+      пока ждём диск.
     </>
   ),
   sync: (
     <>
-      <code>readFileSync</code> блокирует процесс до конца чтения — соседний
-      запрос стоит в очереди.
+      Живой <code>readFileSync</code> + ping: sync держит loop, ping ждёт дольше.
     </>
   ),
   env: (
     <>
-      Порт берётся из <code>process.env.PORT</code> (или запасное значение), без
+      Живой срез <code>process.env</code> и <code>cwd</code> — порт и окружение без
       хардкода в коде.
     </>
   ),
   pollute: (
     <>
-      Запись в <code>global.cache</code> видна всему процессу и легко конфликтует
-      с другими модулями.
+      Симуляция: запись в <code>global.cache</code> видна всему процессу и легко
+      конфликтует с другими модулями.
     </>
   ),
 }
 
 const CODE_INTRO: Record<Mode, string> = {
   http: '`node:http`: createServer + listen; ответ закрывают `res.end`.',
-  fs: '`node:fs`: async read vs Sync в горячем пути HTTP.',
+  fs: '`node:fs` на сервере: async read vs Sync + ping на том же процессе.',
   process: '`process.env` для конфига; состояние — в экспорте модуля, не в `global`.',
 }
 
@@ -127,6 +143,21 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(3000); // ← порт ОС
+`,
+    },
+    {
+      id: 'lab-http-ok',
+      label: 'routes/modulesGlobalsLab.ts · ok',
+      note: 'Live-лаба: завершённый JSON-ответ.',
+      executable: false,
+      languageLabel: 'ts',
+      code: `// GET /api/lab/modules/http?mode=ok
+return reply.status(200).send({
+  ok: true,
+  body: 'ok',
+  ended: true, // ← аналог res.end
+  latencyMs,
+});
 `,
     },
     {
@@ -166,6 +197,22 @@ export async function loadHello() {
 `,
     },
     {
+      id: 'lab-fs',
+      label: 'routes/modulesGlobalsLab.ts · fs',
+      note: 'Sync + holdLoop vs async readFile.',
+      executable: false,
+      languageLabel: 'ts',
+      code: `// GET /api/lab/modules/fs?mode=sync|async
+if (mode === 'sync') {
+  const text = fs.readFileSync(HELLO_FILE, 'utf8'); // ← BLOCK
+  holdLoop(SYNC_HOLD_MS);
+  return { ok: true, blockedLoop: true, preview: text };
+}
+const text = await fsPromises.readFile(HELLO_FILE, 'utf8');
+return { ok: true, blockedLoop: false, preview: text };
+`,
+    },
+    {
       id: 'read-sync',
       label: 'read-sync.js',
       note: 'Sync в handler HTTP блокирует весь процесс.',
@@ -198,6 +245,22 @@ export const isProd = process.env.NODE_ENV === 'production';
 `,
     },
     {
+      id: 'lab-env',
+      label: 'routes/modulesGlobalsLab.ts · env',
+      note: 'Без секретов: PORT, NODE_ENV, cwd.',
+      executable: false,
+      languageLabel: 'ts',
+      code: `// GET /api/lab/modules/env
+return {
+  ok: true,
+  port: Number(process.env.PORT) || null,
+  nodeEnv: process.env.NODE_ENV ?? 'development',
+  cwd: process.cwd(), // ← рабочая директория
+  pid: process.pid,
+};
+`,
+    },
+    {
       id: 'global-js',
       label: 'cache.js',
       note: 'Модульный экспорт вместо общей корзины `global`.',
@@ -217,6 +280,13 @@ export function remember(key, value) {
 `,
     },
   ],
+}
+
+function usesLive(mode: Mode, caseId: CaseId): boolean {
+  if (mode === 'http') return caseId === 'ok'
+  if (mode === 'fs') return true
+  if (mode === 'process') return caseId === 'env'
+  return false
 }
 
 function reducedMotion() {
@@ -310,10 +380,11 @@ type VizProps = {
   mode: Mode
   caseId: CaseId
   phase: Phase
+  live: LivePayload | null
   focusRef: MutableRefObject<HTMLDivElement | null>
 }
 
-function ModulesViz({ mode, caseId, phase, focusRef }: VizProps) {
+function ModulesViz({ mode, caseId, phase, live, focusRef }: VizProps) {
   const aOn = phase !== 'idle'
   const bOn = phase === 'b' || phase === 'done'
   const doneOn = phase === 'done'
@@ -328,8 +399,12 @@ function ModulesViz({ mode, caseId, phase, focusRef }: VizProps) {
           ? 'запрос принят'
           : 'handler…'
       : hang
-        ? 'клиент ждёт'
-        : '200 · закрыто'
+        ? live?.hung
+          ? 'клиент ждёт'
+          : 'клиент ждёт'
+        : live?.status === 200
+          ? '200 · закрыто'
+          : '200 · закрыто'
 
     return (
       <LabVizPanel title={title} meta={meta}>
@@ -374,7 +449,13 @@ function ModulesViz({ mode, caseId, phase, focusRef }: VizProps) {
           >
             <span className={labVizStyles.nodeLabel}>ответ</span>
             <span className={labVizStyles.nodeSub}>
-              {doneOn ? (hang ? 'ожидание…' : '200 ok') : 'ещё нет'}
+              {doneOn
+                ? hang
+                  ? live?.hung
+                    ? 'ожидание…'
+                    : 'ожидание…'
+                  : live?.body ?? '200 ok'
+                : 'ещё нет'}
             </span>
           </div>
         </div>
@@ -385,6 +466,7 @@ function ModulesViz({ mode, caseId, phase, focusRef }: VizProps) {
   if (mode === 'fs') {
     const sync = caseId === 'sync'
     const title = sync ? 'fs · readFileSync' : 'fs · readFile'
+    const blocked = live?.blockedLoop ?? sync
     const meta = !doneOn
       ? phase === 'idle'
         ? 'ожидание'
@@ -393,7 +475,7 @@ function ModulesViz({ mode, caseId, phase, focusRef }: VizProps) {
           : sync
             ? 'поток занят…'
             : 'ждём диск…'
-      : sync
+      : blocked
         ? 'loop был заблокирован'
         : 'loop свободен на I/O'
 
@@ -407,44 +489,45 @@ function ModulesViz({ mode, caseId, phase, focusRef }: VizProps) {
             )}
           >
             <span className={labVizStyles.nodeLabel}>handler</span>
-            <span className={labVizStyles.nodeSub}>нужен hello.txt</span>
+            <span className={labVizStyles.nodeSub}>hello.txt</span>
           </div>
           <span className={styles.flowArrow}>↓</span>
           <div
             ref={focusRef}
             className={nodeCls(
               bOn && !doneOn && labVizStyles.nodeActive,
-              doneOn && (sync ? labVizStyles.nodeErr : labVizStyles.nodeOk),
+              doneOn && (blocked ? labVizStyles.nodeErr : labVizStyles.nodeOk),
             )}
           >
             <span className={labVizStyles.nodeLabel}>
               {sync ? 'readFileSync' : 'readFile'}
             </span>
             <span className={labVizStyles.nodeSub}>
-              {sync
-                ? doneOn
-                  ? 'JS ждал диск'
-                  : 'блокирует call stack'
-                : doneOn
-                  ? 'I/O вне стека'
+              {doneOn && live?.fsMs != null
+                ? `${live.fsMs} ms`
+                : sync
+                  ? 'блокирует call stack'
                   : 'callback / await'}
             </span>
           </div>
           <span className={styles.flowArrow}>↓</span>
           <div
             className={nodeCls(
-              doneOn && labVizStyles.nodeOk,
+              doneOn && !blocked && labVizStyles.nodeOk,
+              doneOn && blocked && labVizStyles.nodeErr,
               doneOn && labVizStyles.nodeActive,
               !doneOn && styles.dim,
             )}
           >
-            <span className={labVizStyles.nodeLabel}>event loop</span>
+            <span className={labVizStyles.nodeLabel}>ping</span>
             <span className={labVizStyles.nodeSub}>
-              {doneOn
-                ? sync
-                  ? 'другие запросы ждали'
-                  : 'мог принять соседей'
-                : 'статус неизвестен'}
+              {doneOn && live?.pingMs != null
+                ? `${live.pingMs} ms`
+                : doneOn
+                  ? blocked
+                    ? 'ждал sync'
+                    : 'ответил быстро'
+                  : 'статус неизвестен'}
             </span>
           </div>
         </div>
@@ -454,6 +537,8 @@ function ModulesViz({ mode, caseId, phase, focusRef }: VizProps) {
 
   const pollute = caseId === 'pollute'
   const title = pollute ? 'global · pollute' : 'process.env'
+  const portLabel =
+    live?.port != null ? String(live.port) : pollute ? '—' : '8080'
   const meta = !doneOn
     ? phase === 'idle'
       ? 'ожидание'
@@ -462,7 +547,9 @@ function ModulesViz({ mode, caseId, phase, focusRef }: VizProps) {
         : 'применение…'
     : pollute
       ? 'общее имя на процесс'
-      : 'PORT из окружения'
+      : live?.nodeEnv
+        ? `${live.nodeEnv} · PORT`
+        : 'PORT из окружения'
 
   return (
     <LabVizPanel title={title} meta={meta}>
@@ -477,7 +564,7 @@ function ModulesViz({ mode, caseId, phase, focusRef }: VizProps) {
             {pollute ? 'модуль A' : 'shell / CI'}
           </span>
           <span className={labVizStyles.nodeSub}>
-            {pollute ? 'ставит global.cache' : 'PORT=8080'}
+            {pollute ? 'ставит global.cache' : `PORT=${portLabel}`}
           </span>
         </div>
         <span className={styles.flowArrow}>↓</span>
@@ -492,11 +579,9 @@ function ModulesViz({ mode, caseId, phase, focusRef }: VizProps) {
           </span>
           <span className={labVizStyles.nodeSub}>
             {pollute
-              ? doneOn
-                ? 'один Map на всех'
-                : 'общая корзина'
-              : doneOn
-                ? 'PORT=8080'
+              ? 'общая корзина'
+              : doneOn && live?.nodeEnv
+                ? live.nodeEnv
                 : 'читаем env'}
           </span>
         </div>
@@ -514,16 +599,119 @@ function ModulesViz({ mode, caseId, phase, focusRef }: VizProps) {
             {pollute ? 'модуль B' : 'listen'}
           </span>
           <span className={labVizStyles.nodeSub}>
-            {doneOn
-              ? pollute
+            {pollute
+              ? doneOn
                 ? 'видел чужой cache'
-                : 'порт 8080'
-              : 'ещё не применено'}
+                : 'ещё не применено'
+              : doneOn
+                ? `порт ${portLabel}`
+                : 'ещё не применено'}
           </span>
         </div>
       </div>
     </LabVizPanel>
   )
+}
+
+async function fetchHttpOk(): Promise<LivePayload> {
+  const started = performance.now()
+  const data = await apiJson<{
+    ok: boolean
+    body?: string
+    ended?: boolean
+    status?: number
+    latencyMs?: number
+  }>('/api/lab/modules/http?mode=ok')
+  const clientMs = Math.round(performance.now() - started)
+  return {
+    ok: Boolean(data.ok && data.ended),
+    status: data.status ?? 200,
+    body: data.body ?? 'ok',
+    summary: `200 · ${data.latencyMs ?? clientMs} ms server · ${clientMs} ms RTT`,
+  }
+}
+
+async function fetchFs(mode: FsCase): Promise<LivePayload> {
+  const fsStarted = performance.now()
+  const fsPromise = apiJson<{
+    ok: boolean
+    mode?: string
+    latencyMs?: number
+    blockedLoop?: boolean
+    preview?: string
+  }>(`/api/lab/modules/fs?mode=${mode}`)
+
+  await new Promise((r) => setTimeout(r, 40))
+
+  const pingStarted = performance.now()
+  const pingPromise = apiJson<{ ok: boolean; latencyMs?: number }>(
+    '/api/lab/modules/ping',
+  ).then((data) => ({
+    ...data,
+    clientMs: Math.round(performance.now() - pingStarted),
+  }))
+
+  const [fs, ping] = await Promise.all([fsPromise, pingPromise])
+  const fsMs =
+    typeof fs.latencyMs === 'number'
+      ? fs.latencyMs
+      : Math.round(performance.now() - fsStarted)
+  const pingMs = ping.clientMs
+  const blockedLoop =
+    typeof fs.blockedLoop === 'boolean' ? fs.blockedLoop : mode === 'sync'
+
+  return {
+    ok: Boolean(fs.ok) && Boolean(ping.ok),
+    fsMs,
+    pingMs,
+    blockedLoop,
+    summary: `fs ${fsMs} ms · ping ${pingMs} ms`,
+  }
+}
+
+async function fetchEnv(): Promise<LivePayload> {
+  const data = await apiJson<{
+    ok: boolean
+    port?: number | null
+    portFallback?: number
+    nodeEnv?: string
+    cwd?: string
+  }>('/api/lab/modules/env')
+  const port = data.port ?? data.portFallback ?? 3000
+  return {
+    ok: Boolean(data.ok),
+    port,
+    nodeEnv: data.nodeEnv,
+    summary: `PORT=${port} · ${data.nodeEnv ?? 'development'}`,
+  }
+}
+
+async function fetchHttpHang(): Promise<LivePayload> {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), HANG_ABORT_MS)
+  try {
+    await fetch(apiUrl('/api/lab/modules/http?mode=hang'), {
+      signal: controller.signal,
+    })
+    return {
+      ok: false,
+      hung: true,
+      summary: 'ответ пришёл позже abort',
+    }
+  } catch (err) {
+    const aborted = err instanceof Error && err.name === 'AbortError'
+    return {
+      ok: aborted,
+      hung: aborted,
+      summary: aborted
+        ? `abort ${HANG_ABORT_MS} ms — ответ не закрыт`
+        : err instanceof Error
+          ? err.message
+          : String(err),
+    }
+  } finally {
+    clearTimeout(timer)
+  }
 }
 
 function defaultCase(mode: Mode): CaseId {
@@ -537,12 +725,14 @@ export function NodejsModulesGlobalsLab() {
   const [phase, setPhase] = useState<Phase>('idle')
   const [hint, setHint] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const [live, setLive] = useState<LivePayload | null>(null)
   const tlRef = useRef<gsap.core.Timeline | null>(null)
   const focusRef = useRef<HTMLDivElement | null>(null)
 
   const resetViz = () => {
     setPhase('idle')
     setHint(null)
+    setLive(null)
     if (focusRef.current)
       gsap.set(focusRef.current, { clearProps: 'transform,opacity' })
   }
@@ -564,11 +754,75 @@ export function NodejsModulesGlobalsLab() {
     resetViz()
   }
 
-  const run = () => {
-    clear()
-    resetViz()
-    setBusy(true)
+  const finishLive = (payload: LivePayload, hintText: string) => {
+    setLive(payload)
+    setPhase('done')
+    if (payload.ok) {
+      log('ok', payload.summary)
+    } else if (payload.hung) {
+      log('warn', payload.summary)
+    } else {
+      log('err', payload.summary)
+    }
+    setHint(hintText)
+  }
 
+  const pulseFocus = () => {
+    if (focusRef.current && !reducedMotion()) {
+      gsap.fromTo(
+        focusRef.current,
+        { scale: 0.94, opacity: 0.45 },
+        { scale: 1, opacity: 1, duration: 0.35, ease: 'power2.inOut' },
+      )
+    }
+  }
+
+  const runLive = async () => {
+    setPhase('a')
+    try {
+      setPhase('b')
+      if (mode === 'http' && caseId === 'ok') {
+        const payload = await fetchHttpOk()
+        finishLive(
+          payload,
+          payload.ok
+            ? 'ответ закрыт; клиент получил тело'
+            : 'ответ без ended — проверьте API',
+        )
+      } else if (mode === 'fs') {
+        const payload = await fetchFs(caseId as FsCase)
+        finishLive(
+          payload,
+          caseId === 'async'
+            ? `ping ${payload.pingMs} ms — loop свободен на I/O`
+            : `ping ${payload.pingMs} ms ждал sync (~${payload.fsMs} ms)`,
+        )
+      } else if (caseId === 'env') {
+        const payload = await fetchEnv()
+        finishLive(
+          payload,
+          'конфиг из окружения, без секретов в репозитории',
+        )
+      } else if (mode === 'http' && caseId === 'hang') {
+        const payload = await fetchHttpHang()
+        finishLive(
+          payload,
+          'соединение открыто, пока handler не вызовет end',
+        )
+      }
+      pulseFocus()
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err)
+      finishLive(
+        { ok: false, summary: message },
+        'API недоступен — дождитесь деплоя Render',
+      )
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const runSimulation = () => {
     playTimeline(
       tlRef,
       [
@@ -576,28 +830,14 @@ export function NodejsModulesGlobalsLab() {
         () => setPhase('b'),
         () => {
           setPhase('done')
-          if (mode === 'http') {
-            if (caseId === 'ok') {
-              log('ok', '200 · res.end')
-              setHint('ответ закрыт; клиент получил тело')
-            } else {
-              log('err', 'нет res.end')
-              setHint('соединение открыто, пока handler не вызовет end')
-            }
-          } else if (mode === 'fs') {
-            if (caseId === 'async') {
-              log('ok', 'readFile · loop free')
-              setHint('пока ждём диск, процесс может обслуживать других')
-            } else {
-              log('warn', 'readFileSync · blocked')
-              setHint('sync держит call stack — соседние запросы ждут')
-            }
-          } else if (caseId === 'env') {
-            log('ok', 'listen(process.env.PORT)')
-            setHint('конфиг из окружения, без секретов в репозитории')
+          if (caseId === 'hang') {
+            log('err', 'нет res.end')
+            setHint('соединение открыто, пока handler не вызовет end')
+            setLive({ ok: false, hung: true, summary: 'нет res.end' })
           } else {
             log('warn', 'global.cache')
             setHint('лучше export const cache — без общей корзины процесса')
+            setLive({ ok: false, summary: 'global.cache' })
           }
         },
       ],
@@ -608,6 +848,19 @@ export function NodejsModulesGlobalsLab() {
       },
       () => setBusy(false),
     )
+  }
+
+  const run = () => {
+    clear()
+    resetViz()
+    setBusy(true)
+
+    if (usesLive(mode, caseId) || (mode === 'http' && caseId === 'hang')) {
+      void runLive()
+      return
+    }
+
+    runSimulation()
   }
 
   const reset = () => {
@@ -645,6 +898,7 @@ export function NodejsModulesGlobalsLab() {
         mode={mode}
         caseId={caseId}
         phase={phase}
+        live={live}
         focusRef={focusRef}
       />
 
@@ -668,7 +922,7 @@ export function NodejsModulesGlobalsLab() {
   return (
     <JsLabShell
       title="Модули и глобалы Node"
-      lead="http, fs и process/global — один стенд на механизм."
+      lead="Живой fs и process.env на Node API; http ok и hang — реальный запрос; global — симуляция."
       problem={problem}
       code={code}
     />

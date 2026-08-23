@@ -6,6 +6,7 @@ const LIVE_API_TOPIC_IDS = new Set([
   '244-nodejs-db-async-config',
   '245-nodejs-cache-crud',
   '27-server-performance-metrics',
+  '242-nodejs-modules-globals',
   '246-nodejs-worker-threads',
   '267-devtools-websocket-debug',
   '251-network-api-first',

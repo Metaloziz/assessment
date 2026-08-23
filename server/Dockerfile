@@ -5,6 +5,7 @@ COPY package.json package-lock.json ./
 RUN npm ci --omit=dev
 
 COPY tsconfig.json ./
+COPY lab-data ./lab-data
 COPY src ./src
 
 ENV NODE_ENV=production

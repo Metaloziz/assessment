@@ -16,6 +16,7 @@ import { perfLabRoutes } from './routes/perfLab.js'
 import { cookiesLabRoutes } from './routes/cookiesLab.js'
 import { csrfLabRoutes } from './routes/csrfLab.js'
 import { ssrLabRoutes } from './routes/ssrLab.js'
+import { modulesGlobalsLabRoutes } from './routes/modulesGlobalsLab.js'
 import { sqlClient } from './db.js'
 
 const app = Fastify({ logger: true })
@@ -42,6 +43,7 @@ await app.register(wsDebugLabRoutes)
 await app.register(progressRoutes)
 await app.register(perfLabRoutes)
 await app.register(ssrLabRoutes)
+await app.register(modulesGlobalsLabRoutes)
 
 const shutdown = async () => {
   await app.close()
