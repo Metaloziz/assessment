@@ -1,0 +1,17 @@
+.analyzerBar {
+  display: flex;
+  height: 28px;
+  border-radius: var(--radius-sm, 6px);
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.segment {
+  transition: opacity 0.4s ease;
+}
+
+.legend {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+}

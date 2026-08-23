@@ -27,8 +27,8 @@ Dev и prod конфиги разделяют через common + merge; analyze
 - `webpack-merge`: `merge(common, envConfig)`.
 - Dev: скорость и DX; prod: размер, кеш-friendly имена (`contenthash`).
 - Analyzer — после `build`, смотреть «кто съел килобайты».
-- HtmlWebpackPlugin = HTML + правильные `<script>` под хеши.
-- Terser = JS minify; CSS — отдельно (css-minimizer).
+- HtmlWebpackPlugin — шаблон → `dist/index.html` с актуальными `<script>`/`link`; не хардкодить hashed имена.
+- Terser — minify JS (mangle + compress); CSS/HTML — отдельно; в dev обычно выключен.
 
 ---
 
@@ -61,25 +61,82 @@ new BundleAnalyzerPlugin({ analyzerMode: 'static', openAnalyzer: false })
 
 ## HtmlWebpackPlugin
 
-```javascript
-new HtmlWebpackPlugin({
-  template: './src/index.html',
-  minify: isProd && { collapseWhitespace: true },
-})
+**HtmlWebpackPlugin** — plugin, не loader: он не обрабатывает `import`, а подписывается на **compilation** и после **emit** создаёт или обновляет `index.html`. В исходниках у вас обычно лежит **шаблон** без имён бандлов — пустой `<div id="root">` и, может быть, мета-теги. После сборки Webpack знает, какие JS- и CSS-файлы реально попали в `dist/` (в том числе с `[contenthash]` в имени). Плагин берёт шаблон и **вставляет** актуальные `<script>` и `<link>` — вручную прописывать `main.a1b2c3.js` в HTML не нужно и опасно: при следующем build хеш сменится, а в HTML останется старое имя.
+
+```text
+src/index.html (шаблон)     emit: main.[contenthash].js, vendor.[contenthash].js
+         │                                    │
+         └──────── HtmlWebpackPlugin ─────────┘
+                         │
+                         ▼
+              dist/index.html с правильными <script>/<link>
 ```
 
-Не хардкодьте `[name].[hash].js` руками в HTML — плагин подставит актуальные имена.
+Типичная настройка — в **common**, потому что и dev, и prod нуждаются в HTML; отличаются только имена файлов в output (`[name].js` vs `[name].[contenthash].js`):
+
+```javascript
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+
+plugins: [
+  new HtmlWebpackPlugin({
+    template: './src/index.html', // ← ваш HTML без ручных hashed имён
+    inject: 'body',               // ← куда вставить теги (body / head / false)
+    // minify — часто только в prod (см. webpack.prod.js или merge)
+    minify: process.env.NODE_ENV === 'production' && {
+      collapseWhitespace: true,
+      removeComments: true,
+    },
+  }),
+],
+```
+
+Полезные опции:
+
+| Опция | Зачем |
+| --- | --- |
+| `template` | Файл-основа; без него плагин сгенерирует минимальный HTML сам |
+| `inject` | `'body'` / `'head'` — автоматически добавить теги; `false` — вы сами ставите `<%= htmlWebpackPlugin.tags %>` в шаблоне |
+| `filename` | Имя выходного HTML, по умолчанию `index.html` |
+| `chunks` / `excludeChunks` | Какие entry попадут в этот HTML, если entry несколько |
+| `minify` | Сжатие HTML в prod (пробелы, комментарии) — отдельно от Terser |
+
+Ловушки: хардкод `<script src="main.js">` в шаблоне ломает кеширование и code splitting; забытый `HtmlWebpackPlugin` при `contenthash` — белый экран, потому что браузер ищет файл с другим именем. Если CSS выносится через `MiniCssExtractPlugin`, плагин подставит и `<link rel="stylesheet">` — главное, чтобы extract-плагин был в конфиге.
 
 ## TerserPlugin
 
-```javascript
-optimization: {
-  minimize: true,
-  minimizer: [new TerserPlugin({ parallel: true })],
-}
+**TerserPlugin** (пакет `terser-webpack-plugin`) — минификатор **JavaScript** на этапе `optimization.minimizer`. Он не «угадывает», какие модули импортировать: tree shaking решает, *что* попало в бандл; Terser сжимает уже собранный JS — убирает пробелы и комментарии, **сокращает имена** переменных и функций (`mangle`), выкидывает мёртвый код *внутри* файла (`compress`: `if (false) { … }`, неиспользуемые ветки). CSS, HTML и картинки Terser не трогает: HTML сжимает `HtmlWebpackPlugin` (опция `minify`), CSS — `CssMinimizerPlugin` или аналог.
+
+```text
+граф модулей → bundle.js (читаемый, с пробелами)
+                      │
+                      ▼ TerserPlugin (prod)
+              bundle.[contenthash].js (короткий, для браузера)
 ```
 
-В Webpack 5 при `mode: 'production'` минификация включена по умолчанию; кастомный Terser — для тонкой настройки (drop_console, reserved names).
+В Webpack 5 при `mode: 'production'` минификация **включена по умолчанию** — под капотом уже стоит Terser. Явный `new TerserPlugin({ … })` нужен, когда хотите тонкую настройку или заменить дефолт:
+
+```javascript
+const TerserPlugin = require('terser-webpack-plugin');
+
+optimization: {
+  minimize: true, // ← в prod обычно true; в dev — false (быстрее HMR)
+  minimizer: [
+    new TerserPlugin({
+      parallel: true, // ← несколько процессов на больших бандлах
+      terserOptions: {
+        compress: {
+          passes: 2,
+          drop_console: true, // ← убрать console.* в prod (осознанно!)
+        },
+        mangle: true,
+        // keep_classnames / keep_fnames — если стек-трейсы важны для Sentry
+      },
+    }),
+  ],
+},
+```
+
+Terser имеет смысл держать в **prod**, не в dev: минификация заметно удлиняет сборку и ломает читаемость стека при отладке. Не путать с **gzip/brotli** на CDN — это сжатие при передаче по сети *поверх* уже минифицированного файла. Ловушка: `drop_console: true` без согласования с командой — в prod пропадают логи, на которые полагали support; `mangle` может усложнить чтение production stack trace без source maps.
 
 ## Чеклист prod
 

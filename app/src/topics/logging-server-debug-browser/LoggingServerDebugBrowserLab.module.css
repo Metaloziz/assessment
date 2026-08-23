@@ -1,0 +1,78 @@
+.fork {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 0.35rem 0.55rem;
+  align-items: stretch;
+  min-height: 10rem;
+}
+
+.forkTop,
+.forkOut {
+  grid-column: 1 / -1;
+  justify-self: center;
+  width: min(100%, 14rem);
+}
+
+.forkLabels {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 0.25rem 0.4rem;
+  text-align: center;
+  color: var(--muted);
+  font-size: var(--lab-font-meta);
+  user-select: none;
+}
+
+.forkBranch {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.forkArrow {
+  color: var(--muted);
+  font-size: var(--lab-font-meta);
+  text-align: center;
+  user-select: none;
+  line-height: 1;
+}
+
+.linear {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  align-items: center;
+  min-height: 9rem;
+}
+
+.linearNode {
+  width: min(100%, 14rem);
+}
+
+.linearArrow {
+  color: var(--muted);
+  font-size: var(--lab-font-meta);
+  user-select: none;
+}
+
+.dim {
+  opacity: 0.42;
+}
+
+.pathOff {
+  opacity: 0.28;
+}
+
+.forkLabelsActive {
+  color: var(--accent-bright);
+}
+
+.codePane {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+  gap: 0.55rem;
+}

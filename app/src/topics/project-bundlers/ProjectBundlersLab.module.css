@@ -1,0 +1,59 @@
+.tree {
+  display: grid;
+  gap: 0.45rem;
+  justify-items: center;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  justify-content: center;
+  align-items: stretch;
+  width: 100%;
+}
+
+.fork {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 0.35rem 0.5rem;
+  width: 100%;
+  max-width: 22rem;
+  align-items: center;
+  text-align: center;
+  color: var(--muted);
+  font-size: var(--lab-font-meta);
+  user-select: none;
+}
+
+.forkArm {
+  transition: color 0.4s ease, opacity 0.4s ease;
+}
+
+.forkArmActive {
+  color: var(--ok);
+  opacity: 1;
+}
+
+.forkArmIdle {
+  opacity: 0.4;
+}
+
+.arrow {
+  color: var(--muted);
+  font-size: var(--lab-font-meta);
+  line-height: 1;
+  user-select: none;
+}
+
+.dim {
+  opacity: 0.35;
+}
+
+.codePane {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+  gap: 0.55rem;
+}

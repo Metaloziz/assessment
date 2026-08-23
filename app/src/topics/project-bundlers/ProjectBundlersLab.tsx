@@ -1,219 +1,353 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { JsLabShell } from '../../components/lab/JsLabShell'
 import { LabButton } from '../../components/lab/LabButton'
 import shell from '../../components/lab/JsLabShell.module.css'
-import { InteractiveCodePanel } from '../../components/lab/InteractiveCodePanel'
+import {
+  InteractiveCodePanel,
+  type InteractiveSnippet,
+} from '../../components/lab/InteractiveCodePanel'
 import { LabLogView } from '../../components/lab/LabLogView'
 import { useLabLog } from '../../components/lab/useLabLog'
+import { LabNode, LabVizPanel } from '../../components/lab/LabViz'
+import styles from './ProjectBundlersLab.module.css'
 
 const TOPIC_ID = '04-bundlers-gulp-rollup'
 
 type Scenario = 'spa' | 'lib' | 'assets'
 
-const ANSWER: Record<Scenario, { tool: string; why: string; file: string }> = {
+const SCENARIOS: Array<{ id: Scenario; label: string }> = [
+  { id: 'spa', label: 'Приложение' },
+  { id: 'lib', label: 'Библиотека' },
+  { id: 'assets', label: 'Ассеты' },
+]
+
+const ANSWER: Record<Scenario, { tool: string; why: string; hint: string }> = {
   spa: {
-    tool: 'Vite / Webpack',
-    why: 'module graph + HMR + code splitting',
-    file: 'vite.config.js (или webpack)',
+    tool: 'Vite (или Webpack)',
+    why: 'esbuild в dev + Rollup в prod; HMR и code splitting',
+    hint: 'граф модулей есть, потребитель — браузер → Vite на новом SPA',
   },
   lib: {
     tool: 'Rollup / tsup',
-    why: 'чистый ESM/CJS + tree shaking + external peers',
-    file: 'rollup.config.mjs',
+    why: 'ESM/CJS + tree shaking + external peers',
+    hint: 'граф есть, но артефакт — npm-пакет, peerDeps снаружи',
   },
   assets: {
-    tool: 'Gulp (или скрипты)',
-    why: 'файловые пайпы без JS-графа',
-    file: 'gulpfile.js',
+    tool: 'Gulp / скрипты',
+    why: 'файлы по pipe, без графа import',
+    hint: 'нет графа модулей — достаточно src → pipe → dest',
   },
+}
+
+const CASE_BRIEF: Record<Scenario, ReactNode> = {
+  spa: (
+    <>
+      Новая админка на React: быстрый HMR через Vite, prod через Rollup — не Gulp и не конфиг
+      npm-библиотеки.
+    </>
+  ),
+  lib: (
+    <>
+      UI kit в npm: нужны <code>index.esm.js</code> и <code>index.cjs.js</code>, React в{' '}
+      <code>external</code>.
+    </>
+  ),
+  assets: (
+    <>
+      SCSS и картинки в <code>dist/</code> без единого JS entry — task runner, не bundler
+      приложения.
+    </>
+  ),
+}
+
+const CODE_INTRO: Record<Scenario, string> = {
+  spa: '`vite.config.js`: plugins + `server` (HMR) + `build.rollupOptions` (prod).',
+  lib: '`rollup.config.mjs`: ESM/CJS, `external` для peerDeps.',
+  assets: '`gulpfile.js`: `src → pipe → dest`, без графа `import`.',
+}
+
+const SNIPPETS: Record<Scenario, InteractiveSnippet[]> = {
+  assets: [
+    {
+      id: 'gulpfile',
+      label: 'gulpfile.js',
+      note: 'Task runner: glob файлов, transform, папка на выходе.',
+      executable: false,
+      code: `const gulp = require('gulp');
+const sass = require('gulp-sass')(require('sass'));
+
+// ← GULP: файловый pipe, не bundler приложения
+function styles() {
+  return gulp
+    .src('src/styles/**/*.scss') // ← glob входа
+    .pipe(sass().on('error', sass.logError))
+    .pipe(gulp.dest('dist/css')); // ← папка dist
+}
+
+function images() {
+  return gulp
+    .src('src/img/**/*')
+    .pipe(gulp.dest('dist/img'));
+}
+
+exports.styles = styles;
+exports.default = gulp.parallel(styles, images);`,
+    },
+  ],
+  lib: [
+    {
+      id: 'rollup',
+      label: 'rollup.config.mjs',
+      note: 'Библиотека: два формата, peers не в бандле.',
+      executable: false,
+      code: `import resolve from '@rollup/plugin-node-resolve';
+import typescript from '@rollup/plugin-typescript';
+
+export default {
+  input: 'src/index.ts', // ← entry библиотеки
+
+  output: [
+    { file: 'dist/index.esm.js', format: 'esm' },
+    { file: 'dist/index.cjs.js', format: 'cjs' },
+  ],
+
+  external: ['react', 'react-dom'], // ← peerDeps с хоста
+
+  plugins: [resolve(), typescript()],
+};`,
+    },
+  ],
+  spa: [
+    {
+      id: 'vite',
+      label: 'vite.config.js',
+      note: 'Vite: esbuild в dev, Rollup в build; entry — index.html.',
+      executable: false,
+      code: `import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+
+// ← VITE: app-bundler для SPA (не Gulp, не library-Rollup)
+export default defineConfig({
+  plugins: [react()], // ← React / Vue / …
+
+  server: {
+    port: 3000, // ← dev: нативный ESM + HMR (esbuild)
+  },
+
+  build: {
+    // ← prod: сборка через Rollup
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'], // ← code splitting
+        },
+      },
+    },
+  },
+});`,
+    },
+  ],
+}
+
+function nodeState(on: boolean, ran: boolean): 'idle' | 'active' | 'ok' {
+  if (!ran) return 'idle'
+  return on ? 'ok' : 'idle'
+}
+
+function ChoiceTree({ scenario, ran }: { scenario: Scenario; ran: boolean }) {
+  const needsGraph = scenario !== 'assets'
+  const isLib = scenario === 'lib'
+  const isSpa = scenario === 'spa'
+  const isAssets = scenario === 'assets'
+
+  const graphYes = ran && needsGraph
+  const graphNo = ran && isAssets
+  const libYes = ran && isLib
+  const libNo = ran && isSpa
+
+  const meta = !ran
+    ? 'ожидание'
+    : ANSWER[scenario].tool
+
+  return (
+    <LabVizPanel title="Дерево выбора" meta={meta}>
+      <div className={styles.tree}>
+        <LabNode
+          label="Артефакт"
+          sub="что лежит в dist"
+          state={ran ? 'active' : 'idle'}
+        />
+
+        <span className={styles.arrow} aria-hidden>
+          ↓
+        </span>
+
+        <LabNode
+          label="Нужен граф import?"
+          sub="entry и цепочка модулей"
+          state={ran ? 'active' : 'idle'}
+        />
+
+        <div className={styles.fork} aria-hidden>
+          <span
+            className={`${styles.forkArm}${graphNo ? ` ${styles.forkArmActive}` : ` ${styles.forkArmIdle}`}`}
+          >
+            нет ↙
+          </span>
+          <span className={styles.arrow}>?</span>
+          <span
+            className={`${styles.forkArm}${graphYes ? ` ${styles.forkArmActive}` : ` ${styles.forkArmIdle}`}`}
+          >
+            ↘ да
+          </span>
+        </div>
+
+        <div className={styles.row}>
+          <LabNode
+            label="Gulp / скрипты"
+            sub="scss, img, copy"
+            state={nodeState(isAssets, ran)}
+            className={ran && !isAssets ? styles.dim : undefined}
+          />
+          <LabNode
+            label="Пакет для npm?"
+            sub="ESM + CJS"
+            state={nodeState(needsGraph, ran)}
+            className={ran && isAssets ? styles.dim : undefined}
+          />
+        </div>
+
+        {ran && needsGraph ? (
+          <>
+            <div className={styles.fork} aria-hidden>
+              <span
+                className={`${styles.forkArm}${libYes ? ` ${styles.forkArmActive}` : ` ${styles.forkArmIdle}`}`}
+              >
+                да ↙
+              </span>
+              <span className={styles.arrow}>?</span>
+              <span
+                className={`${styles.forkArm}${libNo ? ` ${styles.forkArmActive}` : ` ${styles.forkArmIdle}`}`}
+              >
+                ↘ приложение
+              </span>
+            </div>
+
+            <div className={styles.row}>
+              <LabNode
+                label="Rollup / tsup"
+                sub="external peers"
+                state={nodeState(isLib, ran)}
+                className={ran && isSpa ? styles.dim : undefined}
+              />
+              <LabNode
+                label="Vite"
+                sub="или Webpack · HMR"
+                state={nodeState(isSpa, ran)}
+                className={ran && isLib ? styles.dim : undefined}
+              />
+            </div>
+          </>
+        ) : null}
+      </div>
+    </LabVizPanel>
+  )
+}
+
+function ScenarioSwitch({
+  value,
+  onChange,
+}: {
+  value: Scenario
+  onChange: (id: Scenario) => void
+}) {
+  return (
+    <div className={shell.row}>
+      {SCENARIOS.map((s) => (
+        <LabButton
+          key={s.id}
+          variant="ghost"
+          size="sm"
+          active={value === s.id}
+          onClick={() => onChange(s.id)}
+        >
+          {s.label}
+        </LabButton>
+      ))}
+    </div>
+  )
 }
 
 export function ProjectBundlersLab() {
   const { lines, log, clear } = useLabLog()
   const [scenario, setScenario] = useState<Scenario>('spa')
+  const [ran, setRan] = useState(false)
   const [hint, setHint] = useState<string | null>(null)
+
+  const reset = () => {
+    clear()
+    setRan(false)
+    setHint(null)
+  }
+
+  const pickScenario = (next: Scenario) => {
+    setScenario(next)
+    reset()
+  }
 
   const run = () => {
     const a = ANSWER[scenario]
     clear()
-    log('info', `сценарий: ${scenario}`)
+    setRan(true)
+    log('info', `сценарий: ${SCENARIOS.find((s) => s.id === scenario)?.label ?? scenario}`)
     log('ok', `выбор: ${a.tool}`)
     log('info', a.why)
-    log('ok', `см. «Код» → ${a.file}`)
-    setHint(a.tool)
+    setHint(a.hint)
   }
 
   const problem = (
     <div className={shell.panel}>
-      <p className={shell.pain}>
-        Сборщик выбирают по артефакту. Здесь подберите инструмент под сценарий; примеры конфигов —
-        во вкладке «Код».
-      </p>
-      <ol className={shell.steps}>
-        <li>Выберите сценарий: SPA, npm-lib или assets.</li>
-        <li>
-          Откройте «Код»: <code>gulpfile.js</code>, <code>rollup.config.mjs</code>,{' '}
-          <code>vite.config.js</code> — блоки помечены.
-        </li>
-        <li>Сверьте рекомендацию в логе с конфигом в «Код».</li>
-      </ol>
+      <ScenarioSwitch value={scenario} onChange={pickScenario} />
 
       <div className={shell.row}>
-        <LabButton
-          variant="ghost"
-          size="sm"
-          active={scenario === 'spa'}
-          onClick={() => setScenario('spa')}
-        >
-          SPA
-        </LabButton>
-        <LabButton
-          variant="ghost"
-          size="sm"
-          active={scenario === 'lib'}
-          onClick={() => setScenario('lib')}
-        >
-          npm-lib
-        </LabButton>
-        <LabButton
-          variant="ghost"
-          size="sm"
-          active={scenario === 'assets'}
-          onClick={() => setScenario('assets')}
-        >
-          assets
-        </LabButton>
         <LabButton variant="primary" onClick={run}>
-          Выбрать сборщик
+          Запустить
         </LabButton>
-        <LabButton
-          variant="secondary"
-          onClick={() => {
-            clear()
-            setHint(null)
-          }}
-        >
+        <LabButton variant="secondary" onClick={reset}>
           Сброс
         </LabButton>
       </div>
 
-      {hint ? (
-        <p className={shell.hint}>
-          Рекомендация: <code>{hint}</code>
-        </p>
-      ) : (
-        <p className={shell.hint}>Выберите сценарий.</p>
-      )}
-      <LabLogView lines={lines} />
+      <p className={shell.pain}>
+        Инструмент подбирают по тому, что должно оказаться в <code>dist</code>, а не по привычке
+        команды или «модному» стеку.
+      </p>
+      <p className={shell.hint}>{CASE_BRIEF[scenario]}</p>
+
+      <ChoiceTree scenario={scenario} ran={ran} />
+
+      {hint ? <p className={shell.hint}>Итог: {hint}</p> : null}
+
+      {ran ? <LabLogView lines={lines} /> : null}
     </div>
   )
 
   const code = (
-    <InteractiveCodePanel
-      topicId={TOPIC_ID}
-      intro="Gulp — файловые pipes; Rollup — библиотека; Vite — SPA."
-      snippets={[
-        {
-          id: 'gulpfile',
-          label: 'gulpfile.js',
-          note: 'Task runner: src → pipe → dest. Нет module graph — для стилей/ассетов.',
-          executable: false,
-          code: `const gulp = require('gulp');
-const sass = require('gulp-sass')(require('sass'));
-const imagemin = require('gulp-imagemin');
-
-// ═══════════════════════════════════════════
-// GULP ← файловый пайплайн, не bundler
-// Когда: scss, картинки, копирование без import-графа
-// ═══════════════════════════════════════════
-
-function styles() {
-  return gulp
-    .src('src/styles/**/*.scss') // ← вход: glob файлов
-    .pipe(sass().on('error', sass.logError))
-    .pipe(gulp.dest('dist/css')); // ← выход: папка
-}
-
-function images() {
-  return gulp.src('src/img/**/*').pipe(imagemin()).pipe(gulp.dest('dist/img'));
-}
-
-exports.styles = styles;
-exports.images = images;
-exports.default = gulp.parallel(styles, images);`,
-        },
-        {
-          id: 'rollup',
-          label: 'rollup.config.mjs',
-          note: 'Библиотека: ESM+CJS, external peers, сильный tree shaking.',
-          executable: false,
-          code: `import resolve from '@rollup/plugin-node-resolve';
-import typescript from '@rollup/plugin-typescript';
-
-// ═══════════════════════════════════════════
-// ROLLUP ← bundler для npm-библиотеки / SDK
-// Когда: UI kit, пакет с чистым ESM/CJS
-// ═══════════════════════════════════════════
-export default {
-  input: 'src/index.ts', // ← entry библиотеки
-
-  output: [
-    { file: 'dist/index.esm.js', format: 'esm' }, // ← для import
-    { file: 'dist/index.cjs.js', format: 'cjs' }, // ← для require
-  ],
-
-  // ═══════════════════════════════════════════
-  // EXTERNAL ← peerDeps не бандлить (React с хоста)
-  // ═══════════════════════════════════════════
-  external: ['react', 'react-dom'], // ← не класть в пакет
-
-  plugins: [resolve(), typescript()],
-};`,
-        },
-        {
-          id: 'vite',
-          label: 'vite.config.js',
-          note: 'Приложение: HMR, code splitting, экосистема для SPA.',
-          executable: false,
-          code: `import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
-
-// ═══════════════════════════════════════════
-// VITE / WEBPACK ← bundler для приложения (SPA)
-// Когда: админка, сайт, нужен HMR и splitting
-// ═══════════════════════════════════════════
-export default defineConfig({
-  plugins: [react()],
-
-  server: {
-    port: 3000, // ← DX: быстрый dev-сервер
-  },
-
-  build: {
-    rollupOptions: {
-      output: {
-        // ← code splitting чанков приложения
-        manualChunks: {
-          vendor: ['react', 'react-dom'],
-        },
-      },
-    },
-  },
-});
-
-// Выбор (кратко):
-// SPA / app     → Vite или Webpack
-// npm library   → Rollup / tsup
-// asset pipes   → Gulp (или npm-скрипты)`,
-        },
-      ]}
-    />
+    <div className={styles.codePane}>
+      <ScenarioSwitch value={scenario} onChange={pickScenario} />
+      <InteractiveCodePanel
+        key={scenario}
+        topicId={TOPIC_ID}
+        intro={CODE_INTRO[scenario]}
+        snippets={SNIPPETS[scenario]}
+      />
+    </div>
   )
 
   return (
     <JsLabShell
       title="Какой сборщик взять"
-      lead="Выбор сборщика под сценарий; gulpfile, Rollup и Vite — во вкладке «Код»."
+      lead="Три типа артефакта — три ветки дерева; конфиг выбранного сценария на вкладке «Код»."
       problem={problem}
       code={code}
     />

@@ -1,103 +1,63 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { JsLabShell } from '../../components/lab/JsLabShell'
 import { LabButton } from '../../components/lab/LabButton'
 import shell from '../../components/lab/JsLabShell.module.css'
-import { InteractiveCodePanel } from '../../components/lab/InteractiveCodePanel'
+import { InteractiveCodePanel, type InteractiveSnippet } from '../../components/lab/InteractiveCodePanel'
 import { LabLogView } from '../../components/lab/LabLogView'
 import { useLabLog } from '../../components/lab/useLabLog'
 
 const TOPIC_ID = '139-project-scripts-hmr-treeshake'
 
-type Mode = 'hmr' | 'shake' | 'minify'
+type Mode = 'scripts' | 'hmr' | 'shake' | 'minify'
 
-export function ProjectScriptsHmrTreeshakeLab() {
-  const { lines, log, clear } = useLabLog()
-  const [mode, setMode] = useState<Mode>('hmr')
-  const [hint, setHint] = useState<string | null>(null)
+const MODES: Array<{ id: Mode; label: string }> = [
+  { id: 'scripts', label: 'Скрипты' },
+  { id: 'hmr', label: 'HMR' },
+  { id: 'shake', label: 'Tree shake' },
+  { id: 'minify', label: 'Minify' },
+]
 
-  const run = () => {
-    clear()
-    if (mode === 'hmr') {
-      log('err', 'live reload: полная перезагрузка, state формы сброшен')
-      log('ok', 'HMR: патч модуля, state сохранён (см. devServer.hot в webpack.config.js)')
-      setHint('HMR ≠ full reload — смотри «Код» → webpack.config.js')
-      return
-    }
-    if (mode === 'shake') {
-      log('info', 'utils.js экспортирует used + dead; index.js импортирует только used')
-      log('ok', 'prod + usedExports / sideEffects: dead может выпасть из бандла')
-      log('err', 'CJS или side effects на import — shaking ломается')
-      setHint('см. «Код» → src/utils.js и package.json sideEffects')
-      return
-    }
-    log('info', 'mode: production включает minimize')
-    log('ok', 'TerserPlugin в optimization.minimizer — см. webpack.config.js')
-    log('info', 'minify ≠ gzip на CDN; source maps в prod — отдельно')
-    setHint('см. «Код» → блок MINIFY / TerserPlugin')
-  }
+const CASE_BRIEF: Record<Mode, ReactNode> = {
+  scripts: (
+    <>
+      <code>npm run dev</code> и <code>npm run build</code> — один контракт для команды и CI, без
+      запоминания флагов webpack.
+    </>
+  ),
+  hmr: (
+    <>
+      Сохранили файл — dev-server подменяет модуль; state формы может сохраниться без полной
+      перезагрузки страницы.
+    </>
+  ),
+  shake: (
+    <>
+      В prod из бандла может исчезнуть <code>dead</code>, если entry импортирует только{' '}
+      <code>used</code> и нет побочных эффектов на import.
+    </>
+  ),
+  minify: (
+    <>
+      Production сжимает имена и пробелы в JS; gzip на CDN — отдельный шаг поверх minify.
+    </>
+  ),
+}
 
-  const problem = (
-    <div className={shell.panel}>
-      <p className={shell.pain}>
-        Скрипты в <code>package.json</code>, HMR, tree shaking и minify живут в разных файлах.
-        Здесь сравните режимы; детали конфигов — во вкладке «Код».
-      </p>
-      <ol className={shell.steps}>
-        <li>Выберите HMR, Tree shake или Minify и нажмите «Запустить».</li>
-        <li>
-          Откройте «Код»: <code>package.json</code>, <code>webpack.config.js</code>, модули — участки
-          темы помечены комментариями.
-        </li>
-        <li>Сверьте лог с помеченными блоками в конфиге.</li>
-      </ol>
+const CODE_INTRO: Record<Mode, string> = {
+  scripts: 'Блок `scripts` в `package.json` — точка входа для dev, build и lint.',
+  hmr: '`devServer.hot` включает HMR; `module.hot.accept` — модуль принимает патч.',
+  shake: 'ESM-экспорты + `usedExports` + `sideEffects` — кандидаты на удаление в prod.',
+  minify: '`mode: production` и `TerserPlugin` в `optimization.minimizer` сжимают JS.',
+}
 
-      <div className={shell.row}>
-        <LabButton variant="ghost" size="sm" active={mode === 'hmr'} onClick={() => setMode('hmr')}>
-          HMR
-        </LabButton>
-        <LabButton variant="ghost" size="sm" active={mode === 'shake'} onClick={() => setMode('shake')}>
-          Tree shake
-        </LabButton>
-        <LabButton variant="ghost" size="sm" active={mode === 'minify'} onClick={() => setMode('minify')}>
-          Minify
-        </LabButton>
-        <LabButton variant="primary" onClick={run}>
-          Запустить
-        </LabButton>
-        <LabButton
-          variant="secondary"
-          onClick={() => {
-            clear()
-            setHint(null)
-          }}
-        >
-          Сброс
-        </LabButton>
-      </div>
-
-      {hint ? (
-        <p className={shell.hint}>
-          Итог: <code>{hint}</code>
-        </p>
-      ) : (
-        <p className={shell.hint}>Выберите режим.</p>
-      )}
-      <LabLogView lines={lines} />
-    </div>
-  )
-
-  const code = (
-    <InteractiveCodePanel
-      topicId={TOPIC_ID}
-      intro="`package.json` scripts, HMR в `devServer`, tree shaking и Terser в prod."
-      snippets={[
-        {
-          id: 'package-json',
-          label: 'package.json',
-          note: 'Блок `scripts` — контракт для людей и CI. `sideEffects` помогает tree shaking.',
-          executable: false,
-          languageLabel: 'json',
-          code: `{
+const SNIPPETS: InteractiveSnippet[] = [
+  {
+    id: 'package-json',
+    label: 'package.json',
+    note: 'Блок `scripts` — контракт для людей и CI. `sideEffects` помогает tree shaking.',
+    executable: false,
+    languageLabel: 'json',
+    code: `{
   "name": "shop-app",
   "version": "1.4.2",
   "private": true,
@@ -129,13 +89,13 @@ export function ProjectScriptsHmrTreeshakeLab() {
     "terser-webpack-plugin": "^5.3.10"
   }
 }`,
-        },
-        {
-          id: 'webpack-config',
-          label: 'webpack.config.js',
-          note: 'HMR — `devServer.hot`; shaking — `usedExports`; minify — `TerserPlugin` в production.',
-          executable: false,
-          code: `const path = require('path');
+  },
+  {
+    id: 'webpack-config',
+    label: 'webpack.config.js',
+    note: 'HMR — `devServer.hot`; shaking — `usedExports`; minify — `TerserPlugin` в production.',
+    executable: false,
+    code: `const path = require('path');
 const TerserPlugin = require('terser-webpack-plugin');
 
 module.exports = (env, argv) => {
@@ -196,13 +156,13 @@ module.exports = (env, argv) => {
     devtool: isProd ? 'source-map' : 'eval-cheap-module-source-map',
   };
 };`,
-        },
-        {
-          id: 'src-modules',
-          label: 'src/utils.js + index.js',
-          note: 'Tree shaking: `dead` не импортируется из entry — кандидат на удаление в prod.',
-          executable: false,
-          code: `// ── src/utils.js ─────────────────────────────
+  },
+  {
+    id: 'src-modules',
+    label: 'src/utils.js + index.js',
+    note: 'Tree shaking: `dead` не импортируется из entry — кандидат на удаление в prod.',
+    executable: false,
+    code: `// ── src/utils.js ─────────────────────────────
 // TREE SHAKING: оба export'а; entry берёт только used
 
 export function used() {
@@ -227,15 +187,221 @@ if (module.hot) {
     console.log('utils updated via HMR');
   });
 }`,
-        },
-      ]}
-    />
+  },
+]
+
+function ModeSwitch({ value, onChange }: { value: Mode; onChange: (id: Mode) => void }) {
+  return (
+    <div className={shell.row}>
+      {MODES.map((m) => (
+        <LabButton
+          key={m.id}
+          variant="ghost"
+          size="sm"
+          active={value === m.id}
+          onClick={() => onChange(m.id)}
+        >
+          {m.label}
+        </LabButton>
+      ))}
+    </div>
+  )
+}
+
+function ModeViz({ mode, active }: { mode: Mode; active: boolean }) {
+  const dim = active ? 1 : 0.35
+
+  if (mode === 'scripts') {
+    return (
+      <div style={{ display: 'grid', gap: 8, opacity: dim }}>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+          <code>npm run dev</code>
+          <span>→</span>
+          <code>webpack serve</code>
+          <span>→</span>
+          <span>HMR</span>
+        </div>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+          <code>npm run build</code>
+          <span>→</span>
+          <code>mode production</code>
+          <span>→</span>
+          <span>shake + minify</span>
+        </div>
+      </div>
+    )
+  }
+
+  if (mode === 'hmr') {
+    return (
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: 8,
+          opacity: dim,
+        }}
+      >
+        <div
+          style={{
+            padding: '8px 10px',
+            borderRadius: 6,
+            border: '1px solid var(--border)',
+            background: active ? 'rgba(255, 107, 107, 0.12)' : 'transparent',
+          }}
+        >
+          <strong>Live reload</strong>
+          <div style={{ marginTop: 4, fontSize: 13 }}>state формы: сброшен</div>
+        </div>
+        <div
+          style={{
+            padding: '8px 10px',
+            borderRadius: 6,
+            border: '1px solid var(--border)',
+            background: active ? 'rgba(77, 183, 132, 0.12)' : 'transparent',
+          }}
+        >
+          <strong>HMR</strong>
+          <div style={{ marginTop: 4, fontSize: 13 }}>state формы: сохранён</div>
+        </div>
+      </div>
+    )
+  }
+
+  if (mode === 'shake') {
+    const chips = active
+      ? [{ name: 'used', on: true }]
+      : [
+          { name: 'used', on: true },
+          { name: 'dead', on: true },
+        ]
+    return (
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', opacity: dim }}>
+        {chips.map((c) => (
+          <span
+            key={c.name}
+            style={{
+              padding: '4px 10px',
+              borderRadius: 999,
+              border: '1px solid var(--border)',
+              background: c.on ? 'rgba(105, 177, 255, 0.18)' : 'transparent',
+              textDecoration: c.on ? 'none' : 'line-through',
+            }}
+          >
+            {c.name}
+          </span>
+        ))}
+        {active ? (
+          <span style={{ fontSize: 13, alignSelf: 'center' }}>в бандле prod</span>
+        ) : (
+          <span style={{ fontSize: 13, alignSelf: 'center' }}>до shaking</span>
+        )}
+      </div>
+    )
+  }
+
+  return (
+    <div style={{ display: 'grid', gap: 6, fontFamily: 'var(--font-mono)', fontSize: 13, opacity: dim }}>
+      <code style={{ opacity: active ? 0.45 : 1 }}>
+        function calculateTotalPrice(items) {'{'} … {'}'}
+      </code>
+      {active ? (
+        <code>function a(b){'{'}return b.reduce(…){'}'}</code>
+      ) : (
+        <span style={{ fontSize: 12, color: 'var(--muted)' }}>после minify — короче</span>
+      )}
+    </div>
+  )
+}
+
+export function ProjectScriptsHmrTreeshakeLab() {
+  const { lines, log, clear } = useLabLog()
+  const [mode, setMode] = useState<Mode>('scripts')
+  const [ran, setRan] = useState(false)
+  const [hint, setHint] = useState<string | null>(null)
+
+  const reset = () => {
+    clear()
+    setRan(false)
+    setHint(null)
+  }
+
+  const pickMode = (next: Mode) => {
+    setMode(next)
+    reset()
+  }
+
+  const run = () => {
+    clear()
+    setRan(true)
+    if (mode === 'scripts') {
+      log('ok', 'dev → webpack serve + HMR')
+      log('ok', 'build → production + shake + minify')
+      setHint('scripts — контракт команды; детали во вкладке «Код» → package.json')
+      return
+    }
+    if (mode === 'hmr') {
+      log('err', 'live reload: полная перезагрузка, state сброшен')
+      log('ok', 'HMR: патч модуля, state сохранён')
+      setHint('HMR ≠ live reload — см. devServer.hot в webpack.config.js')
+      return
+    }
+    if (mode === 'shake') {
+      log('info', 'utils.js: used + dead; index импортирует только used')
+      log('ok', 'prod + usedExports: dead выпал из бандла')
+      log('err', 'CJS или side effects на import — shaking ломается')
+      setHint('см. src/utils.js и sideEffects в package.json')
+      return
+    }
+    log('info', 'mode: production → minimize: true')
+    log('ok', 'TerserPlugin в optimization.minimizer')
+    log('info', 'minify ≠ gzip на CDN')
+    setHint('см. блок MINIFY в webpack.config.js')
+  }
+
+  const problem = (
+    <div className={shell.panel}>
+      <ModeSwitch value={mode} onChange={pickMode} />
+
+      <div className={shell.row}>
+        <LabButton variant="primary" onClick={run}>
+          Запустить
+        </LabButton>
+        <LabButton variant="secondary" onClick={reset}>
+          Сброс
+        </LabButton>
+      </div>
+
+      <p className={shell.pain}>
+        <code>package.json</code> scripts, HMR, tree shaking и minify настраиваются в разных местах
+        конфига — здесь контраст режимов, детали во вкладке «Код».
+      </p>
+      <p className={shell.hint}>{CASE_BRIEF[mode]}</p>
+
+      <ModeViz mode={mode} active={ran} />
+
+      {hint ? <p className={shell.hint}>Итог: {hint}</p> : null}
+
+      {ran ? <LabLogView lines={lines} /> : null}
+    </div>
+  )
+
+  const code = (
+    <div className={shell.codePane}>
+      <ModeSwitch value={mode} onChange={pickMode} />
+      <InteractiveCodePanel
+        key={mode}
+        topicId={TOPIC_ID}
+        intro={CODE_INTRO[mode]}
+        snippets={SNIPPETS}
+      />
+    </div>
   )
 
   return (
     <JsLabShell
       title="Scripts, HMR, shaking, minify"
-      lead="Сравнение HMR, tree shaking и minify; конфиги — во вкладке «Код»."
+      lead="Скрипты, HMR, tree shaking и minify — смотрите конфиги на вкладке «Код»."
       problem={problem}
       code={code}
     />
