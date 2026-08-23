@@ -116,6 +116,7 @@ export function parseTopicMd(id: string, raw: string, order: number): TopicDetai
       id === '31-git-switch' ||
       id === '32-git-restore' ||
       id === '34-git-lfs' ||
+      id === '50-dirty-code-properties' ||
       id === '52-apo' ||
       id === '55-legacy-code-approaches' ||
       id === '56-dead-code-tools' ||

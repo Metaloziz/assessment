@@ -153,7 +153,7 @@ Env: корневой `.env` / `server/.env` / переменные хостин
 | 47 | [47-formatting-vertical.md](topics/47-formatting-vertical.md) | Вертикальное форматирование |
 | 48 | [48-refactoring-principles-clean.md](topics/48-refactoring-principles-clean.md) | Рефакторинг: чище, без новой функциональности |
 | 49 | [49-refactoring-principles-tests.md](topics/49-refactoring-principles-tests.md) | Рефакторинг: сначала тесты |
-| 50 | [50-dirty-code-properties.md](topics/50-dirty-code-properties.md) | Свойства «грязного кода» |
+| 50 | [50-dirty-code-properties.md](topics/50-dirty-code-properties.md) | Признаки грязного кода |
 | 51 | [51-refactoring-methods.md](topics/51-refactoring-methods.md) | Методы рефакторинга |
 | 52 | [52-apo.md](topics/52-apo.md) | APO |
 | 53 | [53-bduf.md](topics/53-bduf.md) | BDUF |

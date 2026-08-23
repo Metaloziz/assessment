@@ -17,6 +17,7 @@ import { GitRestoreLab } from '../topics/git-restore/GitRestoreLab'
 import { GitLfsLab } from '../topics/git-lfs/GitLfsLab'
 import { DeadCodeLab } from '../topics/dead-code/DeadCodeLab'
 import { LegacyCodeApproachesLab } from '../topics/legacy-code-approaches/LegacyCodeApproachesLab'
+import { DirtyCodePropertiesLab } from '../topics/dirty-code-properties/DirtyCodePropertiesLab'
 import { ApoLab } from '../topics/apo/ApoLab'
 import { CookiesLab } from '../topics/cookies/CookiesLab'
 import { ServiceWorkersLab } from '../topics/service-workers/ServiceWorkersLab'
@@ -313,6 +314,7 @@ function TopicLab({ topicId }: { topicId: string; topic: TopicDetail }) {
   if (topicId === '31-git-switch') return <GitSwitchLab />
   if (topicId === '32-git-restore') return <GitRestoreLab />
   if (topicId === '34-git-lfs') return <GitLfsLab />
+  if (topicId === '50-dirty-code-properties') return <DirtyCodePropertiesLab />
   if (topicId === '52-apo') return <ApoLab />
   if (topicId === '55-legacy-code-approaches') return <LegacyCodeApproachesLab />
   if (topicId === '56-dead-code-tools') return <DeadCodeLab />
