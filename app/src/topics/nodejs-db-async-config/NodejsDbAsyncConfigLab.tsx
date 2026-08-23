@@ -56,14 +56,14 @@ const LIVE_CASES = new Set<CaseId>(['sql', 'nosql', 'await', 'env'])
 const PAIN: Record<Pattern, ReactNode> = {
   store: (
     <>
-      SQL держит строки в таблицах; документный контраст здесь — <code>jsonb</code> в той же
-      Postgres. Оба кейса бьют в живой API.
+      SQL держит строки в таблицах со схемой; документный контраст — поле{' '}
+      <code>jsonb</code> в Postgres (форма ближе к объекту, не отдельный Mongo).
     </>
   ),
   async: (
     <>
       Пока handler ждёт БД, event loop должен обслуживать другие запросы — поэтому{' '}
-      <code>await</code> и пул. Кейс «блок» — только схема (sync на сервере не включаем).
+      <code>await</code> и пул, а не синхронное занятие потока.
     </>
   ),
   config: (
@@ -77,42 +77,45 @@ const PAIN: Record<Pattern, ReactNode> = {
 const CASE_BRIEF: Record<CaseId, ReactNode> = {
   sql: (
     <>
-      Живой <code>GET /api/lab/db/sql-user</code> — строка из <code>lab_users</code>.
+      Запрос к таблице <code>lab_users</code> — одна строка с <code>id</code> и{' '}
+      <code>email</code>.
     </>
   ),
   nosql: (
     <>
-      Живой <code>GET /api/lab/db/doc-user</code> — документ из <code>lab_docs</code> (
-      <code>jsonb</code>).
+      То же Postgres, но поле <code>doc</code> — документ <code>jsonb</code>, не плоская строка
+      таблицы.
     </>
   ),
   block: (
     <>
-      Синхронное ожидание держит поток — второй запрос не стартует (схема, без sync на API).
+      Синхронное ожидание держит поток — второй запрос не стартует, пока первый не отпустит
+      цикл.
     </>
   ),
   await: (
     <>
-      Живой <code>GET /api/lab/db/async-query</code> — <code>await</code> к пулу и{' '}
-      <code>latencyMs</code>.
+      <code>await pool.query</code> отдаёт управление циклу: другие запросы обрабатываются,
+      пока ждём ответ БД.
     </>
   ),
   hardcoded: (
     <>
-      URL и пароль в исходнике — одна среда на всех и риск утечки в git (схема).
+      URL и пароль в исходнике — одна среда на всех и риск утечки в git.
     </>
   ),
   env: (
     <>
-      Живой <code>GET /api/lab/db/config</code> — хост из env без пароля.
+      Приложение читает <code>DATABASE_URL</code> из среды; в ответе — только хост, без
+      пароля.
     </>
   ),
 }
 
 const CODE_INTRO: Record<Pattern, string> = {
-  store: 'SQL-строка и jsonb-документ через учебные роуты `/api/lab/db/*`.',
-  async: '`await` к пулу на `/api/lab/db/async-query`; sync-блок на сервере не включаем.',
-  config: 'Безопасный снимок env: host и флаги, без полного `DATABASE_URL`.',
+  store: 'SELECT по таблице и чтение jsonb-документа — два контраста хранения в handler.',
+  async: 'await к пулу: цикл свободен, пока драйвер ждёт сеть; sync-блок — антипример.',
+  config: 'DATABASE_URL из process.env; fail fast, если ключ не задан.',
 }
 
 const CODE_SNIPPETS: Record<Pattern, InteractiveSnippet[]> = {
@@ -160,7 +163,7 @@ return {
     {
       id: 'block-bad',
       label: 'bad-sync.js',
-      note: 'Синхронное ожидание занимает поток — на API не включаем.',
+      note: 'Синхронное ожидание занимает поток — антипример.',
       executable: false,
       languageLabel: 'js',
       code: `// плохо: псевдо-синхронный драйвер / busy-wait
@@ -345,7 +348,7 @@ function StoreViz({ caseId, phase, live, focusRef }: Omit<VizProps, 'pattern'>) 
         >
           <span className={labVizStyles.nodeLabel}>lab</span>
           <span className={labVizStyles.nodeSub}>
-            {isSql ? 'GET …/sql-user' : 'GET …/doc-user'}
+            {isSql ? 'handler → pool → таблица' : 'handler → pool → jsonb'}
           </span>
         </div>
         <span className={styles.flowArrow}>↓</span>
@@ -421,7 +424,7 @@ function AsyncViz({ caseId, phase, live, focusRef }: Omit<VizProps, 'pattern'>) 
             {blocked ? 'req A' : 'lab'}
           </span>
           <span className={labVizStyles.nodeSub}>
-            {blocked ? 'querySync…' : 'GET …/async-query'}
+            {blocked ? 'querySync…' : 'handler → pool'}
           </span>
         </div>
         <span className={styles.flowArrow}>↓</span>
@@ -501,7 +504,7 @@ function ConfigViz({ caseId, phase, live, focusRef }: Omit<VizProps, 'pattern'>)
         >
           <span className={labVizStyles.nodeLabel}>{hard ? 'app' : 'lab'}</span>
           <span className={labVizStyles.nodeSub}>
-            {hard ? 'new Pool(…)' : 'GET …/config'}
+            {hard ? 'new Pool(…)' : 'чтение config'}
           </span>
         </div>
         <span className={styles.flowArrow}>↓</span>
@@ -650,10 +653,10 @@ export function NodejsDbAsyncConfigLab() {
     setLive(payload)
     setPhase('done')
     if (payload.ok) {
-      log('ok', `${payload.path} · ${payload.summary}`)
+      log('ok', payload.summary)
       setHint(hintText)
     } else {
-      log('err', `${payload.path} · ${payload.summary}`)
+      log('err', payload.summary)
       setHint(hintText)
     }
   }
@@ -667,10 +670,10 @@ export function NodejsDbAsyncConfigLab() {
         () => {
           setPhase('done')
           if (caseId === 'block') {
-            log('err', 'loop blocked')
+            log('err', 'цикл занят — второй запрос ждал')
             setHint('пока A в sync-ожидании, B не стартует')
           } else {
-            log('err', 'secret in source')
+            log('err', 'пароль в исходнике')
             setHint('литерал в коде — одна среда и риск утечки')
           }
         },
@@ -713,7 +716,7 @@ export function NodejsDbAsyncConfigLab() {
         ok: false,
         summary: message,
       }
-      finishLive(payload, 'API недоступен — поднимите server или дождитесь деплоя Render')
+      finishLive(payload, 'не удалось получить данные — повторите или проверьте подключение')
     } finally {
       setBusy(false)
     }
@@ -769,13 +772,13 @@ export function NodejsDbAsyncConfigLab() {
         focusRef={focusRef}
       />
 
-      {hint ? <p className={shell.hint}>Итог: {hint}</p> : null}
+      {phase === 'done' && hint ? <p className={shell.hint}>Итог: {hint}</p> : null}
       <LabLogView lines={lines} />
     </div>
   )
 
   const code = (
-    <div className={styles.codePane}>
+    <div className={shell.codePane}>
       <PatternSwitch value={pattern} onChange={selectPattern} />
       <CaseSwitch pattern={pattern} value={caseId} onChange={selectCase} />
       <InteractiveCodePanel
@@ -790,7 +793,7 @@ export function NodejsDbAsyncConfigLab() {
   return (
     <JsLabShell
       title="БД, async, конфиги"
-      lead="Живой SQL/jsonb и config через assessment-api; sync-блок и hardcode — схема."
+      lead="Строки в таблице, документ в jsonb, await к пулу и конфиг из process.env — не из литерала в коде."
       problem={problem}
       code={code}
     />
