@@ -37,7 +37,7 @@ const CASES: Array<{ id: CaseId; label: string }> = [
 
 const PAIN = (
   <>
-    Живой cache-aside на Render: чтения идут через in-process Map перед Postgres; после{' '}
+    Живой cache-aside на Render: чтения идут через <code>node-cache</code> перед Postgres; после{' '}
     <code>PUT</code> ключ сбрасывают, иначе клиент получит устаревший снимок.
   </>
 )
@@ -51,7 +51,7 @@ const CASE_BRIEF: Record<CaseId, ReactNode> = {
   ),
   hit: (
     <>
-      Прогрев кеша → повторный <code>GET</code> — ответ из Map, БД не трогают (
+      Прогрев кеша → повторный <code>GET</code> — ответ из node-cache, БД не трогают (
       <code>source: cache</code>).
     </>
   ),
@@ -64,14 +64,14 @@ const CASE_BRIEF: Record<CaseId, ReactNode> = {
 }
 
 const CODE_INTRO =
-  'Учебные роуты `/api/lab/cache/*`: пул к Postgres, Map как кеш, invalidate после PUT.'
+  'Учебные роуты `/api/lab/cache/*`: пул к Postgres, node-cache на чтении и invalidate после PUT.'
 
 const CODE_SNIPPETS: Record<CaseId, InteractiveSnippet[]> = {
   miss: [
     {
       id: 'cache-get-miss',
       label: 'routes/cacheLab.ts · GET',
-      note: 'Miss: БД → заполнение Map.',
+      note: 'Miss: БД → заполнение node-cache.',
       executable: false,
       languageLabel: 'ts',
       code: `// GET /api/lab/cache/item?id=1
@@ -94,23 +94,25 @@ return { ok: true, source: 'db', item };
       executable: false,
       languageLabel: 'ts',
       code: `// DELETE /api/lab/cache/key?id=1
-itemCache.delete(\`item:\${id}\`); // ← cold key
+itemCache.del(\`item:\${id}\`); // ← cold key
 return { ok: true, deleted: true };
 `,
     },
   ],
   hit: [
     {
-      id: 'cache-map',
-      label: 'routes/cacheLab.ts · Map',
-      note: 'In-process слой с тем же контрактом, что Redis.',
+      id: 'cache-node-cache',
+      label: 'routes/cacheLab.ts · node-cache',
+      note: 'In-process слой с TTL; тот же контракт, что у Redis.',
       executable: false,
       languageLabel: 'ts',
-      code: `const itemCache = new Map(); // ← lab stand
+      code: `import NodeCache from 'node-cache';
+
+const itemCache = new NodeCache({ stdTTL: 60 }); // ← lab stand
 
 // hit: ранний return без query
-const cached = itemCache.get(\`item:\${id}\`);
-if (cached) {
+const cached = itemCache.get<CacheItem>(\`item:\${id}\`);
+if (cached !== undefined) {
   return { ok: true, source: 'cache', item: cached }; // ← без DB
 }
 `,
@@ -122,7 +124,7 @@ if (cached) {
       executable: false,
       languageLabel: 'ts',
       code: `// 1) GET — miss → set
-// 2) GET — hit из Map
+// 2) GET — hit из node-cache
 return {
   ok: true,
   source: 'cache', // ← второй запрос
@@ -144,7 +146,7 @@ await db.execute(sql\`
   INSERT INTO lab_items (id, title) VALUES (\${id}, \${title})
   ON CONFLICT (id) DO UPDATE SET title = EXCLUDED.title
 \`); // ← CRUD Update
-itemCache.delete(\`item:\${id}\`); // ← invalidate
+itemCache.del(\`item:\${id}\`); // ← invalidate
 return { ok: true, invalidated: true, item: { id, title } };
 `,
     },
@@ -287,7 +289,7 @@ function CacheCrudViz({ caseId, phase, live, focusRef }: VizProps) {
               !cOn && styles.dim,
             )}
           >
-            <span className={labVizStyles.nodeLabel}>cache · Map</span>
+            <span className={labVizStyles.nodeLabel}>cache · node-cache</span>
             <span className={labVizStyles.nodeSub}>
               {!cOn ? 'item:1' : doneOn ? 'DEL · пусто' : 'del…'}
             </span>
@@ -360,7 +362,7 @@ function CacheCrudViz({ caseId, phase, live, focusRef }: VizProps) {
             !bOn && styles.dim,
           )}`}
         >
-          <span className={labVizStyles.nodeLabel}>cache · Map</span>
+          <span className={labVizStyles.nodeLabel}>cache · node-cache</span>
           <span className={labVizStyles.nodeSub}>{cacheSub}</span>
         </div>
 
@@ -431,7 +433,7 @@ function CacheCrudViz({ caseId, phase, live, focusRef }: VizProps) {
           >
             <span className={labVizStyles.nodeLabel}>cache.set</span>
             <span className={labVizStyles.nodeSub}>
-              {!isHit && doneOn ? 'fill Map' : '—'}
+              {!isHit && doneOn ? 'fill cache' : '—'}
             </span>
           </div>
         </div>
@@ -558,7 +560,7 @@ export function NodejsCacheCrudLab() {
         await new Promise((r) => setTimeout(r, reducedMotion() ? 0 : STEP * 250))
         setPhase('c')
         const payload = await fetchLive(caseId)
-        finishLive(payload, 'miss: SELECT lab_items + fill Map')
+        finishLive(payload, 'miss: SELECT lab_items + cache.set')
       } else {
         setPhase('b')
         const payload = await fetchLive(caseId)
@@ -635,8 +637,8 @@ export function NodejsCacheCrudLab() {
 
   return (
     <JsLabShell
-      title="Кеш и CRUD"
-      lead="Живой cache-aside: пул к Postgres, Map на чтении и сброс ключа после PUT."
+      title="Кеширование. CRUD"
+      lead="Живой cache-aside: пул к Postgres, node-cache на чтении и сброс ключа после PUT."
       problem={problem}
       code={code}
     />

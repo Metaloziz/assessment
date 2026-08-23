@@ -1,6 +1,6 @@
 # 1. Тема
 
-**Кеширование и подключение БД, CRUD**
+**Кеширование. Подключение баз данных к серверу, CRUD**
 
 ---
 
@@ -14,7 +14,7 @@ CRUD ходит в БД через пул соединений, а частые 
 
 > CRUD в Node — четыре операции над ресурсом: Create / Read / Update / Delete. Данные живут в БД; процесс подключается через пул (`pg.Pool`, драйвер Mongo и т.п.) по строке из конфига, а не через одно «вечное» соединение на весь процесс без контроля.
 >
-> Кеш ставят перед дорогими чтениями: первый `GET` при промахе идёт в БД и кладёт результат в память или Redis; следующий тот же ключ отдаётся из кеша без запроса к диску. Так снижают латентность и нагрузку на БД при горячих ключах.
+> Кеш ставят перед дорогими чтениями: первый `GET` при промахе идёт в БД и кладёт результат в `node-cache` или Redis; следующий тот же ключ отдаётся из кеша без запроса к диску. Так снижают латентность и нагрузку на БД при горячих ключах.
 >
 > Типичный приём — **cache-aside**: handler сам смотрит кеш → при miss читает БД → пишет в кеш. После `UPDATE`/`DELETE` ключ удаляют или обновляют. TTL ограничивает срок жизни, но не заменяет инвалидацию при своей же записи.
 >
@@ -91,32 +91,36 @@ export async function query(text, params) {
 
 ## Кеш: hit, miss, инвалидация
 
-Слой может быть `Map` в процессе, Redis или обёртка над ними. Контракт один:
+Слой может быть `node-cache` в процессе, Redis или обёртка над ними. Контракт один:
 
 ```js
+import NodeCache from 'node-cache';
+
+const itemCache = new NodeCache({ stdTTL: 60 }); // ← TTL в секундах
+
 async function getItem(id) {
   const key = `item:${id}`;
-  const cached = await cache.get(key);
-  if (cached) return cached; // ← hit
+  const cached = itemCache.get(key);
+  if (cached !== undefined) return cached; // ← hit
 
   const { rows } = await pool.query(
     'SELECT id, title FROM items WHERE id = $1',
     [id],
   );
   const row = rows[0] ?? null;
-  if (row) await cache.set(key, row, { ttlSec: 60 }); // ← miss → fill
+  if (row) itemCache.set(key, row); // ← miss → fill
   return row;
 }
 
 async function updateItem(id, title) {
   await pool.query('UPDATE items SET title = $1 WHERE id = $2', [title, id]);
-  await cache.del(`item:${id}`); // ← после записи
+  itemCache.del(`item:${id}`); // ← после записи
 }
 ```
 
 **Hit** — ключ есть, БД не трогают. **Miss** — читают БД и заполняют кеш. **Инвалидация** — после мутации ключ убирают, чтобы следующий Read снова прошёл через БД и не отдал старый `title`.
 
-Ограничения in-process `Map`: не шарится между инстансами Node и пропадает при рестарте. Redis/Memcached — общий слой для нескольких процессов. Кеш не заменяет БД: при холодном старте или после `del` истина снова в хранилище.
+Ограничения in-process `node-cache`: не шарится между инстансами Node и пропадает при рестарте. Redis/Memcached — общий слой для нескольких процессов. Кеш не заменяет БД: при холодном старте или после `del` истина снова в хранилище.
 
 ## Ловушки
 
@@ -129,6 +133,7 @@ async function updateItem(id, title) {
 
 # 6. Ссылки
 
+- [node-cache](https://www.npmjs.com/package/node-cache)
 - [node-postgres — pools](https://node-postgres.com/features/pooling)
 - [Redis — Caching](https://redis.io/docs/latest/develop/use/caching/)
 - [MDN — HTTP methods (CRUD mapping)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Methods)

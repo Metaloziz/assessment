@@ -1,11 +1,12 @@
 import type { FastifyPluginAsync } from 'fastify'
+import NodeCache from 'node-cache'
 import { sql } from 'drizzle-orm'
 import { db } from '../db.js'
 
 type CacheItem = { id: number; title: string }
 
-/** In-process cache-aside layer (lab stand; not shared across instances). */
-const itemCache = new Map<string, CacheItem>()
+/** In-process cache-aside layer via node-cache (lab stand; not shared across instances). */
+const itemCache = new NodeCache({ stdTTL: 60, useClones: false })
 
 let schemaReady: Promise<void> | null = null
 
@@ -45,12 +46,12 @@ export const cacheLabRoutes: FastifyPluginAsync = async (app) => {
         return reply.status(400).send({ ok: false, error: 'id must be a number' })
       }
       const key = cacheKey(id)
-      const had = itemCache.delete(key)
+      const had = itemCache.del(key) > 0
       return { ok: true, key, deleted: had }
     },
   )
 
-  /** Cache-aside read: hit → Map; miss → Postgres → set. */
+  /** Cache-aside read: hit → node-cache; miss → Postgres → set. */
   app.get<{ Querystring: { id?: string } }>(
     '/api/lab/cache/item',
     async (req, reply) => {
@@ -62,8 +63,8 @@ export const cacheLabRoutes: FastifyPluginAsync = async (app) => {
           return reply.status(400).send({ ok: false, error: 'id must be a number' })
         }
         const key = cacheKey(id)
-        const cached = itemCache.get(key)
-        if (cached) {
+        const cached = itemCache.get<CacheItem>(key)
+        if (cached !== undefined) {
           const latencyMs = Math.round(performance.now() - started)
           return {
             ok: true,
@@ -130,7 +131,7 @@ export const cacheLabRoutes: FastifyPluginAsync = async (app) => {
           VALUES (${id}, ${title})
           ON CONFLICT (id) DO UPDATE SET title = EXCLUDED.title
         `)
-        itemCache.delete(key)
+        itemCache.del(key)
         const latencyMs = Math.round(performance.now() - started)
         return {
           ok: true,
