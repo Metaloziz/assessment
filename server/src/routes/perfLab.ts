@@ -1,6 +1,6 @@
 import type { FastifyPluginAsync } from 'fastify'
 import { sql } from 'drizzle-orm'
-import { db } from '../db.js'
+import { db, fallBackToMemory, usingPostgres } from '../db.js'
 
 const SLOW_DEFAULT_MS = 650
 const HEAVY_CPU_MS = 120
@@ -101,9 +101,22 @@ export const perfLabRoutes: FastifyPluginAsync = async (app) => {
     }
   })
 
-  /** Real Postgres round-trip — DB time inside server latencyMs. */
-  app.get('/api/lab/perf/db', async (_req, reply) => {
+  /** Store round-trip — Postgres when configured, otherwise in-memory seed. */
+  app.get('/api/lab/perf/db', async () => {
     const started = performance.now()
+
+    if (!usingPostgres() || !db) {
+      const latencyMs = Math.round(performance.now() - started)
+      return {
+        ok: true,
+        path: 'db',
+        mode: 'memory',
+        latencyMs,
+        n: 1,
+        ts: new Date().toISOString(),
+      }
+    }
+
     try {
       const rows = await db.execute(sql`select 1 as n`)
       const latencyMs = Math.round(performance.now() - started)
@@ -111,20 +124,22 @@ export const perfLabRoutes: FastifyPluginAsync = async (app) => {
       return {
         ok: true,
         path: 'db',
+        mode: 'postgres',
         latencyMs,
         n: first?.n ?? 1,
         ts: new Date().toISOString(),
       }
     } catch (err) {
+      fallBackToMemory(err)
       const latencyMs = Math.round(performance.now() - started)
-      const message = err instanceof Error ? err.message : String(err)
-      return reply.status(503).send({
-        ok: false,
+      return {
+        ok: true,
         path: 'db',
+        mode: 'memory',
         latencyMs,
-        error: message,
+        n: 1,
         ts: new Date().toISOString(),
-      })
+      }
     }
   })
 }

@@ -6,18 +6,11 @@ import { InteractiveCodePanel, type InteractiveSnippet } from '../../components/
 import { LabLogView } from '../../components/lab/LabLogView'
 import { LabNode, LabVizPanel } from '../../components/lab/LabViz'
 import { useLabLog } from '../../components/lab/useLabLog'
+import { apiUrl } from '../../lib/apiBase'
 import styles from './CookiesLab.module.css'
 
 const TOPIC_ID = '57-cookies'
 const STEP_MS = 520
-
-/** Base URL for live assessment-server. */
-function cookiesApiUrl(path: string): string {
-  const fromEnv = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, '')
-  const base = fromEnv || 'http://localhost:3000'
-  const normalized = path.startsWith('/') ? path : `/${path}`
-  return `${base}${normalized}`
-}
 
 function readDocumentCookieValue(name: string): string | null {
   const part = document.cookie.split('; ').find((p) => p.startsWith(`${name}=`))
@@ -321,7 +314,7 @@ export const CookiesLab = () => {
       setPhase('set')
 
       if (caseId === 'theme') {
-        const setUrl = cookiesApiUrl('/api/cookies/lab/set-theme')
+        const setUrl = apiUrl('/api/cookies/lab/set-theme')
         const setRes = await fetch(setUrl, { method: 'GET', credentials: 'include' })
         const setData = (await setRes.json()) as { setCookie: string }
         log('ok', `set-theme: ${setRes.status} · ${setData.setCookie}`)
@@ -334,7 +327,7 @@ export const CookiesLab = () => {
         else log('warn', 'theme не появился в document.cookie — проверь Application → Cookies')
 
         setPhase('send')
-        const checkUrl = cookiesApiUrl('/api/cookies/lab/check')
+        const checkUrl = apiUrl('/api/cookies/lab/check')
         const checkRes = await fetch(checkUrl, { method: 'GET', credentials: 'include' })
         const checkData = (await checkRes.json()) as { received: Record<string, string> }
         const receivedTheme = checkData.received.theme
@@ -349,7 +342,7 @@ export const CookiesLab = () => {
       }
 
       // session
-      const setUrl = cookiesApiUrl('/api/cookies/lab/set-session')
+      const setUrl = apiUrl('/api/cookies/lab/set-session')
       const setRes = await fetch(setUrl, { method: 'GET', credentials: 'include' })
       const setData = (await setRes.json()) as { setCookie: string }
       log('ok', `set-session: ${setRes.status} · ${setData.setCookie}`)
@@ -362,7 +355,7 @@ export const CookiesLab = () => {
       else log('warn', 'session вдруг видна в document.cookie — проверь HttpOnly в Set-Cookie')
 
       setPhase('send')
-      const checkUrl = cookiesApiUrl('/api/cookies/lab/check')
+      const checkUrl = apiUrl('/api/cookies/lab/check')
       const checkRes = await fetch(checkUrl, { method: 'GET', credentials: 'include' })
       const checkData = (await checkRes.json()) as { received: Record<string, string> }
       const receivedSession = checkData.received.session
@@ -386,7 +379,7 @@ export const CookiesLab = () => {
     clear()
     setCaseId('theme')
     resetViz()
-    void fetch(cookiesApiUrl('/api/cookies/lab/clear'), { method: 'GET', credentials: 'include' }).catch(() => null)
+    void fetch(apiUrl('/api/cookies/lab/clear'), { method: 'GET', credentials: 'include' }).catch(() => null)
   }
 
   const problem = (

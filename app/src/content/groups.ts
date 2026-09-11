@@ -655,31 +655,26 @@ export const TOPIC_META: Record<
     sortInGroup: 7,
   },
 
-  // Вёрстка
-  "164-layout-vector-raster": {
-    groupId: "layout",
-    level: "senior",
-    sortInGroup: 1,
-  },
-  "165-layout-typography": {
-    groupId: "layout",
-    level: "middle",
-    sortInGroup: 4,
-  },
+  // Вёрстка — junior → middle → senior (порядок внутри уровня — sortInGroup)
   "166-layout-bem": {
     groupId: "layout",
     level: "junior",
-    sortInGroup: 2,
+    sortInGroup: 1,
   },
   "167-layout-pseudo-classes": {
     groupId: "layout",
     level: "junior",
+    sortInGroup: 2,
+  },
+  "165-layout-typography": {
+    groupId: "layout",
+    level: "middle",
     sortInGroup: 3,
   },
   "168-layout-scss-postcss": {
     groupId: "layout",
     level: "middle",
-    sortInGroup: 5,
+    sortInGroup: 4,
   },
   "264-layout-postcss": {
     groupId: "layout",
@@ -711,30 +706,35 @@ export const TOPIC_META: Record<
     level: "middle",
     sortInGroup: 10,
   },
-  "174-layout-browserslist": {
+  "164-layout-vector-raster": {
     groupId: "layout",
     level: "senior",
     sortInGroup: 11,
   },
-  "175-layout-tools-by-browsers": {
+  "174-layout-browserslist": {
     groupId: "layout",
     level: "senior",
     sortInGroup: 12,
   },
-  "176-layout-design-system": {
+  "175-layout-tools-by-browsers": {
     groupId: "layout",
     level: "senior",
     sortInGroup: 13,
   },
-  "177-layout-a11y": {
+  "176-layout-design-system": {
     groupId: "layout",
     level: "senior",
     sortInGroup: 14,
   },
-  "178-layout-microdata": {
+  "177-layout-a11y": {
     groupId: "layout",
     level: "senior",
     sortInGroup: 15,
+  },
+  "178-layout-microdata": {
+    groupId: "layout",
+    level: "senior",
+    sortInGroup: 16,
   },
 
   // React
@@ -1196,4 +1196,21 @@ export function resolveTopicMeta(topicId: string): {
     };
   }
   return { groupId: "other", level: "middle", sortInGroup: 50 };
+}
+
+const LEVEL_RANK: Record<TopicLevel, number> = {
+  junior: 0,
+  middle: 1,
+  senior: 2,
+};
+
+/** Внутри группы: junior → middle → senior, затем sortInGroup, затем номер файла. */
+export function compareTopicsInGroup(
+  a: { level: TopicLevel; sortInGroup: number; order: number },
+  b: { level: TopicLevel; sortInGroup: number; order: number },
+): number {
+  const byLevel = LEVEL_RANK[a.level] - LEVEL_RANK[b.level];
+  if (byLevel !== 0) return byLevel;
+  if (a.sortInGroup !== b.sortInGroup) return a.sortInGroup - b.sortInGroup;
+  return a.order - b.order;
 }

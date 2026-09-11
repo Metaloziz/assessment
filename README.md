@@ -6,28 +6,27 @@
 
 ## Архитектура стенда (remote-first)
 
-Основной путь: **фронт на GitHub Pages** ходит в **задеплоенный API**, API — в **облачную Postgres**. Локальный Docker для БД не нужен.
+**Для коллег:** открыть [https://metaloziz.github.io/assessment/](https://metaloziz.github.io/assessment/) — клонировать репо и поднимать БД не нужно. Прогресс чекбоксов в `localStorage` браузера. Лабы ходят в Render API **без Postgres** (in-memory seed).
 
 | Слой | Где | Примечание |
 |------|-----|------------|
-| Фронт | GitHub Pages | как сейчас; `VITE_API_BASE_URL` на URL API |
-| API | **Render** (Docker, free) | [`render.yaml`](render.yaml) — как в meme-app |
-| БД | **Render Postgres** (free) | `DATABASE_URL` из Blueprint автоматически |
+| Фронт | **GitHub Pages** | основной способ пользоваться стендом |
+| API | **Render** (Docker, free) | [`render.yaml`](render.yaml); `DATABASE_URL` не обязателен |
+| БД | не нужна | опционально только для локальных экспериментов |
 
-Smoke: в шапке **API** или `/#/dev/api-smoke` → `/api/health`, `/api/demo/echo`, `/api/demo/db-ping`.
+Smoke: в шапке **API** или `/#/dev/api-smoke` → `/api/health`, `/api/demo/echo`, `/api/demo/db-ping` (`mode: memory` или `postgres`).
 
-### Деплой API + БД (как meme-app)
+### Деплой / обновление стенда (maintainers)
 
 1. [dashboard.render.com](https://dashboard.render.com) → **New → Blueprint** → репозиторий `Metaloziz/assessment`, ветка с [`render.yaml`](render.yaml).
-2. Approve: поднимутся `assessment-db` (Postgres) и `assessment-api` (Docker). `DATABASE_URL` прокинется сам.
-3. Дождаться **Live** у API. Скопировать URL вида `https://assessment-api.onrender.com`.
-4. **Фронт:** GitHub → Settings → Secrets and variables → Actions → secret  
-   `VITE_API_BASE_URL` = URL API → **Actions → Deploy GitHub Pages → Run workflow**.
-5. Проверка: сайт → шапка **API** → `db-ping` → `ok: true`.
+2. Approve: поднимется `assessment-api` (Docker). Postgres из Blueprint не требуется.
+3. Дождаться **Live** у API. URL вида `https://assessment-api-fm0e.onrender.com` уже зашит как fallback в сборке Pages.
+4. Пуш в `main`/`master` → Actions деплоит Pages. Секрет `VITE_API_BASE_URL` опционален (есть fallback).
+5. Проверка: сайт → шапка **API** → `db-ping` → `ok: true` (часто `mode: "memory"`).
 
-`CORS_ORIGINS` уже включает `https://metaloziz.github.io`. Free Postgres на Render может засыпать / иметь срок — для стенда на неделю обычно достаточно (как у meme-app).
+`CORS_ORIGINS` уже включает `https://metaloziz.github.io`. Free Render API может «засыпать» — первый запрос после простоя иногда долгий.
 
-### Разработка фронта против боевого API
+### Разработка фронта (maintainers)
 
 По умолчанию `app/.env.development` указывает на Render API — `npm run dev` ходит туда без локального `server`.
 
@@ -37,19 +36,16 @@ npm install
 npm run dev
 ```
 
-### Опционально: локальный API + локальная БД
-
-Только если нужен офлайн или не хотите трогать облако:
+### Опционально: локальный API
 
 ```bash
-cp .env.example .env          # DATABASE_URL на localhost
-docker compose up -d          # Postgres; файл docker-compose.yml — опциональный
 cd server && npm install && npm run dev
 # app/.env.local:
-#   VITE_API_BASE_URL=
-cd ../app && npm run dev      # пустой base → Vite proxy на :3000
+#   VITE_API_BASE_URL=http://localhost:3000
+cd ../app && npm run dev
 ```
 
+Если нужны лабы именно на Postgres: задайте `DATABASE_URL` (см. `.env.example`) и при желании `docker compose up -d`.
 ## Приложение (`app/`)
 
 Тёмный RemNote-like UI: список тем, чекбоксы «пройдено», теория из markdown, интерактивные лаборатории.
@@ -79,11 +75,11 @@ npm run preview
 В Settings → Pages выберите **GitHub Actions**. После пуша сайт будет на:
 `https://metaloziz.github.io/assessment/`
 
-Прогресс чекбоксов хранится в Postgres через API (`GET/PUT /api/progress`).
+Прогресс чекбоксов хранится в `localStorage` браузера (`assessment-progress`).
 
 ## Сервер (`server/`)
 
-Fastify + Drizzle + Postgres. Smoke-роуты: `/api/health`, `/api/demo/echo`, `/api/demo/db-ping`.
+Fastify (+ опционально Drizzle/Postgres). Без `DATABASE_URL` лабы и `db-ping` работают в memory-режиме. Smoke: `/api/health`, `/api/demo/echo`, `/api/demo/db-ping`.
 
 Env: корневой `.env` / `server/.env` / переменные хостинга — см. [`.env.example`](.env.example).
 

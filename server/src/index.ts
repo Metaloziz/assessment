@@ -11,13 +11,12 @@ import { cacheLabRoutes } from './routes/cacheLab.js'
 import { workersLabRoutes } from './routes/workersLab.js'
 import { realtimeLabRoutes } from './routes/realtimeLab.js'
 import { wsDebugLabRoutes } from './routes/wsDebugLab.js'
-import { progressRoutes } from './routes/progress.js'
 import { perfLabRoutes } from './routes/perfLab.js'
 import { cookiesLabRoutes } from './routes/cookiesLab.js'
 import { csrfLabRoutes } from './routes/csrfLab.js'
 import { ssrLabRoutes } from './routes/ssrLab.js'
 import { modulesGlobalsLabRoutes } from './routes/modulesGlobalsLab.js'
-import { sqlClient } from './db.js'
+import { sqlClient, usingPostgres } from './db.js'
 
 const app = Fastify({ logger: true })
 
@@ -40,14 +39,13 @@ await app.register(cacheLabRoutes)
 await app.register(workersLabRoutes)
 await app.register(realtimeLabRoutes)
 await app.register(wsDebugLabRoutes)
-await app.register(progressRoutes)
 await app.register(perfLabRoutes)
 await app.register(ssrLabRoutes)
 await app.register(modulesGlobalsLabRoutes)
 
 const shutdown = async () => {
   await app.close()
-  await sqlClient.end({ timeout: 5 })
+  if (sqlClient) await sqlClient.end({ timeout: 5 })
   process.exit(0)
 }
 
@@ -56,7 +54,9 @@ process.on('SIGTERM', () => void shutdown())
 
 try {
   await app.listen({ port: env.port, host: env.host })
-  app.log.info(`assessment-server on http://${env.host}:${env.port}`)
+  app.log.info(
+    `assessment-server on http://${env.host}:${env.port} (storage=${usingPostgres() ? 'postgres' : 'memory'})`,
+  )
 } catch (err) {
   app.log.error(err)
   process.exit(1)

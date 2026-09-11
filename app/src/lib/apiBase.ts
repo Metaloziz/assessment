@@ -1,10 +1,10 @@
-/** Render API — remote-first default for `npm run dev` when env is unset. */
-const DEV_API_BASE_URL = 'https://assessment-api-fm0e.onrender.com'
+/** Public Render API — default for GitHub Pages + local `npm run dev` when env is unset. */
+const DEFAULT_API_BASE_URL = 'https://assessment-api-fm0e.onrender.com'
 
-/** Base URL for API. From `VITE_API_BASE_URL` (dev: `.env.development` → Render). Empty in prod → same origin. */
+/** Base URL for API. Prefer `VITE_API_BASE_URL`; else the public Render stand (Pages-safe). */
 export function apiUrl(path: string): string {
   const fromEnv = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.trim()
-  const base = (fromEnv || (import.meta.env.DEV ? DEV_API_BASE_URL : '')).replace(/\/$/, '')
+  const base = (fromEnv || DEFAULT_API_BASE_URL).replace(/\/$/, '')
   const normalized = path.startsWith('/') ? path : `/${path}`
   return `${base}${normalized}`
 }

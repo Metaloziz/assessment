@@ -19,6 +19,11 @@ app/.env
 app/.env.local
 app/.env.*.local
 
+# Dependencies / package managers (root has no package.json — npm/yarn here is a mistake)
+node_modules/
+package-lock.json
+yarn.lock
+
 # App
 app/node_modules/
 app/dist/

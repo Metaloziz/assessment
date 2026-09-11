@@ -1,6 +1,6 @@
 import type { ContentSource, TopicDetail, TopicSummary } from './types'
 import { parseTopicMd, toSummary } from './parseTopicMd'
-import { TOPIC_GROUPS, HIDDEN_TOPIC_IDS } from './groups'
+import { TOPIC_GROUPS, HIDDEN_TOPIC_IDS, compareTopicsInGroup } from './groups'
 
 const markdownModules = import.meta.glob('@topics/*.md', {
   query: '?raw',
@@ -28,7 +28,7 @@ function loadAll(): TopicDetail[] {
         const gb = TOPIC_GROUPS.find((g) => g.id === b.groupId)?.order ?? 99
         return ga - gb
       }
-      return a.sortInGroup - b.sortInGroup || a.order - b.order
+      return compareTopicsInGroup(a, b)
     })
 }
 

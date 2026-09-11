@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import type { TopicSummary } from '../content'
-import { contentSource, TOPIC_GROUPS, LEVEL_META } from '../content'
+import { contentSource, TOPIC_GROUPS, LEVEL_META, compareTopicsInGroup } from '../content'
 import { TopicCheckbox } from '../components/TopicCheckbox'
 import { LevelBadge } from '../components/LevelBadge'
 import { useProgressHydrated } from '../hooks/useProgressHydrated'
@@ -83,10 +83,7 @@ export function TopicSidebar() {
 
     return TOPIC_GROUPS.map((group) => ({
       group,
-      topics: (byGroup.get(group.id) ?? []).slice().sort((a, b) => {
-        if (a.sortInGroup !== b.sortInGroup) return a.sortInGroup - b.sortInGroup
-        return a.order - b.order
-      }),
+      topics: (byGroup.get(group.id) ?? []).slice().sort(compareTopicsInGroup),
     })).filter((entry) => entry.topics.length > 0)
   }, [filtered])
 

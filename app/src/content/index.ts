@@ -8,6 +8,7 @@ export {
   LEVEL_META,
   TOPIC_META,
   resolveTopicMeta,
+  compareTopicsInGroup,
 } from './groups'
 export type { TopicGroup, TopicGroupId } from './groups'
 
