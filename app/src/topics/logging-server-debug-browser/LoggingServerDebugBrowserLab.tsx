@@ -185,7 +185,7 @@ function reducedMotion() {
   )
 }
 
-function nodeCls(...parts: Array<string | false | undefined>) {
+function nodeCls(...parts: Array<string | false | null | undefined>) {
   return [labVizStyles.node, ...parts.filter(Boolean)].join(' ')
 }
 
